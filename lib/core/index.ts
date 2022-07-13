@@ -291,6 +291,7 @@ export class GettersAndSetters<Props> {
 	}
 
 	updateTo<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean) {
+		if (this.config?.deactivateSetters) return this;
 		if (typeof validation === 'function') {
 			if (!validation(value)) return this;
 		}
