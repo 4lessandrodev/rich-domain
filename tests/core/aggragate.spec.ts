@@ -1,4 +1,4 @@
-import { Aggregate, ID, Result } from "../../lib/core";
+import { Aggregate, Result } from "../../lib/core";
 
 describe('aggregate', () => {
 
@@ -28,15 +28,15 @@ describe('aggregate', () => {
 			private constructor(props: Props, id?: string) {
 				super(props, id)
 			}
-
-			public static create(props: Props, id?: string): Result<Aggregate<Props>, string> {
+			
+			public static create(props: Props, id?: string): Result<BasicAggregate> {
 				return Result.success(new BasicAggregate(props, id));
 			}
 		}
 
 		it('should create a basic aggregate with success', () => {
 			const agg = BasicAggregate.create({ name: 'Jane Doe', age: 21 });
-
+	
 			expect(agg.value().id).toBeDefined();
 
 			expect(agg.value().isNew()).toBeTruthy();

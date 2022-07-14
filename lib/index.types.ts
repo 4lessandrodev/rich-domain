@@ -1,8 +1,10 @@
-export interface IResult<T, D> {
+export interface IResult<T, D = string, M = {}> {
 	value(): T;
 	error(): D;
 	isFailure(): boolean;
 	isSuccess(): boolean;
+	metaData(): M;
+	toObject(): IResultObject<T, D, M>;
 }
 
 export interface IDomainID<T> {
