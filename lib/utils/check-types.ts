@@ -80,6 +80,7 @@ export class ValidateType {
 			isNegative: (): boolean => target < 0,
 			isPair: (): boolean => target % 2 === 0,
 			isInteger: (): boolean => target - Math.trunc(target) === 0,
+			isBetween: (min: number, max: number): boolean => target < max && target > min
 		}
 	}
 	string(target: string) {

@@ -668,7 +668,7 @@ export abstract class Entity<Props extends {}> extends GettersAndSetters<Props> 
 	 * @returns instance of result with a new Entity on state if success.
 	 * @summary result state will be `null` case failure.
 	 */
-	public static create(props: {}, id?: string): IResult<Entity<any>, any, any> {
+	public static create(props: any, id?: string): IResult<Entity<any>, any, any> {
 		return Result.fail('Static method [create] not implemented on entity ' + this.name);
 	};
 }
@@ -701,7 +701,7 @@ export abstract class Aggregate<Props extends {}> extends Entity<Props> {
 	 * @returns instance of result with a new Aggregate on state if success.
 	 * @summary result state will be `null` case failure.
 	 */
-	public static create(props: {}, id?: string): IResult<Aggregate<any>, any, any> {
+	public static create(props: any, id?: string): IResult<Aggregate<any>, any, any> {
 		return Result.fail('Static method [create] not implemented on aggregate ' + this.name);
 	};
 }
@@ -721,9 +721,9 @@ export abstract class ValueObject<Props> extends GettersAndSetters<Props> {
 	
 	/**
 	 * @description Method to validate prop value.
-	 * @param props value to validate
+	 * @param value to validate
 	 */
-	public static isValidValue(props: any): boolean {
+	public static isValidValue(value: any): boolean {
 		throw new Error('Static method [isValidValue] not implemented on ' + this.name)
 	};
 

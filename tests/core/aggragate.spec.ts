@@ -1,4 +1,5 @@
-import { Aggregate, Result } from "../../lib/core";
+import { Aggregate, Result, ValueObject } from "../../lib/core";
+import { IResult } from "../../lib/index.types";
 
 describe('aggregate', () => {
 
@@ -68,5 +69,90 @@ describe('aggregate', () => {
 			expect(agg.value().get('age')).toBe(21);
 			expect(agg.value().get('name')).toBe('Louse');
 		});
+	});
+
+	describe('aggregate with value objects', () => {
+
+		interface Props { value: number };
+
+		class AgeVo extends ValueObject<Props>{
+			private constructor(props: Props) {
+				super(props)
+			}
+
+			public static isValidValue(value: number): boolean {
+				return this.validator.number(value).isBetween(0, 130);
+			}
+
+			public static create(props: Props): IResult<ValueObject<Props>> {
+				if (!this.isValidValue(props.value)) return Result.fail('Invalid value');
+				return Result.success(new AgeVo(props));
+			}
+		}
+
+		it('should returns false if provide a negative value', () => {
+			expect(AgeVo.isValidValue(-1)).toBeFalsy();
+		});
+
+		it('should returns false if provide a value greater than 129', () => {
+			expect(AgeVo.isValidValue(130)).toBeFalsy();
+		});
+
+		it('should returns true if number is greater than 0 and less than 130', () => {
+			expect(AgeVo.isValidValue(1)).toBeTruthy();
+			expect(AgeVo.isValidValue(129)).toBeTruthy();
+		});
+
+		interface AggProps {
+			age: AgeVo;
+		}
+		class UserAgg extends Aggregate<AggProps>{
+			private constructor(props: AggProps, id?: string) {
+				super(props, id);
+			}
+			
+			public static create(props: AggProps, id?: string): IResult<Aggregate<AggProps>> {
+				return Result.success(new UserAgg(props, id));
+			}
+		}
+
+		it('should create a user with success', () => {
+
+			const age = AgeVo.create({ value: 21 }).value();
+			const user = UserAgg.create({ age });
+
+			expect(user.isSuccess()).toBeTruthy();
+			
+		});
+
+		it('should get value from age with success', () => {
+
+			const age = AgeVo.create({ value: 21 }).value();
+			const user = UserAgg.create({ age }).value();
+
+			const result = user
+				.get('age')
+				.get('value');
+
+			expect(result).toBe(21);
+			
+		});
+
+		it('should set a new age with success', () => {
+
+			const age = AgeVo.create({ value: 21 }).value();
+			const user = UserAgg.create({ age }).value();
+
+			expect(user.get('age').get('value')).toBe(21);
+
+			const age18 = AgeVo.create({ value: 18 }).value();
+			const result = user
+				.set('age')
+				.toValue(age18);
+
+			expect(result.get('age').get('value')).toBe(18);
+			
+		});
+
 	});
 });
