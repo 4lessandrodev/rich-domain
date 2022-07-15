@@ -450,7 +450,7 @@ export class GettersAndSetters<Props> {
 					if (!validation(value)) return this;
 				}
 				this.props[key] = value;
-				this.props = Object.assign({}, { ...this.props }, { createdAt: new Date() });
+				this.props = Object.assign({}, { ...this.props }, { updatedAt: new Date() });
 				return this;
 			}
 		}
