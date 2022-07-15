@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import {
-	GetterAndSetterSettings,
+	ISettings,
 	ICommand,
 	IDomainID,
 	IIterator,
@@ -404,15 +404,13 @@ export class Result<T, D = string, M = {}> implements IResult<T, D, M> {
 
 export class GettersAndSetters<Props> {
 	protected props: Props;
-	protected config: GetterAndSetterSettings;
+	protected config: ISettings = { className: '', deactivateGetters: false, deactivateSetters: false };
 
-	constructor(props: Props, config?: GetterAndSetterSettings) {
+	constructor(props: Props, config?: ISettings) {
 		this.props = props;
-		this.config = config ?? {
-			deactivateGetters: false,
-			deactivateSetters: false,
-			className: ''
-		}
+		this.config.className = config?.className ?? '';
+		this.config.deactivateGetters = config?.deactivateGetters ?? false;
+		this.config.deactivateSetters = config?.deactivateSetters ?? false;
 	}
 
 	protected getter(key: keyof Props) {
@@ -432,7 +430,7 @@ export class GettersAndSetters<Props> {
 	/**
 	 * 
 	 * @param key the property you want to set.
-	 * @returns toValue function asking the value you want to set.
+	 * @returns to function asking the value you want to set.
 	 */
 	set<Key extends keyof Props>(key: Key) {
 		return {
@@ -444,7 +442,7 @@ export class GettersAndSetters<Props> {
 			 * (value: PropValue) => boolean;
 			 * @returns instance of this.
 			 */
-			toValue: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => {
+			to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => {
 				if (this.config?.deactivateSetters) return this;
 				if (typeof validation === 'function') {
 					if (!validation(value)) return this;
@@ -461,7 +459,7 @@ export class GettersAndSetters<Props> {
 	 * @param validation function to validate the value before apply. The value will be applied only if to pass.
 	 * @returns instance of own class.
 	 */
-	updateTo<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean) {
+	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean) {
 		if (this.config?.deactivateSetters) return this;
 		if (typeof validation === 'function') {
 			if (!validation(value)) return this;
@@ -471,6 +469,11 @@ export class GettersAndSetters<Props> {
 	}
 }
 
+/**
+ * @description Identity to Entity and Aggregates
+ * @method create
+ * @param value as string
+ */
 export class ID<T = string> implements IDomainID<T> {
 	private _value: T;
 	private _isNew: boolean;
@@ -522,7 +525,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @description Get the id value.
 	 * @returns id value as string or number.
 	 */
-	get value(): T {
+	value(): T {
 		return this._value;
 	}
 
@@ -535,7 +538,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @example 
 	 * ID.create() // this is a new one because none args was provided.
 	 */
-	get isNew(): boolean {
+	isNew(): boolean {
 		return this._isNew;
 	}
 
@@ -543,7 +546,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @description Get created date
 	 * @returns date
 	 */
-	get createdAt(): Date {
+	createdAt(): Date {
 		return this._createdAt;
 	}
 
@@ -562,8 +565,8 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @returns `true` if provided id value and instance value has the same value and `false` if not.
 	 */
 	equal(id: IDomainID<any>): boolean {
-		if (typeof this._value === typeof id.value) 
-			return this._value as any === id.value as any;
+		if (typeof this._value === typeof id.value()) 
+			return this._value as any === id.value() as any;
 		return false;
 	}
 	
@@ -627,7 +630,7 @@ export class Entity<Props extends {}> extends GettersAndSetters<Props> {
 	public static validator: ValidateType = ValidateType.create();
 	public validator: ValidateType = ValidateType.create();
 
-	constructor(props: Props, id?: string, config?: GetterAndSetterSettings) { 
+	constructor(props: Props, id?: string, config?: ISettings) { 
 		super(props, config);
 		this.props = props;
 		this._id = ID.create(id);
@@ -650,7 +653,7 @@ export class Entity<Props extends {}> extends GettersAndSetters<Props> {
 	 * @summary className is defined on constructor config param
 	 */
 	hashCode(): IDomainID<string> {
-		return ID.create(`[Entity@${this.config?.className??''}]:${this.id.value}`);
+		return ID.create(`[Entity@${this.config?.className}]:${this.id.value()}`);
 	}
 
 	/**
@@ -659,7 +662,7 @@ export class Entity<Props extends {}> extends GettersAndSetters<Props> {
 	 * @summary new instance: not saved on database yet.
 	 */
 	isNew(): boolean {
-		return this.id.isNew;
+		return this.id.isNew();
 	}
 
 	/**
@@ -679,7 +682,7 @@ export class Entity<Props extends {}> extends GettersAndSetters<Props> {
 	 */
 	public static create(props: any, id?: string): IResult<Entity<any>, any, any> {
 		if(!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
-		return Result.success(new this(props, id));
+		return Result.success(new this(props, id, { className: this.name }));
 	};
 }
 
@@ -688,7 +691,7 @@ export class Entity<Props extends {}> extends GettersAndSetters<Props> {
  */
 export class Aggregate<Props extends OBJ> extends Entity<Props> {
 
-	constructor(props: Props, id?: string, config?: GetterAndSetterSettings) { 
+	constructor(props: Props, id?: string, config?: ISettings) { 
 		super(props, id, config);
 	}
 
@@ -701,7 +704,7 @@ export class Aggregate<Props extends OBJ> extends Entity<Props> {
 	 * @summary className is defined on constructor config param
 	 */
 	public hashCode(): IDomainID<string> {
-		return ID.create(`[Aggregate@${this.config?.className??''}]:${this.id.value}`);
+		return ID.create(`[Aggregate@${this.config?.className}]:${this.id.value()}`);
 	}
 	
 	/**
@@ -713,7 +716,7 @@ export class Aggregate<Props extends OBJ> extends Entity<Props> {
 	 */
 	public static create(props: any, id?: string): IResult<Aggregate<any>, any, any> {
 		if(!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
-		return Result.success(new this(props, id));
+		return Result.success(new this(props, id, { className: this.name }));
 	};
 }
 
@@ -725,7 +728,7 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	public static validator: ValidateType = ValidateType.create();
 	public validator: ValidateType = ValidateType.create();
 
-	constructor(props: Props, config?: GetterAndSetterSettings) {
+	constructor(props: Props, config?: ISettings) {
 		super(props, config);
 		this.props = props;
 	}
@@ -746,6 +749,6 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	 */
 	public static create(props: any): IResult<ValueObject<any>, any, any> {
 		if (!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
-		return Result.success(new this(props));
+		return Result.success(new this(props, { className: this.name }));
 	};
 }

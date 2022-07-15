@@ -1,3 +1,18 @@
+/**
+ * @summary The result is used to returns a operation result instead the own value.
+ * @interface IResult<T, D, M>;
+ * @classdesc on `T` refer to type of the value and `D` type of the error and `M` metaData type.
+ * @default D is string.
+ * @default M is empty object {}.
+ * 
+ * @method `value()` get result value. return null if result is failure.
+ * @method `error()` get result error. returns null if result is success.
+ * @method `isFailure()` check is result is failure
+ * @method `isSuccess()` check if result is success
+ * @method `metaData()` get result metadata
+ * @method `toObject()` get an object with result state
+ * @method `execute()` execute a hook as command on fail or on success
+ */
 export interface IResult<T, D = string, M = {}> {
 	value(): T;
 	error(): D;
@@ -5,17 +20,21 @@ export interface IResult<T, D = string, M = {}> {
 	isSuccess(): boolean;
 	metaData(): M;
 	toObject(): IResultObject<T, D, M>;
+	execute:<X, Y>(command: ICommand<X|void, Y>)=>IResultExecute<X, Y>;
 }
 
+/**
+ * 
+ */
 export interface IDomainID<T> {
 
 	toShort(): IDomainID<T>;
 
-	get value(): T;
+	value(): T;
 
-	get isNew(): boolean;
+	isNew(): boolean;
 
-	get createdAt(): Date;
+	createdAt(): Date;
 
 	isShortID(): boolean;
 
@@ -28,12 +47,18 @@ export interface IDomainID<T> {
 	clone(): IDomainID<T>;
 }
 
+/**
+ * 
+ */
 export interface ITeratorConfig<T> {
 	initialData?: Array<T>;
 	returnCurrentOnReversion?: boolean;
 	restartOnFinish?: boolean;
 }
 
+/**
+ * 
+ */
 export interface IIterator<T> {
 	hasNext(): boolean;
 
@@ -70,12 +95,21 @@ export interface IIterator<T> {
 	total(): number;
 }
 
+/**
+ * 
+ */
 export type IResultOptions = 'fail' | 'success';
 
+/**
+ * 
+ */
 export interface ICommand<A, B> {
 	execute(data: A): B;
 }
 
+/**
+ * 
+ */
 export type IUseCase<T, D> = ICommand<T, Promise<D>>;
 
 export interface IProxy<T, D> {
@@ -85,7 +119,7 @@ export interface IProxy<T, D> {
 	afterExecute?:<A extends D, B extends D>(data: A) => Promise<B>;
 }
 
-export interface GetterAndSetterSettings {
+export interface ISettings {
 	deactivateGetters?: boolean;
 	deactivateSetters?: boolean;
 	className?: string;

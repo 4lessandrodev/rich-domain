@@ -5,7 +5,7 @@ describe('ID', () => {
 		it('should create a new uuid if not provide value', () => {
 			const uuid = ID.create();
 			expect(uuid).toBeDefined();
-			expect(uuid.isNew).toBeTruthy();
+			expect(uuid.isNew()).toBeTruthy();
 		});
 
 		it('should create different ids', () => {
@@ -19,17 +19,17 @@ describe('ID', () => {
 
 		it('should create a new short id', () => {
 			const shortID = ID.createShort();
-			expect(shortID.isNew).toBeTruthy();
+			expect(shortID.isNew()).toBeTruthy();
 			expect(shortID.isShortID()).toBeTruthy();
-			expect(shortID.value).toHaveLength(16);
+			expect(shortID.value()).toHaveLength(16);
 		});
 
 		it('should create a id with provided value', () => {
 			const value = 'UIASA46-ASD5A-ASD54-ASD5GFJS05D';
 			const id = ID.create(value);
 
-			expect(id.value).toBe(value);
-			expect(id.isNew).toBeFalsy();
+			expect(id.value()).toBe(value);
+			expect(id.isNew()).toBeFalsy();
 			expect(id.isShortID()).toBeFalsy();
 		});
 

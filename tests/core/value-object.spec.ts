@@ -1,5 +1,5 @@
 import { Result, ValueObject } from "../../lib/core";
-import { IResult } from "../../lib/index.types";
+import { ICommand, IResult } from "../../lib/index.types";
 
 describe('value-object', () => {
 
@@ -90,8 +90,38 @@ describe('value-object', () => {
 		it('should change value with success', () => {
 			const obj = StringVo.create({ value: 'Hello World' });
 			expect(obj.value().get('value')).toBe('Hello World');
-			obj.value().set('value').toValue('Changed');
+			obj.value().set('value').to('Changed');
 			expect(obj.value().get('value')).toBe('Changed');
 		});
 	});
+
+	describe('hooks on value object result', () => {
+
+		interface Props { 
+			value: string;
+		};
+
+		class StringVo extends ValueObject<Props>{
+			private constructor(props: Props) {
+				super(props);
+			}
+
+			public static create(props: Props): IResult<ValueObject<Props>, string> {
+				return Result.success(new StringVo(props));
+			}
+		}
+
+		class Command implements ICommand<string, string> {
+			execute(data: string): string {
+				return data;
+			}
+		}
+
+		it('should execute hook on create a valid value object', () => {
+			const data = 'value object created with success';
+			const obj = StringVo.create({ value: 'Hello World' });
+			const payload = obj.execute(new Command()).withData(data).on('success');
+			expect(payload).toBe('value object created with success');
+		});
+	})
 });
