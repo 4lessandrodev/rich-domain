@@ -10,7 +10,8 @@ import {
 	IResultObject,
 	IResultOptions,
 	ITeratorConfig,
-	OBJ
+	OBJ,
+	EntityProps,
 } from "../index.types";
 import { ValidateType } from '../utils/check-types';
 
@@ -404,6 +405,7 @@ export class Result<T, D = string, M = {}> implements IResult<T, D, M> {
 
 export class GettersAndSetters<Props> {
 	protected props: Props;
+
 	protected config: ISettings = { className: '', deactivateGetters: false, deactivateSetters: false };
 
 	constructor(props: Props, config?: ISettings) {
@@ -448,6 +450,7 @@ export class GettersAndSetters<Props> {
 					if (!validation(value)) return this;
 				}
 				this.props[key] = value;
+				this.props = Object.assign({}, { ...this.props }, { createdAt: new Date() });
 				return this;
 			}
 		}
@@ -465,6 +468,7 @@ export class GettersAndSetters<Props> {
 			if (!validation(value)) return this;
 		}
 		this.props[key] = value;
+		this.props = Object.assign({}, { ...this.props }, { createdAt: new Date() });
 		return this;
 	}
 }
@@ -624,8 +628,8 @@ export class ID<T = string> implements IDomainID<T> {
 /**
  * @description Entity identified by an id
  */
-export class Entity<Props extends {}> extends GettersAndSetters<Props> {
-	protected props: Props;
+export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> {
+	protected props: Props & EntityProps;
 	private _id: IDomainID<string>;
 	public static validator: ValidateType = ValidateType.create();
 	public validator: ValidateType = ValidateType.create();
@@ -633,6 +637,7 @@ export class Entity<Props extends {}> extends GettersAndSetters<Props> {
 	constructor(props: Props, id?: string, config?: ISettings) { 
 		super(props, config);
 		this.props = props;
+		this.props = Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props });
 		this._id = ID.create(id);
 	}
 
@@ -689,7 +694,7 @@ export class Entity<Props extends {}> extends GettersAndSetters<Props> {
 /**
  * @description Aggregate identified by an id
  */
-export class Aggregate<Props extends OBJ> extends Entity<Props> {
+export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 
 	constructor(props: Props, id?: string, config?: ISettings) { 
 		super(props, id, config);
@@ -706,7 +711,7 @@ export class Aggregate<Props extends OBJ> extends Entity<Props> {
 	public hashCode(): IDomainID<string> {
 		return ID.create(`[Aggregate@${this.config?.className}]:${this.id.value()}`);
 	}
-	
+
 	/**
 	 * 
 	 * @param props params as Props

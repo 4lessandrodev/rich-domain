@@ -44,13 +44,14 @@ describe('aggregate', () => {
 			private constructor(props: Props, id?: string) {
 				super(props, id)
 			}
-			
+
 			public static create(props: Props, id?: string): Result<BasicAggregate> {
 				return Result.success(new BasicAggregate(props, id));
 			}
 		}
 
 		it('should create a basic aggregate with success', () => {
+
 			const agg = BasicAggregate.create({ name: 'Jane Doe', age: 21 });
 	
 			expect(agg.value().id).toBeDefined();
@@ -171,5 +172,39 @@ describe('aggregate', () => {
 			
 		});
 
+	});
+
+	describe('createdAt and updatedAt', () => {
+
+		interface AggProps {
+			name: string;
+			createdAt?: Date;
+			updatedAt?: Date;
+		}
+		class UserAgg extends Aggregate<AggProps>{
+			private constructor(props: AggProps, id?: string) {
+				super(props, id);
+			}
+			
+			public static create(props: AggProps, id?: string): IResult<Aggregate<AggProps>> {
+				return Result.success(new UserAgg(props, id));
+			}
+		}
+		it('should create a new date if props are defined on props', () => {
+			const agg = UserAgg.create({ name: 'Leticia' });
+
+			expect(agg.value().get('createdAt')).toBeDefined();
+			expect(agg.value().get('createdAt')).toBeDefined();
+		});
+
+		it('should create a date from props if provide value', () => {
+			process.env.TZ = 'UTC';
+			const createdAt = new Date('2022-01-01T03:00:00.000Z');
+			const updatedAt = new Date('2022-01-01T03:00:00.000Z');
+			const agg = UserAgg.create({ name: 'Leticia', createdAt, updatedAt });
+
+			expect(agg.value().get('createdAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
+			expect(agg.value().get('createdAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
+		});
 	});
 });

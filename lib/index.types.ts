@@ -142,3 +142,5 @@ export interface IResultExecute<X, Y> extends IResultHook<Y> {
 }
 
 export type OBJ = {};
+
+export type EntityProps = OBJ | { createdAt?: Date, updatedAt?: Date };
