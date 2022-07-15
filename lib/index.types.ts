@@ -106,3 +106,5 @@ export interface IResultHook<Y> {
 export interface IResultExecute<X, Y> extends IResultHook<Y> {
 	withData(data: X): IResultHook<Y>;
 }
+
+export type OBJ = {};

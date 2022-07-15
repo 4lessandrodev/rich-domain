@@ -9,7 +9,8 @@ import {
 	IResultHook,
 	IResultObject,
 	IResultOptions,
-	ITeratorConfig
+	ITeratorConfig,
+	OBJ
 } from "../index.types";
 import { ValidateType } from '../utils/check-types';
 
@@ -620,7 +621,7 @@ export class ID<T = string> implements IDomainID<T> {
 /**
  * @description Entity identified by an id
  */
-export abstract class Entity<Props extends {}> extends GettersAndSetters<Props> {
+export class Entity<Props extends {}> extends GettersAndSetters<Props> {
 	protected props: Props;
 	private _id: IDomainID<string>;
 	public static validator: ValidateType = ValidateType.create();
@@ -662,6 +663,14 @@ export abstract class Entity<Props extends {}> extends GettersAndSetters<Props> 
 	}
 
 	/**
+	 * @description Method to validate prop value.
+	 * @param value to validate
+	 */
+	public static isValidValue(value: any): boolean {
+		return !this.validator.isUndefined(value) && !this.validator.isNull(value);
+	};
+
+	/**
 	 * 
 	 * @param props params as Props
 	 * @param id optional uuid as string, second arg. If not provided a new one will be generated.
@@ -669,14 +678,15 @@ export abstract class Entity<Props extends {}> extends GettersAndSetters<Props> 
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any, id?: string): IResult<Entity<any>, any, any> {
-		return Result.fail('Static method [create] not implemented on entity ' + this.name);
+		if(!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
+		return Result.success(new this(props, id));
 	};
 }
 
 /**
  * @description Aggregate identified by an id
  */
-export abstract class Aggregate<Props extends {}> extends Entity<Props> {
+export class Aggregate<Props extends OBJ> extends Entity<Props> {
 
 	constructor(props: Props, id?: string, config?: GetterAndSetterSettings) { 
 		super(props, id, config);
@@ -702,14 +712,15 @@ export abstract class Aggregate<Props extends {}> extends Entity<Props> {
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any, id?: string): IResult<Aggregate<any>, any, any> {
-		return Result.fail('Static method [create] not implemented on aggregate ' + this.name);
+		if(!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
+		return Result.success(new this(props, id));
 	};
 }
 
 /**
  * @description ValueObject an attribute for entity and aggregate
  */
-export abstract class ValueObject<Props> extends GettersAndSetters<Props> {
+export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	protected props: Props;
 	public static validator: ValidateType = ValidateType.create();
 	public validator: ValidateType = ValidateType.create();
@@ -724,7 +735,7 @@ export abstract class ValueObject<Props> extends GettersAndSetters<Props> {
 	 * @param value to validate
 	 */
 	public static isValidValue(value: any): boolean {
-		throw new Error('Static method [isValidValue] not implemented on ' + this.name)
+		return !this.validator.isUndefined(value) && !this.validator.isNull(value);
 	};
 
 	/**
@@ -734,6 +745,7 @@ export abstract class ValueObject<Props> extends GettersAndSetters<Props> {
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any): IResult<ValueObject<any>, any, any> {
-		return Result.fail('Static method [create] not implemented on value object ' + this.name);
+		if (!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
+		return Result.success(new this(props));
 	};
 }

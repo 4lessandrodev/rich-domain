@@ -3,18 +3,33 @@ import { IResult } from "../../lib/index.types";
 
 describe('aggregate', () => {
 
-	describe('aggregate errors', () => {
-		class AggregateErr extends Aggregate<number> {
-			private constructor(props: number, id?: string) {
+	describe('aggregate native methods', () => {
+
+		interface Props {
+			name: string;
+		}
+
+		class AggregateErr extends Aggregate<Props> {
+			private constructor(props: Props, id?: string) {
 				super(props, id)
 			}
 		}
 
-		it('should fails if static method is not defined', () => {
-			expect.assertions(1);
-			const result = AggregateErr.create('some value');
+		it('should return fails if provide a null value', () => {
+			const obj = AggregateErr.create(null);
+			console.log(obj.error());
+			expect(obj.isFailure()).toBeTruthy();
+		});
 
-			expect(result.error()).toBe('Static method [create] not implemented on aggregate AggregateErr');
+		it('should return fails if provide an undefined value', () => {
+			const obj = AggregateErr.create(undefined);
+			expect(obj.isFailure()).toBeTruthy();
+		});
+
+		it('should create a valid aggregate', () => {
+			const obj = AggregateErr.create({ name: 'Jane' });
+			expect(obj.isFailure()).toBeFalsy();
+			expect(obj.value().get('name')).toBe('Jane');
 		});
 	});
 
