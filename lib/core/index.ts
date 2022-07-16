@@ -12,6 +12,7 @@ import {
 	ITeratorConfig,
 	OBJ,
 	EntityProps,
+	EntityMapperPayload,
 } from "../index.types";
 import { ValidateType } from '../utils/check-types';
 
@@ -633,12 +634,18 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	private _id: IDomainID<string>;
 	public static validator: ValidateType = ValidateType.create();
 	public validator: ValidateType = ValidateType.create();
+	private readonly autoMapper: AutoMapper<Props>;
 
 	constructor(props: Props, id?: string, config?: ISettings) { 
 		super(props, config);
 		this.props = props;
 		this.props = Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props });
 		this._id = ID.create(id);
+		this.autoMapper = new AutoMapper();
+	}
+
+	toObject<T>(): T extends {} ? {[key in keyof Props]: any } : number {
+		return this.autoMapper.entityToObj(this) as any;
 	}
 
 	/**
@@ -732,12 +739,18 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	protected props: Props;
 	public static validator: ValidateType = ValidateType.create();
 	public validator: ValidateType = ValidateType.create();
+	private readonly autoMapper: AutoMapper<Props>;
 
 	constructor(props: Props, config?: ISettings) {
 		super(props, config);
 		this.props = props;
+		this.autoMapper = new AutoMapper();
 	}
 	
+	toObject<T extends {[key in keyof Props]: any }>(): T {
+		return this.autoMapper.valueObjectToObj(this) as T;
+	}
+
 	/**
 	 * @description Method to validate prop value.
 	 * @param value to validate
@@ -756,4 +769,154 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 		if (!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
 		return Result.success(new this(props, { className: this.name }));
 	};
+}
+
+export class AutoMapper<Props> {
+	private validator: ValidateType = ValidateType.create();
+
+	valueObjectToObj(valueObject: ValueObject<Props>): { [key in keyof Props]: any } {
+		// internal state
+		let props = {} as { [key in keyof Props]: any };
+		
+		const isSimpleValue = this.validator.isBoolean(valueObject) ||
+		this.validator.isNumber(valueObject) ||
+		this.validator.isString(valueObject) ||
+		this.validator.isObject(valueObject) ||
+		this.validator.isDate(valueObject);
+
+		if (isSimpleValue) return valueObject as { [key in keyof Props]: any };
+
+		const isID = this.validator.isID(valueObject);
+
+		const id: ID<any> = valueObject as unknown as ID<any>;
+
+		if (isID) return id?.value();
+
+		// props
+		const voProps = valueObject?.['props'];
+
+		const isSimp = this.validator.isBoolean(voProps) ||
+		this.validator.isNumber(voProps) ||
+		this.validator.isString(voProps) ||
+		this.validator.isDate(voProps);
+
+		if (isSimp) return voProps;
+
+		const keys: Array<keyof Props> = Object.keys(voProps) as Array<keyof Props>;
+
+		const values = keys.map((key) => {
+			
+			const isVo = this.validator.isValueObject(voProps?.[key]);
+
+			if (isVo) return this.valueObjectToObj(voProps?.[key] as any);
+
+			const isSimpleValue = this.validator.isBoolean(voProps?.[key]) ||
+				this.validator.isNumber(voProps?.[key]) ||
+				this.validator.isString(voProps?.[key]) ||
+				this.validator.isObject(voProps?.[key]) ||
+				this.validator.isDate(voProps?.[key]);
+			
+			if (isSimpleValue) return voProps?.[key];
+
+			const isID = this.validator.isID(voProps?.[key]);
+
+			const id: ID<string> = voProps?.[key] as unknown as ID<string>;
+
+			if (isID) return id.value();
+
+			const isArray = this.validator.isArray(voProps?.[key]);
+
+			if (isArray) {
+				let arr: Array<any> = voProps?.[key] as unknown as Array<any>;
+				const results: Array<any> = [];
+
+				arr.forEach((data) => {
+
+					const result = this.valueObjectToObj(data);
+					results.push(result);
+
+				});
+
+				return results;
+			}
+			
+		});
+
+		const hasUniqueValue = values.length === 1;
+
+		props = {} as { [key in keyof Props]: any };
+
+		if (!hasUniqueValue) {
+			values.forEach((value, i) => {
+				props = Object.assign({}, { ...props }, { [keys[i]]: value })
+			});
+		}
+
+		return hasUniqueValue ? values[0] : props as any;
+	}
+
+	entityToObj(entity: Entity<Props>): { [key in keyof Props]: any } & EntityMapperPayload {
+		
+		let result = {} as { [key in keyof Props]: any };
+
+		const isEntity = this.validator.isEntity(entity);
+		
+		const isAggregate = this.validator.isAggregate(entity);
+
+		const props = entity?.['props'] ?? {};
+
+		const isValueObject = this.validator.isValueObject(entity);
+
+		const isSimpleValue = this.validator.isBoolean(entity) ||
+			this.validator.isNumber(entity) ||
+			this.validator.isString(entity) ||
+			this.validator.isObject(entity) ||
+			this.validator.isDate(entity);
+		
+		if (isSimpleValue) return entity as any;
+
+		if (isValueObject) return this.valueObjectToObj(entity as any) as any;
+
+		if (isEntity || isAggregate) {
+
+			const id = entity?.id?.value();
+
+			const createdAt = entity?.get('createdAt' as any);
+
+			const updatedAt = entity?.get('updatedAt' as any);
+
+			result = Object.assign({}, { ...result }, { id, createdAt, updatedAt  });
+
+			const keys: Array<keyof Props> = Object.keys(props) as Array<keyof Props>;
+			
+			keys.forEach((key, i) => {
+				
+				const isArray = this.validator.isArray(props?.[key]);
+
+				if (isArray) {
+					const arr: Array<any> = props?.[key] as unknown as Array<any> ?? [];
+
+					const subProps = arr.map(
+						(item) => this.entityToObj(item as any)
+					);
+
+					result = Object.assign({}, { ...result }, { [key]: subProps });
+				}
+
+				const isSimple = this.validator.isValueObject(props?.[key]) ||
+				this.validator.isBoolean(props?.[key]) ||
+				this.validator.isNumber(props?.[key]) ||
+				this.validator.isString(props?.[key]) ||
+				this.validator.isDate(props?.[key]);
+
+				if (isSimple) {
+					const data = this.valueObjectToObj(props[key] as any);
+
+					result = Object.assign({}, { ...result }, { [key]: data });
+				}
+			});
+		}
+
+		return result as any;
+	}
 }
