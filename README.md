@@ -32,8 +32,10 @@ export class HumanAge extends ValueObject<Props> {
 
 	public static create(props: Props): IResult<HumanAge<Props>> {
 		
+		const message = `${props.value} is an invalid value`;
+
 		// your business validation
-		if(!this.isValidValue(props.value)) return Result.fail(`${props.value} is an invalid value`);
+		if(!this.isValidValue(props.value)) return Result.fail(message);
 
 		return Result.success(new HumanAge(props));
 	}
