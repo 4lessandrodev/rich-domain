@@ -644,7 +644,11 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		this.autoMapper = new AutoMapper();
 	}
 
-	toObject<T>(): T extends {} ? {[key in keyof Props]: any } : number {
+	/**
+	 * @description Get value as object from entity.
+	 * @returns object with properties.
+	 */
+	toObject<T>(): T extends {} ? T & EntityMapperPayload: {[key in keyof Props]: any } & EntityMapperPayload {
 		return this.autoMapper.entityToObj(this) as any;
 	}
 
@@ -747,8 +751,12 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 		this.autoMapper = new AutoMapper();
 	}
 	
-	toObject<T extends {[key in keyof Props]: any }>(): T {
-		return this.autoMapper.valueObjectToObj(this) as T;
+	/**
+	 * @description Get value from value object.
+	 * @returns value as string, number or any type defined.
+	 */
+	toObject<T>(): T {
+		return this.autoMapper.valueObjectToObj(this) as unknown as T;
 	}
 
 	/**

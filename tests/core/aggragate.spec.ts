@@ -213,7 +213,6 @@ describe('aggregate', () => {
 			const updatedAt = new Date('2022-01-01T03:00:00.000Z');
 			const agg = UserAgg.create({ name: 'Leticia', createdAt, updatedAt });
 			expect(agg.value().get('updatedAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
-
 			agg.value().set('name').to('Lana');
 			expect(agg.value().get('updatedAt')).not.toEqual(new Date('2022-01-01T03:00:00.000Z'));
 		});
