@@ -165,21 +165,21 @@ export interface IHistory<Props> {
 	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props>;
 	back(token?: IDomainID<string>): IHistoryProps<Props> | null;
 	forward(token?: IDomainID<string>): IHistoryProps<Props> | null;
-	size(): number;
+	count(): number;
 	list(): Array<IHistoryProps<Props>>;
 }
 
 export interface IEntityHistory<Props> {
 	back(token?: IDomainID<string>): IHistoryProps<Props> | null;
 	forward(token?: IDomainID<string>): IHistoryProps<Props> | null;
-	size(): number;
+	count(): number;
 	list(): Array<IHistoryProps<Props>>;
 }
 
 export interface IPublicHistory<Props> {
-	snapshot(props: IDomainID<string>): IHistoryProps<Props>;
+	snapshot(props?: IDomainID<string>): IHistoryProps<Props>;
 	back(token?: IDomainID<string>): IHistoryProps<Props> | null;
 	forward(token?: IDomainID<string>): IHistoryProps<Props> | null;
-	size(): number;
+	count(): number;
 	list(): Array<IHistoryProps<Props>>;
 }

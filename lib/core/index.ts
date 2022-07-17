@@ -418,9 +418,12 @@ export class Result<T, D = string, M = {}> implements IResult<T, D, M> {
 	}
 }
 
+/**
+ * @description defines getter and setter to all domain instances.
+ */
 export class GettersAndSetters<Props> {
 	protected props: Props;
-	protected readonly _history: IHistory<Props>;
+	protected readonly _MetaHistory: IHistory<Props>;
 
 	protected config: ISettings = { className: '', deactivateGetters: false, deactivateSetters: false };
 
@@ -429,23 +432,20 @@ export class GettersAndSetters<Props> {
 		this.config.className = config?.className ?? '';
 		this.config.deactivateGetters = config?.deactivateGetters ?? false;
 		this.config.deactivateSetters = config?.deactivateSetters ?? false;
-		this._history = history!;
-		// this._history.snapshot({
-		// 	props: props,
-		// 	action: 'create',
-		// 	id: id ?? ID.createShort()
-		// })
+		this._MetaHistory = history!;
 	}
 
-	protected getter(key: keyof Props) {
-		return this.props[key];
-	}
-
+	/**
+	 * @description Create a snapshot as update action.
+	 * @returns void.
+	 * @see change
+	 * @see set
+	 */
 	private snapshotSet() {
-		if (typeof this._history !== 'undefined') {
-			if (this._history.size() === 0) return;
-			const { id } = this._history.list()[0];
-			this._history.snapshot({
+		if (typeof this._MetaHistory !== 'undefined') {
+			if (this._MetaHistory.count() === 0) return;
+			const { id } = this._MetaHistory.list()[0];
+			this._MetaHistory.snapshot({
 				id,
 				action: 'update',
 				props: this.props,
@@ -721,22 +721,51 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		return this.id.isNew();
 	}
 
+	/**
+	 * @description Get a new instanced based on current Entity.
+	 * @param id value to identify the new entity instance.
+	 * @summary if not provide an id a new one will be generated.
+	 * @returns new Entity instance.
+	 */
+	clone(id?: string): IResult<Entity<Props>> {
+		return Entity.bind(this).create(this.props, ID.create(id).value());
+	}
+
+	/**
+	 * @description Manage props state as history.
+	 * @returns IPublicHistory<Props>
+	 */
 	history(): IPublicHistory<Props> {
 		return {
+			/**
+			 * @description Get previous props state and apply to instance.
+			 * @param token a value to identify the target state on history.
+			 * @returns previous state found.
+			 */
 			back: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
-				const prevState = this._history.back(token);
+				const prevState = this._MetaHistory.back(token);
 				super.props = prevState !== null ? prevState?.props : this.props;
 				return prevState;
 			},
 		
+			/**
+			 * @description Get next props state and apply to instance.
+			 * @param token a value to identify the target state on history.
+			 * @returns next state found.
+			 */
 			forward: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
-				const nextState = this._history.forward(token);
+				const nextState = this._MetaHistory.forward(token);
 				this.props = nextState ? nextState?.props : this.props;
 				return nextState;
 			},
 		
+			/**
+			 * @description Create a new snapshot from current state.
+			 * @param token a key to identify the state on history.
+			 * @returns 
+			 */
 			snapshot: (token?: IDomainID<string>): IHistoryProps<Props> => {
-				return this._history.snapshot({
+				return this._MetaHistory.snapshot({
 					action: 'update',
 					id: this.id,
 					props: this.props,
@@ -745,12 +774,20 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 				});
 			},
 
+			/**
+			 * @description Get all props on state as history.
+			 * @returns a list of props on state.
+			 */
 			list: (): IHistoryProps<Props>[] => {
-				return this._history.list()
+				return this._MetaHistory.list()
 			},
 
-			size: (): number => {
-				return this._history.size()
+			/**
+			 * @description Get total of props on state as history.
+			 * @returns total of props on state.
+			 */
+			count: (): number => {
+				return this._MetaHistory.count()
 			},
 		}	
 	}
@@ -831,21 +868,34 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 
 	history(): IPublicHistory<Props> {
 		return {
+			/**
+			 * @description Get previous props state and apply to instance.
+			 * @param token a value to identify the target state on history.
+			 * @returns previous state found.
+			 */
 			back: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
-				const prevState = this._history.back(token);
+				const prevState = this._MetaHistory.back(token);
 				this.props = prevState ? prevState?.props : this.props;
 				return prevState;
 			},
-		
+			/**
+			 * @description Get next props state and apply to instance.
+			 * @param token a value to identify the target state on history.
+			 * @returns next state found.
+			 */
 			forward: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
-				const nextState = this._history.forward(token);
+				const nextState = this._MetaHistory.forward(token);
 				this.props = nextState ? nextState?.props : this.props;
 				return nextState;
 			},
-		
+			/**
+			 * @description Create a new snapshot from current state.
+			 * @param token a key to identify the state on history.
+			 * @returns 
+			 */
 			snapshot: (token?: IDomainID<string>): IHistoryProps<Props> => {
-				const first = this._history.list()[0];
-				return this._history.snapshot({
+				const first = this._MetaHistory.list()[0];
+				return this._MetaHistory.snapshot({
 					action: 'update',
 					id: first ? first.id: ID.createShort(),
 					props: this.props,
@@ -853,15 +903,29 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 					token
 				});
 			},
-
+			/**
+			 * @description Get all props on state as history.
+			 * @returns a list of props on state.
+			 */
 			list: (): IHistoryProps<Props>[] => {
-				return this._history.list()
+				return this._MetaHistory.list()
 			},
-
-			size: (): number => {
-				return this._history.size();
+			/**
+			 * @description Get total of props on state as history.
+			 * @returns total of props on state.
+			 */
+			count: (): number => {
+				return this._MetaHistory.count();
 			}
 		}	
+	}
+
+	/**
+	 * @description Get an instance copy.
+	 * @returns a new instance of value object.
+	 */
+	clone(): IResult<ValueObject<Props>> {
+		return ValueObject.bind(this).create(this.props);
 	}
 
 	/**
@@ -892,9 +956,17 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	};
 }
 
+/**
+ * @description Auto Mapper transform a domain resource into object.
+ */
 export class AutoMapper<Props> {
 	private validator: ValidateType = ValidateType.create();
 
+	/**
+	 * @description Transform a value object into a simple value.
+	 * @param valueObject as instance.
+	 * @returns an object or a value object value.
+	 */
 	valueObjectToObj(valueObject: ValueObject<Props>): { [key in keyof Props]: any } {
 		// internal state
 		let props = {} as { [key in keyof Props]: any };
@@ -976,6 +1048,11 @@ export class AutoMapper<Props> {
 		return hasUniqueValue ? values[0] : props as any;
 	}
 
+	/**
+	 * @description Transform a entity into a simple object.
+	 * @param entity instance.
+	 * @returns a simple object.
+	 */
 	entityToObj(entity: Entity<Props>): { [key in keyof Props]: any } & EntityMapperPayload {
 		
 		let result = {} as { [key in keyof Props]: any };
@@ -1042,6 +1119,10 @@ export class AutoMapper<Props> {
 	}
 }
 
+/**
+ * @description Manage state props as history.
+ */
+
 export class History<Props> implements IHistory<Props> {
 	private readonly iterator: IIterator<IHistoryProps<Props>>;
 
@@ -1057,6 +1138,11 @@ export class History<Props> implements IHistory<Props> {
 		});
 	}
 
+	/**
+	 * 
+	 * @param token ID as token.
+	 * @returns true if token already exists for some prop state on history and false if not.
+	 */
 	private tokenAlreadyExists(token: IDomainID<string>): boolean {
 		const iterate = this.iterator.clone();
 		iterate.toLast();
@@ -1067,10 +1153,18 @@ export class History<Props> implements IHistory<Props> {
 		return false;
 	}
 
+	/**
+	 * @description Get all props on state as history.
+	 * @returns a list of props on state.
+	 */
 	list(): IHistoryProps<Props>[] {
 		return this.iterator.toArray();
 	}
-
+	/**
+	 * @description Create a new snapshot from current state.
+	 * @param props to be pushed into history.
+	 * @returns props pushed.
+	 */
 	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props> {
 		const token = props.token?.toShort() ?? ID<string>.createShort();
 		const tokenAlreadyExists = (this.tokenAlreadyExists(token));
@@ -1081,7 +1175,11 @@ export class History<Props> implements IHistory<Props> {
 		this.iterator.toLast();
 		return props;
 	}
-
+	/**
+	 * @description Get previous props state and apply to instance.
+	 * @param token a value to identify the target state on history.
+	 * @returns previous state found or null if not found.
+	 */
 	back(token?: ID<string>): IHistoryProps<Props> | null {
 		this.iterator.prev();
 		
@@ -1098,6 +1196,11 @@ export class History<Props> implements IHistory<Props> {
 		return this.iterator.first();
 	}
 
+	/**
+	 * @description Get next props state and apply to instance.
+	 * @param token a value to identify the target state on history.
+	 * @returns next state found or null if not found.
+	 */
 	forward(token?: ID<string>): IHistoryProps<Props> | null {
 		this.iterator.next();
 
@@ -1113,8 +1216,12 @@ export class History<Props> implements IHistory<Props> {
 		this.iterator.toLast();
 		return this.iterator.last();
 	}
-	
-	size(): number {
+
+	/**
+	 * @description Get total of props on state as history.
+	 * @returns total of props on state.
+	 */
+	count(): number {
 		return this.iterator.total();
 	}
 

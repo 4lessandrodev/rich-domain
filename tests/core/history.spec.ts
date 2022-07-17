@@ -16,17 +16,17 @@ describe('history', () => {
 
 		const history = new History<{ name: string }>(makeHistory('Jane Doe', 'create'));
 		it('should create a initial data as create if provide props', () => {
-			expect(history.size()).toBe(1);
+			expect(history.count()).toBe(1);
 		});
 
 		it('should add new history', () => {
 			history.snapshot(makeHistory('Janet Lion', 'update'));
-			expect(history.size()).toBe(2);
+			expect(history.count()).toBe(2);
 		});
 
 		it('should add new history', () => {
 			history.snapshot(makeHistory('Margot Simpson', 'update'));
-			expect(history.size()).toBe(3);
+			expect(history.count()).toBe(3);
 		});
 
 		it('should back one step on history', () => {

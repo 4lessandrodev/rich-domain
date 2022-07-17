@@ -1,6 +1,6 @@
 {
-  "name": "types-ddd-v2",
-  "version": "1.0.0",
+  "name": "rich-domain",
+  "version": "1.0.0-beta",
   "main": "index.js",
   "license": "MIT",
   "devDependencies": {

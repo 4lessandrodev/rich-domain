@@ -165,7 +165,7 @@ describe('aggregate', () => {
 
 			const age18 = AgeVo.create({ value: 18 }).value();
 			
-			expect(user.history().size()).toBe(1);
+			expect(user.history().count()).toBe(1);
 
 			const result = user
 				.set('age')
@@ -173,7 +173,7 @@ describe('aggregate', () => {
 			
 			expect(result.get('age').get('value')).toBe(18);
 			
-			expect(user.history().size()).toBe(2);
+			expect(user.history().count()).toBe(2);
 
 			user.history().back();
 
