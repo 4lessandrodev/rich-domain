@@ -147,7 +147,7 @@ console.log(user.value().toObject());
 	age: 21 ,
 	name: "Jane Doe", 
 	createdAt: "2022-07-17T18:06:35.986Z",
-	updatedAt: "2022-07-17T18:06:35.986Z"
+	updatedAt: "2022-07-17T18:06:35.986Z",
 	id: "51ac507e-78e3-433e-8c72-c807d4ee6c4c"
 }
 
