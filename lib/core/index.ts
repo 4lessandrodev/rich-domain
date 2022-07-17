@@ -480,7 +480,7 @@ export class GettersAndSetters<Props> {
 			 * (value: PropValue) => boolean;
 			 * @returns instance of this.
 			 */
-			to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => {
+			to: (value: Props[Key], validation?: (value: Props[Key]) => boolean):  GettersAndSetters<Props> => {
 				if (this.config?.deactivateSetters) return this;
 				if (typeof validation === 'function') {
 					if (!validation(value)) return this;
@@ -1087,7 +1087,7 @@ export class AutoMapper<Props> {
 
 			const keys: Array<keyof Props> = Object.keys(props) as Array<keyof Props>;
 			
-			keys.forEach((key, i) => {
+			keys.forEach((key) => {
 				
 				const isArray = this.validator.isArray(props?.[key]);
 

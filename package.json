@@ -1,16 +1,54 @@
 {
-  "name": "rich-domain",
-  "version": "1.0.0-beta",
-  "main": "index.js",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/jest": "^28.1.4",
-    "jest": "^28.1.2",
-    "ts-jest": "^28.0.5",
-    "ts-node": "^10.8.2",
-    "typescript": "^4.7.4"
-  },
-  "scripts": {
-    "test": "jest --runInBand"
-  }
+	"name": "rich-domain",
+	"version": "1.0.0-beta",
+	"description": "This package provide utils file and interfaces to assistant build a complex application with domain driving design",
+	"main": "dist/core/index.js",
+	"types": "dist/core/index.d.ts",
+	"author": "Alessandro Dev",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/4lessandrodev/rich-domain.git"
+	},
+	"bugs": {
+		"url": "https://github.com/4lessandrodev/rich-domain/issues"
+	},
+	"homepage": "https://github.com/4lessandrodev/rich-domain",
+	"license": "MIT",
+	"engines": {
+		"node": ">=14"
+	},
+	"devDependencies": {
+		"@types/jest": "^28.1.4",
+		"jest": "^28.1.2",
+		"madge": "^5.0.1",
+		"rimraf": "^3.0.2",
+		"ts-jest": "^28.0.5",
+		"ts-node": "^10.8.2",
+		"typescript": "^4.7.4"
+	},
+	"keywords": [
+		"Complexity",
+		"NodeJS",
+		"Business Logic",
+		"DDD",
+		"Domain Driving Design",
+		"Typescript",
+		"DDD-Utils",
+		"Base Entity",
+		"Base Aggregate",
+		"Base Value Object",
+		"Use Cases",
+		"Domain Events",
+		"Clean Architecture"
+	],
+	"scripts": {
+		"test": "jest --runInBand",
+		"prebuild": "rimraf ./dist && npm run check:circular-deps",
+		"build": "tsc -p tsconfig.lib.json",
+		"check:circular-deps": "madge --circular --extensions ts ./lib"
+	},
+	"files": [
+		"dist/*",
+		"package.json"
+	]
 }
