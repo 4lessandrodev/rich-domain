@@ -13,6 +13,9 @@ import {
 	OBJ,
 	EntityProps,
 	EntityMapperPayload,
+	IHistoryProps,
+	IHistory,
+	IPublicHistory,
 } from "../index.types";
 import { ValidateType } from '../utils/check-types';
 
@@ -223,6 +226,17 @@ export class Iterator<T> implements IIterator<T> {
 	}
 
 	/**
+	 * @description Create a new instance of Iterator and keep current state.
+	 * @returns a new instance of Iterator with state.
+	 */
+	clone(): IIterator<T> {
+		return Iterator.create({
+			initialData: this.toArray(),
+			restartOnFinish: this.restartOnFinish,
+			returnCurrentOnReversion: this.returnCurrentOnReversion
+		})
+	}
+	/**
 	 * @description Get elements on state as array.
 	 * @returns array of items on state.
 	 */
@@ -406,18 +420,39 @@ export class Result<T, D = string, M = {}> implements IResult<T, D, M> {
 
 export class GettersAndSetters<Props> {
 	protected props: Props;
+	protected readonly _history: IHistory<Props>;
 
 	protected config: ISettings = { className: '', deactivateGetters: false, deactivateSetters: false };
 
-	constructor(props: Props, config?: ISettings) {
+	constructor(props: Props, config?: ISettings, history?: IHistory<Props>) {
 		this.props = props;
 		this.config.className = config?.className ?? '';
 		this.config.deactivateGetters = config?.deactivateGetters ?? false;
 		this.config.deactivateSetters = config?.deactivateSetters ?? false;
+		this._history = history!;
+		// this._history.snapshot({
+		// 	props: props,
+		// 	action: 'create',
+		// 	id: id ?? ID.createShort()
+		// })
 	}
 
 	protected getter(key: keyof Props) {
 		return this.props[key];
+	}
+
+	private snapshotSet() {
+		if (typeof this._history !== 'undefined') {
+			if (this._history.size() === 0) return;
+			const { id } = this._history.list()[0];
+			this._history.snapshot({
+				id,
+				action: 'update',
+				props: this.props,
+				ocurredAt: new Date(),
+				token: ID.createShort()
+			});
+		}
 	}
 
 	/**
@@ -452,6 +487,7 @@ export class GettersAndSetters<Props> {
 				}
 				this.props[key] = value;
 				this.props = Object.assign({}, { ...this.props }, { updatedAt: new Date() });
+				this.snapshotSet();
 				return this;
 			}
 		}
@@ -470,6 +506,7 @@ export class GettersAndSetters<Props> {
 		}
 		this.props[key] = value;
 		this.props = Object.assign({}, { ...this.props }, { createdAt: new Date() });
+		this.snapshotSet();
 		return this;
 	}
 }
@@ -637,8 +674,11 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	private readonly autoMapper: AutoMapper<Props>;
 
 	constructor(props: Props, id?: string, config?: ISettings) { 
-		super(props, config);
-		this.props = props;
+		super(props, config, new History({ 
+			props: Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props }),
+			action: 'create',
+			id: ID.create(id),
+		 }));
 		this.props = Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props });
 		this._id = ID.create(id);
 		this.autoMapper = new AutoMapper();
@@ -679,6 +719,40 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 */
 	isNew(): boolean {
 		return this.id.isNew();
+	}
+
+	history(): IPublicHistory<Props> {
+		return {
+			back: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
+				const prevState = this._history.back(token);
+				super.props = prevState !== null ? prevState?.props : this.props;
+				return prevState;
+			},
+		
+			forward: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
+				const nextState = this._history.forward(token);
+				this.props = nextState ? nextState?.props : this.props;
+				return nextState;
+			},
+		
+			snapshot: (token?: IDomainID<string>): IHistoryProps<Props> => {
+				return this._history.snapshot({
+					action: 'update',
+					id: this.id,
+					props: this.props,
+					ocurredAt: new Date(),
+					token,
+				});
+			},
+
+			list: (): IHistoryProps<Props>[] => {
+				return this._history.list()
+			},
+
+			size: (): number => {
+				return this._history.size()
+			},
+		}	
 	}
 
 	/**
@@ -746,11 +820,50 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	private readonly autoMapper: AutoMapper<Props>;
 
 	constructor(props: Props, config?: ISettings) {
-		super(props, config);
+		super(props, config, new History({ 
+			props: props,
+			action: 'create',
+			id: ID.create(),
+		 }));
 		this.props = props;
 		this.autoMapper = new AutoMapper();
 	}
-	
+
+	history(): IPublicHistory<Props> {
+		return {
+			back: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
+				const prevState = this._history.back(token);
+				this.props = prevState ? prevState?.props : this.props;
+				return prevState;
+			},
+		
+			forward: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
+				const nextState = this._history.forward(token);
+				this.props = nextState ? nextState?.props : this.props;
+				return nextState;
+			},
+		
+			snapshot: (token?: IDomainID<string>): IHistoryProps<Props> => {
+				const first = this._history.list()[0];
+				return this._history.snapshot({
+					action: 'update',
+					id: first ? first.id: ID.createShort(),
+					props: this.props,
+					ocurredAt: new Date(),
+					token
+				});
+			},
+
+			list: (): IHistoryProps<Props>[] => {
+				return this._history.list()
+			},
+
+			size: (): number => {
+				return this._history.size();
+			}
+		}	
+	}
+
 	/**
 	 * @description Get value from value object.
 	 * @returns value as string, number or any type defined.
@@ -927,4 +1040,82 @@ export class AutoMapper<Props> {
 
 		return result as any;
 	}
+}
+
+export class History<Props> implements IHistory<Props> {
+	private readonly iterator: IIterator<IHistoryProps<Props>>;
+
+	constructor(props?: IHistoryProps<Props>) {
+		let _props = props ? Object.assign({}, { ...props }, { action: 'create' }): undefined;
+		_props = _props ? Object.assign({}, { ..._props }, { token: ID<string>.createShort() }): undefined;
+		_props = _props ? Object.assign({}, { ..._props }, { ocurredAt: new Date() }): undefined;
+
+		this.iterator = Iterator.create({
+			initialData: _props ? [_props]: [],
+			restartOnFinish: false,
+			returnCurrentOnReversion: true
+		});
+	}
+
+	private tokenAlreadyExists(token: IDomainID<string>): boolean {
+		const iterate = this.iterator.clone();
+		iterate.toLast();
+		while (iterate.hasPrev()) {
+			const prev = iterate.prev();
+			if (token.equal(prev.token!)) return true;
+		}
+		return false;
+	}
+
+	list(): IHistoryProps<Props>[] {
+		return this.iterator.toArray();
+	}
+
+	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props> {
+		const token = props.token?.toShort() ?? ID<string>.createShort();
+		const tokenAlreadyExists = (this.tokenAlreadyExists(token));
+		props.token = tokenAlreadyExists ? ID<string>.createShort() : token;
+		const ocurredAt = props.ocurredAt ?? new Date();
+		props.ocurredAt = ocurredAt;
+		this.iterator.add(props);
+		this.iterator.toLast();
+		return props;
+	}
+
+	back(token?: ID<string>): IHistoryProps<Props> | null {
+		this.iterator.prev();
+		
+		if (token) {
+			while (this.iterator.hasPrev()) {
+				const prev = this.iterator.prev();
+				if (prev.token?.equal(token)) return prev;
+			}
+		}
+
+		if (this.iterator.hasPrev()) return this.iterator.prev();
+
+		this.iterator.toFirst();
+		return this.iterator.first();
+	}
+
+	forward(token?: ID<string>): IHistoryProps<Props> | null {
+		this.iterator.next();
+
+		if (token) {
+			while (this.iterator.hasNext()) {
+				const next = this.iterator.next();
+				if (next.token?.equal(token)) return next;
+			}
+		}
+		
+		if (this.iterator.hasNext()) return this.iterator.next();
+
+		this.iterator.toLast();
+		return this.iterator.last();
+	}
+	
+	size(): number {
+		return this.iterator.total();
+	}
+
 }

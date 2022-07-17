@@ -156,7 +156,7 @@ describe('aggregate', () => {
 			
 		});
 
-		it('should set a new age with success', () => {
+		it('should set a new age with success and navigate on history', () => {
 
 			const age = AgeVo.create({ value: 21 }).value();
 			const user = UserAgg.create({ age }).value();
@@ -164,12 +164,24 @@ describe('aggregate', () => {
 			expect(user.get('age').get('value')).toBe(21);
 
 			const age18 = AgeVo.create({ value: 18 }).value();
+			
+			expect(user.history().size()).toBe(1);
+
 			const result = user
 				.set('age')
 				.to(age18);
-
+			
 			expect(result.get('age').get('value')).toBe(18);
 			
+			expect(user.history().size()).toBe(2);
+
+			user.history().back();
+
+			expect(result.get('age').get('value')).toBe(21);
+
+			user.history().forward();
+
+			expect(result.get('age').get('value')).toBe(18);
 		});
 
 	});

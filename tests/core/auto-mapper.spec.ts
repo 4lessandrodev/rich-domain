@@ -243,10 +243,6 @@ describe('auto-mapper', () => {
 			const autoMapper = new AutoMapper<Props>();
 
 			const obj = autoMapper.entityToObj(user);
-
-			console.log(obj);
-
-			
 			
 			expect(obj.age).toBe(21);
 			expect(obj.name).toBe('some value');

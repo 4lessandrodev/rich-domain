@@ -93,6 +93,8 @@ export interface IIterator<T> {
 	removeFirst(): IIterator<T>;
 
 	total(): number;
+
+	clone(): IIterator<T>;
 }
 
 /**
@@ -150,3 +152,34 @@ export interface EntityMapperPayload {
 	createdAt: Date,
 	updatedAt: Date
 };
+
+export interface IHistoryProps<Props> {
+	id: IDomainID<any>;
+	props: Props;
+	action: 'create' | 'update';
+	token?: IDomainID<string>;
+	ocurredAt?: Date;
+}
+
+export interface IHistory<Props> {
+	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props>;
+	back(token?: IDomainID<string>): IHistoryProps<Props> | null;
+	forward(token?: IDomainID<string>): IHistoryProps<Props> | null;
+	size(): number;
+	list(): Array<IHistoryProps<Props>>;
+}
+
+export interface IEntityHistory<Props> {
+	back(token?: IDomainID<string>): IHistoryProps<Props> | null;
+	forward(token?: IDomainID<string>): IHistoryProps<Props> | null;
+	size(): number;
+	list(): Array<IHistoryProps<Props>>;
+}
+
+export interface IPublicHistory<Props> {
+	snapshot(props: IDomainID<string>): IHistoryProps<Props>;
+	back(token?: IDomainID<string>): IHistoryProps<Props> | null;
+	forward(token?: IDomainID<string>): IHistoryProps<Props> | null;
+	size(): number;
+	list(): Array<IHistoryProps<Props>>;
+}
