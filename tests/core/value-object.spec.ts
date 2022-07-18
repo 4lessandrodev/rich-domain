@@ -1,5 +1,5 @@
 import { Result, ValueObject } from "../../lib/core";
-import { ICommand, IResult } from "../../lib/index.types";
+import { ICommand, IPropsValidation, IResult } from "../../lib/index.types";
 
 describe('value-object', () => {
 
@@ -42,7 +42,7 @@ describe('value-object', () => {
 				super(props)
 			}
 
-			public static isValidValue(): boolean {
+			public static isValidProps(): boolean {
 				return true;
 			}
 		}
@@ -124,4 +124,46 @@ describe('value-object', () => {
 			expect(payload).toBe('value object created with success');
 		});
 	})
+
+	describe('native validation', () => {
+
+		interface Props { 
+			value: string;
+			age: number;
+		};
+
+		class StringVo extends ValueObject<Props>{
+			private constructor(props: Props) {
+				super(props);
+			}
+
+			validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
+
+				const options: IPropsValidation<Props> = {
+					value: (value: string) => value.length < 15,
+					age: (value: number) => value > 0 && value < 130
+				} 
+
+				return options[key](value);
+			};
+
+			public static create(props: Props): IResult<ValueObject<Props>, string> {
+				return Result.success(new StringVo(props));
+			}
+		}
+
+		it('should set and change methods use native validation', () => {
+			const str = StringVo.create({ value: 'hello', age: 7 });
+			expect(str.value().get('value')).toBe('hello');
+			str.value().set('value').to('changed value');
+			expect(str.value().get('value')).toBe('changed value');
+			str.value().set('value').to('long and invalid value not pass in validation');
+			expect(str.value().get('value')).toBe('changed value');
+			str.value().set('age').to(18);
+			expect(str.value().get('age')).toBe(18);
+			str.value().set('age').to(220);
+			expect(str.value().get('age')).toBe(18);
+		});
+
+	});
 });

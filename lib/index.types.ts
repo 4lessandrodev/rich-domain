@@ -124,7 +124,6 @@ export interface IProxy<T, D> {
 export interface ISettings {
 	deactivateGetters?: boolean;
 	deactivateSetters?: boolean;
-	className?: string;
 }
 
 export interface IResultObject<T, D, M> {
@@ -154,7 +153,6 @@ export interface EntityMapperPayload {
 };
 
 export interface IHistoryProps<Props> {
-	id: IDomainID<any>;
 	props: Props;
 	action: 'create' | 'update';
 	token?: IDomainID<string>;
@@ -183,3 +181,5 @@ export interface IPublicHistory<Props> {
 	count(): number;
 	list(): Array<IHistoryProps<Props>>;
 }
+
+export type IPropsValidation<T> = { [P in keyof Required<T>]: (value: T[P]) => boolean };

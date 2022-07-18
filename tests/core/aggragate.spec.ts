@@ -68,7 +68,7 @@ describe('aggregate', () => {
 			expect(agg.value().isNew()).toBeFalsy();
 
 			expect(agg.value().hashCode().value())
-				.toBe('[Aggregate@]:8b51a5a2-d47a-4431-884a-4c7d77e1a201');
+				.toBe('[Aggregate@BasicAggregate]:8b51a5a2-d47a-4431-884a-4c7d77e1a201');
 		});
 
 		it('should change attributes values with default function', () => {

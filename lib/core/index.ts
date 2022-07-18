@@ -425,11 +425,10 @@ export class GettersAndSetters<Props> {
 	protected props: Props;
 	protected readonly _MetaHistory: IHistory<Props>;
 
-	protected config: ISettings = { className: '', deactivateGetters: false, deactivateSetters: false };
+	protected config: ISettings = { deactivateGetters: false, deactivateSetters: false };
 
 	constructor(props: Props, config?: ISettings, history?: IHistory<Props>) {
 		this.props = props;
-		this.config.className = config?.className ?? '';
 		this.config.deactivateGetters = config?.deactivateGetters ?? false;
 		this.config.deactivateSetters = config?.deactivateSetters ?? false;
 		this._MetaHistory = history!;
@@ -444,9 +443,7 @@ export class GettersAndSetters<Props> {
 	private snapshotSet() {
 		if (typeof this._MetaHistory !== 'undefined') {
 			if (this._MetaHistory.count() === 0) return;
-			const { id } = this._MetaHistory.list()[0];
 			this._MetaHistory.snapshot({
-				id,
 				action: 'update',
 				props: this.props,
 				ocurredAt: new Date(),
@@ -485,6 +482,12 @@ export class GettersAndSetters<Props> {
 				if (typeof validation === 'function') {
 					if (!validation(value)) return this;
 				}
+				if (Reflect.has(this, 'validation')) {
+					const validation = Reflect.get(this, 'validation');
+					if (typeof validation === 'function') {
+						if (!validation(key, value)) return this;
+					}
+				}
 				this.props[key] = value;
 				this.props = Object.assign({}, { ...this.props }, { updatedAt: new Date() });
 				this.snapshotSet();
@@ -504,6 +507,13 @@ export class GettersAndSetters<Props> {
 		if (typeof validation === 'function') {
 			if (!validation(value)) return this;
 		}
+		if (Reflect.has(this, 'validation')) {
+			const validation = Reflect.get(this, 'validation');
+			if (typeof validation === 'function') {
+				if (!validation(key, value)) return this;
+			}
+		}
+		
 		this.props[key] = value;
 		this.props = Object.assign({}, { ...this.props }, { createdAt: new Date() });
 		this.snapshotSet();
@@ -677,12 +687,19 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		super(props, config, new History({ 
 			props: Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props }),
 			action: 'create',
-			id: ID.create(id),
 		 }));
 		this.props = Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props });
 		this._id = ID.create(id);
 		this.autoMapper = new AutoMapper();
 	}
+
+	/**
+	 * @description Validation used to `set` and `change` methods to validate value before set it.
+	 * @param _key prop key type
+	 * @param _value prop value type
+	 * @returns true if value is valid and false if is invalid.
+	 */
+	validation<Key extends keyof Props>(_key: Key, _value: Props[Key]): boolean { return true };
 
 	/**
 	 * @description Get value as object from entity.
@@ -709,7 +726,8 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @summary className is defined on constructor config param
 	 */
 	hashCode(): IDomainID<string> {
-		return ID.create(`[Entity@${this.config?.className}]:${this.id.value()}`);
+		const name = Reflect.getPrototypeOf(this);
+		return ID.create(`[Entity@${name?.constructor?.name}]:${this.id.value()}`);
 	}
 
 	/**
@@ -739,7 +757,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		return {
 			/**
 			 * @description Get previous props state and apply to instance.
-			 * @param token a value to identify the target state on history.
+			 * @param token a 16bytes value to identify the target state on history.
 			 * @returns previous state found.
 			 */
 			back: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
@@ -750,7 +768,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		
 			/**
 			 * @description Get next props state and apply to instance.
-			 * @param token a value to identify the target state on history.
+			 * @param token a 16bytes value to identify the target state on history.
 			 * @returns next state found.
 			 */
 			forward: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
@@ -761,13 +779,12 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		
 			/**
 			 * @description Create a new snapshot from current state.
-			 * @param token a key to identify the state on history.
+			 * @param token a 16bytes key to identify the state on history.
 			 * @returns 
 			 */
 			snapshot: (token?: IDomainID<string>): IHistoryProps<Props> => {
 				return this._MetaHistory.snapshot({
 					action: 'update',
-					id: this.id,
 					props: this.props,
 					ocurredAt: new Date(),
 					token,
@@ -793,11 +810,12 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	}
 
 	/**
-	 * @description Method to validate prop value.
-	 * @param value to validate
+	 * @description Method to validate props. This method is used to validate props on create a instance.
+	 * @param props to validate
+	 * @returns true if props is valid and false if not.
 	 */
-	public static isValidValue(value: any): boolean {
-		return !this.validator.isUndefined(value) && !this.validator.isNull(value);
+	public static isValidProps(props: any): boolean {
+		return !this.validator.isUndefined(props) && !this.validator.isNull(props);
 	};
 
 	/**
@@ -808,8 +826,8 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any, id?: string): IResult<Entity<any>, any, any> {
-		if(!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
-		return Result.success(new this(props, id, { className: this.name }));
+		if(!this.isValidProps(props)) return Result.fail('Props are required to create an instance of ' + this.name);
+		return Result.success(new this(props, id));
 	};
 }
 
@@ -831,7 +849,8 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 	 * @summary className is defined on constructor config param
 	 */
 	public hashCode(): IDomainID<string> {
-		return ID.create(`[Aggregate@${this.config?.className}]:${this.id.value()}`);
+		const name = Reflect.getPrototypeOf(this);
+		return ID.create(`[Aggregate@${name?.constructor?.name}]:${this.id.value()}`);
 	}
 
 	/**
@@ -842,8 +861,8 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any, id?: string): IResult<Aggregate<any>, any, any> {
-		if(!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
-		return Result.success(new this(props, id, { className: this.name }));
+		if(!this.isValidProps(props)) return Result.fail('Props are required to create an instance of ' + this.name);
+		return Result.success(new this(props, id));
 	};
 }
 
@@ -859,12 +878,43 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	constructor(props: Props, config?: ISettings) {
 		super(props, config, new History({ 
 			props: props,
-			action: 'create',
-			id: ID.create(),
+			action: 'create'
 		 }));
 		this.props = props;
 		this.autoMapper = new AutoMapper();
 	}
+
+	/**
+	 * @description Validation used to `set` and `change` methods to validate value before set it.
+	 * @param _key prop key type
+	 * @param _value prop value type
+	 * @returns true if value is valid and false if is invalid.
+	 * 
+	 * @example
+	 * interface Props { 
+	 *		value: string;
+	 *		age: number;
+	 *	};
+	 *	
+	 *	class StringVo extends ValueObject<Props>{
+	 *		private constructor(props: Props) { super(props) }
+	 *	
+	 *		validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
+	 *
+	 *			const options: IPropsValidation<Props> = {
+	 *				value: (value: string) => value.length < 15,
+	 *				age: (value: number) => value > 0
+	 *			} 
+	 *	
+	 *			return options[key](value);
+	 *		};
+	 *	
+	 *		public static create(props: Props): IResult<ValueObject<Props>, string> {
+	 *			return Result.success(new StringVo(props));
+	 *		}
+	 *	}
+	 */
+	validation<Key extends keyof Props>(_key: Key, _value: Props[Key]): boolean { return true };
 
 	history(): IPublicHistory<Props> {
 		return {
@@ -894,10 +944,8 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 			 * @returns 
 			 */
 			snapshot: (token?: IDomainID<string>): IHistoryProps<Props> => {
-				const first = this._MetaHistory.list()[0];
 				return this._MetaHistory.snapshot({
 					action: 'update',
-					id: first ? first.id: ID.createShort(),
 					props: this.props,
 					ocurredAt: new Date(),
 					token
@@ -938,10 +986,10 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 
 	/**
 	 * @description Method to validate prop value.
-	 * @param value to validate
+	 * @param props to validate
 	 */
-	public static isValidValue(value: any): boolean {
-		return !this.validator.isUndefined(value) && !this.validator.isNull(value);
+	public static isValidProps(props: any): boolean {
+		return !this.validator.isUndefined(props) && !this.validator.isNull(props);
 	};
 
 	/**
@@ -951,8 +999,8 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any): IResult<ValueObject<any>, any, any> {
-		if (!this.isValidValue(props)) return Result.fail('Props are required to create an instance of ' + this.name);
-		return Result.success(new this(props, { className: this.name }));
+		if (!this.isValidProps(props)) return Result.fail('Props are required to create an instance of ' + this.name);
+		return Result.success(new this(props));
 	};
 }
 
@@ -1162,7 +1210,7 @@ export class History<Props> implements IHistory<Props> {
 	}
 	/**
 	 * @description Create a new snapshot from current state.
-	 * @param props to be pushed into history.
+	 * @param props as object to be pushed into history.
 	 * @returns props pushed.
 	 */
 	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props> {
@@ -1177,7 +1225,7 @@ export class History<Props> implements IHistory<Props> {
 	}
 	/**
 	 * @description Get previous props state and apply to instance.
-	 * @param token a value to identify the target state on history.
+	 * @param token a 16bytes value to identify the target state on history.
 	 * @returns previous state found or null if not found.
 	 */
 	back(token?: ID<string>): IHistoryProps<Props> | null {
@@ -1198,7 +1246,7 @@ export class History<Props> implements IHistory<Props> {
 
 	/**
 	 * @description Get next props state and apply to instance.
-	 * @param token a value to identify the target state on history.
+	 * @param token a 16bytes value to identify the target state on history.
 	 * @returns next state found or null if not found.
 	 */
 	forward(token?: ID<string>): IHistoryProps<Props> | null {
