@@ -17,7 +17,6 @@ The business case: It must be greater than 0 and less than 130.
 
 import { ValueObject, Result, IResult } from 'rich-domain';
 
-
 interface Props { value: number };
 
 export class HumanAge extends ValueObject<Props> {
@@ -25,7 +24,7 @@ export class HumanAge extends ValueObject<Props> {
 		super(props);
 	}
 
-	public static isValidValue(value: number): boolean {
+	public static isValidProps({ value }: Props): boolean {
 		// validator instance is available on value object instance
 		return this.validator.number(value).isBetween(0, 130);
 	}
@@ -35,7 +34,7 @@ export class HumanAge extends ValueObject<Props> {
 		const message = `${props.value} is an invalid value`;
 
 		// your business validation
-		if(!this.isValidValue(props.value)) return Result.fail(message);
+		if(!this.isValidProps(props)) return Result.fail(message);
 
 		return Result.success(new HumanAge(props));
 	}
@@ -124,14 +123,13 @@ export class User extends Entity<Props> {
 	}
 }
 
-
 // create entity attributes
 
 const attrAge = Age.create({ value: 21 });
 const attrName = Name.create({ value: 'Jane Doe' });
 
 // validate attributes for all value objects
-const result = Result.combine([attrAge, attrName]);
+const result = Result.combine([ attrAge, attrName ]);
 
 console.log(result.isSuccess());
 

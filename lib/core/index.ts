@@ -470,7 +470,7 @@ export class GettersAndSetters<Props> {
 	set<Key extends keyof Props>(key: Key) {
 		return {
 			/**
-			 * 
+			 * @description The value is only applied if pass on validation.
 			 * @param value the value you want to apply.
 			 * @param validation function to validate the value before apply. The value will be applied only if to pass on validation.
 			 * @example 
