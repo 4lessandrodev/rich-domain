@@ -161,8 +161,8 @@ export interface IHistoryProps<Props> {
 
 export interface IHistory<Props> {
 	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props>;
-	back(token?: IDomainID<string>): IHistoryProps<Props> | null;
-	forward(token?: IDomainID<string>): IHistoryProps<Props> | null;
+	back(token?: IDomainID<string>): IHistoryProps<Props>;
+	forward(token?: IDomainID<string>): IHistoryProps<Props>;
 	count(): number;
 	list(): Array<IHistoryProps<Props>>;
 }
@@ -175,9 +175,9 @@ export interface IEntityHistory<Props> {
 }
 
 export interface IPublicHistory<Props> {
-	snapshot(props?: IDomainID<string>): IHistoryProps<Props>;
-	back(token?: IDomainID<string>): IHistoryProps<Props> | null;
-	forward(token?: IDomainID<string>): IHistoryProps<Props> | null;
+	snapshot(token?: IDomainID<string>): IHistoryProps<Props>;
+	back(token?: IDomainID<string>): IHistoryProps<Props>;
+	forward(token?: IDomainID<string>): IHistoryProps<Props>;
 	count(): number;
 	list(): Array<IHistoryProps<Props>>;
 }

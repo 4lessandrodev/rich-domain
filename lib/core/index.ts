@@ -742,7 +742,12 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @returns new Entity instance.
 	 */
 	clone(id?: string): IResult<Entity<Props>> {
-		return Entity.bind(this).create(this.props, ID.create(id).value());
+		const instance = Reflect.getPrototypeOf(this);
+		if (!instance) return Result.fail('Could not get entity instance');
+		const args = [this.props, ID.create(id).value(), this.config];
+		const entity = Reflect.construct(instance.constructor, args);
+		if (entity instanceof Entity) return Result.success(entity);
+		return Result.fail('Could not create instance of entity');
 	}
 
 	/**
@@ -756,23 +761,23 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 			 * @param token a 16bytes value to identify the target state on history.
 			 * @returns previous state found.
 			 */
-			back: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
+			back: (token?: IDomainID<string>): IHistoryProps<Props> => {
 				const prevState = this._MetaHistory.back(token);
-				super.props = prevState !== null ? prevState?.props : this.props;
+				this.props = prevState ? prevState.props : this.props;
 				return prevState;
 			},
-		
+
 			/**
 			 * @description Get next props state and apply to instance.
 			 * @param token a 16bytes value to identify the target state on history.
 			 * @returns next state found.
 			 */
-			forward: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
+			forward: (token?: IDomainID<string>): IHistoryProps<Props> => {
 				const nextState = this._MetaHistory.forward(token);
-				this.props = nextState ? nextState?.props : this.props;
+				this.props = nextState ? nextState.props : this.props;
 				return nextState;
 			},
-		
+
 			/**
 			 * @description Create a new snapshot from current state.
 			 * @param token a 16bytes key to identify the state on history.
@@ -846,7 +851,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 	 */
 	public hashCode(): IDomainID<string> {
 		const name = Reflect.getPrototypeOf(this);
-		return ID.create(`[Aggregate@${name?.constructor?.name}]:${this.id.value()}`);
+		return ID.create(`[Aggregate@${name?.constructor.name}]:${this.id.value()}`);
 	}
 
 	/**
@@ -919,7 +924,7 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 			 * @param token a value to identify the target state on history.
 			 * @returns previous state found.
 			 */
-			back: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
+			back: (token?: IDomainID<string>): IHistoryProps<Props> => {
 				const prevState = this._MetaHistory.back(token);
 				this.props = prevState ? prevState?.props : this.props;
 				return prevState;
@@ -929,7 +934,7 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 			 * @param token a value to identify the target state on history.
 			 * @returns next state found.
 			 */
-			forward: (token?: IDomainID<string>): IHistoryProps<Props> | null => {
+			forward: (token?: IDomainID<string>): IHistoryProps<Props> => {
 				const nextState = this._MetaHistory.forward(token);
 				this.props = nextState ? nextState?.props : this.props;
 				return nextState;
@@ -1224,7 +1229,7 @@ export class History<Props> implements IHistory<Props> {
 	 * @param token a 16bytes value to identify the target state on history.
 	 * @returns previous state found or null if not found.
 	 */
-	back(token?: ID<string>): IHistoryProps<Props> | null {
+	back(token?: ID<string>): IHistoryProps<Props> {
 		this.iterator.prev();
 		
 		if (token) {
@@ -1245,7 +1250,7 @@ export class History<Props> implements IHistory<Props> {
 	 * @param token a 16bytes value to identify the target state on history.
 	 * @returns next state found or null if not found.
 	 */
-	forward(token?: ID<string>): IHistoryProps<Props> | null {
+	forward(token?: ID<string>): IHistoryProps<Props> {
 		this.iterator.next();
 
 		if (token) {
