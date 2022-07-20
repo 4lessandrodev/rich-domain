@@ -141,4 +141,104 @@ describe('iterator', () => {
 			expect(iterator.prev()).toBe('c');
 		});
 	});
+
+	describe('iterator with false options', () => {
+
+		const iterator = Iterator.create({
+			initialData: [1, 2, 3],
+			restartOnFinish: false,
+			returnCurrentOnReversion: false
+		});
+		it('should not restart on finish', () => {
+			iterator.next();
+			iterator.next();
+			iterator.next();
+			expect(iterator.next()).toBeNull();
+		});
+		it('should not return current on revert', () => {
+			expect(iterator.prev()).toBe(2);
+		});
+	});
+
+	describe('empty state', () => {
+		const iterator = Iterator.create<number>({
+			initialData: [],
+			restartOnFinish: true
+		});
+
+		it('should do not have next or prev', () => {
+			expect(iterator.hasNext()).toBeFalsy();
+			expect(iterator.hasPrev()).toBeFalsy();
+		});
+
+		it('should do not have next or prev', () => {
+			iterator.add(1);
+			iterator.next();
+			expect(iterator.next()).toBe(1);
+		});
+	});
+
+	describe('to first', () => {
+		const iterator = Iterator.create<number>({
+			initialData: [1,2,3,4,5],
+			restartOnFinish: true
+		});
+
+		it('should back to position 0', () => {
+			iterator.next();
+			iterator.next();
+			expect(iterator.toFirst()).toEqual({
+				"currentIndex": 0,
+				"items": [1, 2, 3, 4, 5],
+				"lastCommand": "none",
+				"restartOnFinish": true,
+				"returnCurrentOnReversion": false
+			});
+		});
+	});
+
+	describe('remove', () => {
+		const iterator = Iterator.create<number>({
+			initialData: [1,2,3,4,5],
+			restartOnFinish: true
+		});
+		it('should back one position if is on last and remove it', () => {
+			iterator.toLast();
+			expect(iterator).toEqual({
+				currentIndex: 5,
+				items: [1, 2, 3, 4, 5],
+				lastCommand: 'none',
+				returnCurrentOnReversion: false,
+				restartOnFinish: true
+			});
+			iterator.removeLast();
+			expect(iterator).toEqual({
+				currentIndex: 4,
+				items: [1, 2, 3, 4],
+				lastCommand: 'none',
+				returnCurrentOnReversion: false,
+				restartOnFinish: true
+			});
+		});
+
+		it('should go to next if is on first position and remove it', () => {
+			iterator.toFirst();
+			expect(iterator).toEqual({
+				currentIndex: 0,
+				items: [1, 2, 3, 4],
+				lastCommand: 'none',
+				returnCurrentOnReversion: false,
+				restartOnFinish: true
+			});
+			iterator.next();
+			iterator.removeFirst();
+			expect(iterator).toEqual({
+				currentIndex: 0,
+				items: [2, 3, 4],
+				lastCommand: 'none',
+				returnCurrentOnReversion: false,
+				restartOnFinish: true
+			});
+		});
+	});
 });

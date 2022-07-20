@@ -34,8 +34,8 @@ export class Iterator<T> implements IIterator<T> {
 		this.currentIndex = -1;
 		this.items = config?.initialData ?? [];
 		this.lastCommand = 'none';
-		this.returnCurrentOnReversion = !!config?.returnCurrentOnReversion ?? false;
-		this.restartOnFinish = !!config?.restartOnFinish ?? false;
+		this.returnCurrentOnReversion = !!config?.returnCurrentOnReversion;
+		this.restartOnFinish = !!config?.restartOnFinish;
 	}
 
 	/**
@@ -429,8 +429,8 @@ export class GettersAndSetters<Props> {
 
 	constructor(props: Props, config?: ISettings, history?: IHistory<Props>) {
 		this.props = props;
-		this.config.deactivateGetters = config?.deactivateGetters ?? false;
-		this.config.deactivateSetters = config?.deactivateSetters ?? false;
+		this.config.deactivateGetters = !!config?.deactivateGetters;
+		this.config.deactivateSetters = !!config?.deactivateSetters;
 		this._MetaHistory = history!;
 	}
 
@@ -442,7 +442,6 @@ export class GettersAndSetters<Props> {
 	 */
 	private snapshotSet() {
 		if (typeof this._MetaHistory !== 'undefined') {
-			if (this._MetaHistory.count() === 0) return;
 			this._MetaHistory.snapshot({
 				action: 'update',
 				props: this.props,
@@ -458,7 +457,7 @@ export class GettersAndSetters<Props> {
 	 * @returns the value of property
 	 */
 	get(key: keyof Props) {
-		if (this.config?.deactivateGetters) return null as unknown as Props[keyof Props];
+		if (this.config.deactivateGetters) return null as unknown as Props[keyof Props];
 		return this.props[key];
 	}
 
@@ -478,7 +477,7 @@ export class GettersAndSetters<Props> {
 			 * @returns instance of this.
 			 */
 			to: (value: Props[Key], validation?: (value: Props[Key]) => boolean):  GettersAndSetters<Props> => {
-				if (this.config?.deactivateSetters) return this;
+				if (this.config.deactivateSetters) return this;
 				if (typeof validation === 'function') {
 					if (!validation(value)) return this;
 				}
@@ -503,7 +502,7 @@ export class GettersAndSetters<Props> {
 	 * @returns instance of own class.
 	 */
 	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean) {
-		if (this.config?.deactivateSetters) return this;
+		if (this.config.deactivateSetters) return this;
 		if (typeof validation === 'function') {
 			if (!validation(value)) return this;
 		}
