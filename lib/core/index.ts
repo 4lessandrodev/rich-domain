@@ -526,7 +526,7 @@ export class GettersAndSetters<Props> {
  * @param value as string
  */
 export class ID<T = string> implements IDomainID<T> {
-	private _value: T;
+	private _value: string;
 	private _isNew: boolean;
 	private _createdAt: Date;
 	private readonly MAX_SIZE: number = 16;
@@ -535,11 +535,12 @@ export class ID<T = string> implements IDomainID<T> {
 		this._createdAt = new Date();
 		if (typeof id === 'undefined') {
 			const uuid = randomUUID();
-			this._value = uuid as unknown as T;
+			this._value = uuid;
 			this._isNew = true;
 			return this;
 		}
-		this._value = id as unknown as T;;
+		const isString = typeof id === 'string';
+		this._value = isString ? id as unknown as string: String(id);
 		this._isNew = false;
 		return this;
 	};
@@ -552,9 +553,9 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @description Update id value to a short value one. 16bytes.
 	 * @returns instance of ID with short value. 16bytes
 	 */
-	toShort():IDomainID<T> {
+	toShort():IDomainID<string> {
 		let short = '';
-		let longValue = this._value as unknown as string;
+		let longValue = this._value;
 		
 		if (longValue.length < this.MAX_SIZE) {
 			longValue = randomUUID() + longValue;
@@ -568,15 +569,15 @@ export class ID<T = string> implements IDomainID<T> {
 			short = lastChar + short;
 		}
 		this._createdAt = new Date();
-		this._value = short as unknown as T;
-		return this as unknown as IDomainID<T>;
+		this._value = short;
+		return this as unknown as IDomainID<string>;
 	}
 
 	/**
 	 * @description Get the id value.
 	 * @returns id value as string or number.
 	 */
-	value(): T {
+	value(): string {
 		return this._value;
 	}
 
@@ -606,8 +607,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @returns `true` if id instance has short value and 'false` cause not.
 	 */
 	isShortID(): boolean {
-		if (typeof this._value !== 'string') return false;
-		return this._value.toString().length === this.MAX_SIZE;
+		return this._value.length === this.MAX_SIZE;
 	}
 
 	/**
@@ -616,9 +616,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @returns `true` if provided id value and instance value has the same value and `false` if not.
 	 */
 	equal(id: IDomainID<any>): boolean {
-		if (typeof this._value === typeof id.value()) 
-			return this._value as any === id.value() as any;
-		return false;
+		return (typeof this._value === typeof id.value()) && (this._value as any === id.value());
 	}
 	
 	/**
@@ -627,7 +625,6 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @returns `true` if provided id and instance is equal and `false` if not.
 	 */
 	deepEqual(id: IDomainID<any>): boolean {
-		if (typeof this._value !== typeof id.value) return false;
 		const A = JSON.stringify(this);
 		const B = JSON.stringify(id);
 		return A === B;
@@ -637,10 +634,10 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @description Create a clone from instance. This function does not change instance state.
 	 * @returns a cloned instance with the same properties and value.
 	 */
-	cloneAsNew(): IDomainID<T> {
-		const newUUID = new ID<T>(this._value);
+	cloneAsNew(): IDomainID<string> {
+		const newUUID = new ID<string>(this._value);
 		newUUID.setAsNew();
-		return newUUID as unknown as IDomainID<T>;
+		return newUUID;
 	}
 	/**
 	 * @description Create a clone from instance. This function does not change instance state.
@@ -655,7 +652,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @param id value as string optional.If you do not provide a value a new id value will be generated.
 	 * @returns instance of ID.
 	 */
-	public static createShort(id?: string): IDomainID<string> {
+	public static createShort(id?: string | number): IDomainID<string> {
 		const _id = new ID(id);
 		if (typeof id === 'undefined') _id.setAsNew();
 		_id.toShort();
@@ -667,8 +664,8 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @param id value as string optional.If you do not provide a value a new uuid value will be generated.
 	 * @returns instance of ID.
 	 */
-	public static create<T = string | number>(id?: T): IDomainID<T> {
-		return new ID(id) as unknown as IDomainID<T>;
+	public static create<T = string | number>(id?: T): IDomainID<string> {
+		return new ID(id) as unknown as IDomainID<string>;
 	}
 }
 
@@ -1030,7 +1027,7 @@ export class AutoMapper<Props> {
 
 		const id: ID<any> = valueObject as unknown as ID<any>;
 
-		if (isID) return id?.value();
+		if (isID) return id?.value() as any;
 
 		// props
 		const voProps = valueObject?.['props'];

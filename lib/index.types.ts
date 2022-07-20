@@ -26,11 +26,11 @@ export interface IResult<T, D = string, M = {}> {
 /**
  * 
  */
-export interface IDomainID<T> {
+export interface IDomainID<T = string> {
 
-	toShort(): IDomainID<T>;
+	toShort(): IDomainID<string>;
 
-	value(): T;
+	value(): string;
 
 	isNew(): boolean;
 
@@ -38,11 +38,11 @@ export interface IDomainID<T> {
 
 	isShortID(): boolean;
 
-	equal(id: IDomainID<T>): boolean;
+	equal(id: IDomainID<string>): boolean;
 	
-	deepEqual(id: IDomainID<T>): boolean;
+	deepEqual(id: IDomainID<string>): boolean;
 
-	cloneAsNew(): IDomainID<T>;
+	cloneAsNew(): IDomainID<string>;
 
 	clone(): IDomainID<T>;
 }

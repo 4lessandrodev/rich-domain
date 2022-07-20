@@ -38,5 +38,40 @@ describe('ID', () => {
 			const uuid2 = uuid1.clone();
 			expect(uuid1.equal(uuid2)).toBeTruthy();
 		});
+
+		it('should define short id to 16bytes', () => {
+			const shortId = ID.createShort('shorter');
+			expect(shortId.createdAt()).toBeDefined();
+			expect(shortId.value()).toHaveLength(16);
+		});
+
+		it('should convert number to string', () => {
+			const shortId = ID.createShort(1234567891011124);
+			expect(typeof ID.create(1234567891011124).toShort().value() === 'string').toBeTruthy();
+			expect(shortId.isShortID()).toBeTruthy();
+		});
+
+		it('null must not be equal', () => {
+			expect(typeof ID.create(null).value() === 'string').toBeTruthy();
+			expect(ID.create(null).equal(ID.create())).toBeFalsy();
+		});
+
+		it('must be equal', () => {
+			const a = ID.create(null);
+			const b = ID.create(null);
+			expect(a.deepEqual(b)).toBeTruthy();
+		});
+
+		it('must clone id as a new one', () => {
+			const a = ID.createShort('LO123RE3MID0193T');
+			expect(a.isNew()).toBeFalsy();
+
+			const clone = a.cloneAsNew();
+			expect(clone.equal(a)).toBeTruthy();
+
+			expect(clone.isNew()).toBeTruthy();
+
+			expect(clone.deepEqual(a)).toBeFalsy();
+		});
 	})
 })
