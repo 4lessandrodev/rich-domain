@@ -1151,6 +1151,98 @@ describe('check-types', () => {
 			it('should not to be empty', () => {
 				expect(checker.string('abc').isEmpty()).toBeFalsy();
 			});
+
+			it('should abc to have length 3', () => {
+				expect(checker.string('abc').hasLengthEqualTo(3)).toBeTruthy();
+			});
+
+			it('should abc not to have length 3', () => {
+				expect(checker.string('abcd').hasLengthEqualTo(3)).toBeFalsy();
+			});
+
+			it('should abc to have length 3', () => {
+				expect(checker.string('abcd').hasLengthGreaterOrEqualTo(3)).toBeTruthy();
+			});
+
+			it('should abc to have length 3', () => {
+				expect(checker.string('abc').hasLengthGreaterOrEqualTo(3)).toBeTruthy();
+			});
+
+			it('should abc not to have length 3', () => {
+				expect(checker.string('ab').hasLengthGreaterOrEqualTo(3)).toBeFalsy();
+			});
+
+			it('should abcd to have length greater than 3', () => {
+				expect(checker.string('abcd').hasLengthGreaterThan(3)).toBeTruthy();
+			});
+
+			it('should abcd not to have length greater than 5', () => {
+				expect(checker.string('abcd').hasLengthGreaterThan(5)).toBeFalsy();
+			});
+
+			it('should abcde to have length less or equal to 5', () => {
+				expect(checker.string('abcde').hasLengthLessOrEqualTo(5)).toBeTruthy();
+			});
+
+			it('should abcdef not to have length less or equal to 5', () => {
+				expect(checker.string('abcdef').hasLengthLessOrEqualTo(5)).toBeFalsy();
+			});
+
+			it('should abcd not to have length less or equal to 5', () => {
+				expect(checker.string('abcd').hasLengthLessOrEqualTo(5)).toBeTruthy();
+			});
+
+			it('should abcde not to have length less than 5', () => {
+				expect(checker.string('abcde').hasLengthLessThan(5)).toBeFalsy();
+			});
+
+			it('should abcdef not to have length less than 5', () => {
+				expect(checker.string('abcdef').hasLengthLessThan(5)).toBeFalsy();
+			});
+
+			it('should abcd to have length less than 5', () => {
+				expect(checker.string('abcd').hasLengthLessThan(5)).toBeTruthy();
+			});
+
+
+			it('should abcde not includes 7', () => {
+				expect(checker.string('abcde').includes('7')).toBeFalsy();
+			});
+
+			it('should abcdef not include @', () => {
+				expect(checker.string('abcdef').includes('@')).toBeFalsy();
+			});
+
+			it('should abcd includes a', () => {
+				expect(checker.string('abcd').includes('a')).toBeTruthy();
+			});
+		});
+
+		describe('date', () => {
+			const currentDate = new Date();
+			const auxDate1 = new Date();
+			const auxDate2 = new Date();
+
+			auxDate1.setMonth(auxDate1.getMonth() - 1);
+			auxDate2.setMonth(auxDate2.getMonth() + 1);
+
+			const monthAgo = auxDate1;
+			const nextMonth = auxDate2;
+
+
+			it('should month ago before now', () => {
+				expect(checker.date(monthAgo).isAfterNow()).toBeFalsy();
+				expect(checker.date(monthAgo).isBeforeNow()).toBeTruthy();
+				expect(checker.date(monthAgo).isAfterOrEqualTo(currentDate)).toBeFalsy();
+				expect(checker.date(nextMonth).isBetween(monthAgo, currentDate)).toBeFalsy();
+			});
+
+			it('should next month not before now', () => {
+				expect(checker.date(nextMonth).isAfterNow()).toBeTruthy();
+				expect(checker.date(nextMonth).isBeforeNow()).toBeFalsy();
+				expect(checker.date(nextMonth).isAfterOrEqualTo(currentDate)).toBeTruthy();
+				expect(checker.date(currentDate).isBetween(monthAgo, nextMonth)).toBeTruthy();
+			});
 		});
 	})
 });
