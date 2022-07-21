@@ -1,3 +1,11 @@
 node_modules/
 coverage/
 dist/
+core/
+utils/
+index.js
+index.d.ts
+index.types.d.ts
+index.types.js
+types.d.ts
+types.js

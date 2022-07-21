@@ -1,9 +1,9 @@
 {
 	"name": "rich-domain",
-	"version": "1.2.0-beta",
+	"version": "1.4.0-beta",
 	"description": "This package provide utils file and interfaces to assistant build a complex application with domain driving design",
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
+	"main": "index.js",
+	"types": "index.d.ts",
 	"author": "Alessandro Dev",
 	"repository": {
 		"type": "git",
@@ -43,12 +43,20 @@
 	],
 	"scripts": {
 		"test": "jest --runInBand",
-		"prebuild": "rimraf ./dist && npm run check:circular-deps",
+		"prebuild": "rimraf ./dist && npm run check:circular-deps && ./clear.sh",
+		"postbuild": "cp -r ./dist/* ./",
 		"build": "tsc -p tsconfig.lib.json",
+		"prepublish": "npm run build",
+		"postpublish": "./clear.sh",
 		"check:circular-deps": "madge --circular --extensions ts ./lib"
 	},
 	"files": [
-		"dist/*",
+		"core/*",
+		"utils/*",
+		"index.js",
+		"index.d.ts",
+		"types.d.ts",
+		"types.js",
 		"package.json"
 	]
 }

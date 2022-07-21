@@ -16,7 +16,7 @@ import {
 	IHistoryProps,
 	IHistory,
 	IPublicHistory,
-} from "../index.types";
+} from "../types";
 import { Validator } from '../utils/validator';
 
 /**
