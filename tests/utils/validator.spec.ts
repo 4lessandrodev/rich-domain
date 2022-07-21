@@ -1,10 +1,10 @@
 import { Aggregate, Entity, ID, Result, ValueObject } from "../../lib/core";
 import { IResult } from "../../lib/index.types";
-import { ValidateType } from "../../lib/utils/check-types";
+import { Validator } from "../../lib/utils/validator";
 
 describe('check-types', () => {
 
-	const checker = ValidateType.create();
+	const checker = Validator.create();
 	class Agg extends Aggregate<any>{
 		private constructor(props: any) {
 			super(props)
@@ -1031,4 +1031,126 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 	});
+
+	describe('custom', () => {
+		it('should not to be symbol', () => {
+			enum data { foo = 'bar' };
+			expect(checker.isSymbol(data)).toBeFalsy();
+			expect(checker.isObject(data)).toBeTruthy();
+		});
+
+		describe('number', () => {
+			it('should 9 be between 1 and 10', () => {
+				expect(checker.number(9).isBetween(1, 10)).toBeTruthy();
+			});
+
+			it('should 11 not to be between 1 and 10', () => {
+				expect(checker.number(11).isBetween(1, 10)).toBeFalsy();
+			});
+
+			it('should 11 to be equal 11', () => {
+				expect(checker.number(11).isEqualTo(11)).toBeTruthy();
+			});
+
+			it('should 11 not to be equal 11', () => {
+				expect(checker.number(10).isEqualTo(11)).toBeFalsy();
+			});
+
+			it('should 12 to be greater than 11', () => {
+				expect(checker.number(12).isGreaterOrEqualTo(11)).toBeTruthy();
+				expect(checker.number(11).isGreaterOrEqualTo(11)).toBeTruthy();
+			});
+
+			it('should 10 not to be greater than 11', () => {
+				expect(checker.number(10).isGreaterOrEqualTo(11)).toBeFalsy();
+			});
+
+			it('should 12 to be greater than 11', () => {
+				expect(checker.number(12).isGreaterThan(11)).toBeTruthy();
+			});
+
+			it('should 10 not to be greater than 11', () => {
+				expect(checker.number(10).isGreaterThan(11)).toBeFalsy();
+			});
+
+
+			it('should 12 to be integer', () => {
+				expect(checker.number(12).isInteger()).toBeTruthy();
+			});
+
+			it('should 12.5 not to be integer', () => {
+				expect(checker.number(12.5).isInteger()).toBeFalsy();
+			});
+
+			it('should 12 to be pair', () => {
+				expect(checker.number(12).isPair()).toBeTruthy();
+			});
+
+			it('should 7 not to be pair', () => {
+				expect(checker.number(7).isPair()).toBeFalsy();
+			});
+
+			it('should -1 to be negative', () => {
+				expect(checker.number(-1).isNegative()).toBeTruthy();
+			});
+
+			it('should 7 not to be negative', () => {
+				expect(checker.number(7).isNegative()).toBeFalsy();
+			});
+
+			it('should -1 not to be positive', () => {
+				expect(checker.number(-1).isPositive()).toBeFalsy();
+			});
+
+			it('should 7 to be negative', () => {
+				expect(checker.number(7).isPositive()).toBeTruthy();
+			});
+
+			it('should 10 not to be less than 2', () => {
+				expect(checker.number(10).isLessThan(2)).toBeFalsy();
+			});
+
+			it('should 7 to be less than 10', () => {
+				expect(checker.number(7).isLessThan(10)).toBeTruthy();
+			});
+
+			it('should 10 not to be less than 9', () => {
+				expect(checker.number(10).isLessOrEqualTo(9)).toBeFalsy();
+			});
+
+			it('should 7 to be less than 7', () => {
+				expect(checker.number(7).isLessOrEqualTo(7)).toBeTruthy();
+			});
+
+			it('should 7 to be less than 10', () => {
+				expect(checker.number(7).isLessOrEqualTo(10)).toBeTruthy();
+			});
+
+			it('should the value is not safe integer', () => {
+				expect(checker.number(Number.MAX_SAFE_INTEGER).isSafeInteger()).toBeTruthy();
+			});
+
+			it('should the value is not safe integer', () => {
+				expect(checker.number(Number.MAX_SAFE_INTEGER + 1).isSafeInteger()).toBeFalsy();
+			});
+		});
+
+		describe('string', () => {
+			it('should abc has length between 1 and 10', () => {
+				expect(checker.string('abc').hasLengthBetween(1, 10)).toBeTruthy();
+			});
+
+			it('should lorem ipsum not to has length between 1 and 10', () => {
+				expect(checker.string('lorem ipsum').hasLengthBetween(1, 10)).toBeFalsy();
+			});
+
+			it('should to be empty', () => {
+				expect(checker.string(' ').isEmpty()).toBeTruthy();
+			});
+
+			it('should not to be empty', () => {
+				expect(checker.string('abc').isEmpty()).toBeFalsy();
+			});
+		});
+	})
 });

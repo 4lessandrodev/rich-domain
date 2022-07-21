@@ -1,4 +1,4 @@
-import { Result, ValueObject } from "../../lib/core";
+import { ID, Result, ValueObject } from "../../lib/core";
 import { ICommand, IPropsValidation, IResult } from "../../lib/index.types";
 
 describe('value-object', () => {
@@ -165,5 +165,149 @@ describe('value-object', () => {
 			expect(str.value().get('age')).toBe(18);
 		});
 
+		it('should transform value object to object', () => {
+			class Sample extends ValueObject<string>{ 
+				private constructor(props: string) {
+					super(props);
+				}
+			};
+				
+			const valueObject = Sample.create('Example');
+
+			expect(valueObject.value().toObject()).toBe('Example');
+		});
+
+
+		it('should transform value object to object', () => {
+			class Sample extends ValueObject<{ value: string }>{ 
+				private constructor(props: { value: string }) {
+					super(props);
+				}
+			};
+				
+			const valueObject = Sample.create({ value: 'Sample' });
+
+			expect(valueObject.value().toObject()).toBe('Sample');
+		});
+
+		it('should transform value object to object', () => {
+
+			class Sample extends ValueObject<{ value: string, foo: string }>{ 
+				private constructor(props: { value: string, foo: string  }) {
+					super(props);
+				}
+			};
+			
+			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
+
+			class Obj extends ValueObject<{ value: Sample, other: string }> { 
+				private constructor(props: { value: Sample, other: string  }) {
+					super(props);
+				}
+			};
+
+			const result = Obj.create({ value: sample.value(), other: 'Other Sample' });
+
+			expect(result.value().toObject()).toEqual({
+				value: { value: 'Sample', foo: 'bar' },
+				other: 'Other Sample'
+			})
+		});
+
+		it('should clone a value object with success', () => {
+			class Sample extends ValueObject<{ value: string, foo: string }>{ 
+				private constructor(props: { value: string, foo: string  }) {
+					super(props);
+				}
+			};
+
+			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
+
+			const result = sample.value().clone();
+
+			expect(sample.value().toObject()).toEqual(result.value().toObject())
+		});
+
+		it('should navigate for history', () => {
+
+			interface Props { value: string, foo: string };
+
+			class Sample extends ValueObject<Props>{ 
+				private constructor(props: Props) {
+					super(props);
+				}
+
+				public static create(props: Props): IResult<Sample> {
+					return Result.success(new Sample(props));
+				}
+			};
+
+			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
+
+			expect(sample.value().history().count()).toBe(1);
+			
+			sample.value().set('foo').to('changed');
+			
+			expect(sample.value().history().count()).toBe(2);
+			expect(sample.value().get('value')).toBe('Sample');
+			expect(sample.value().get('foo')).toBe('changed'); // changed
+
+			sample.value().set('value').to('changed2'); // changed
+			expect(sample.value().get('value')).toBe('changed2');
+
+			sample.value().history().back();
+			expect(sample.value().get('value')).toBe('changed2');
+			expect(sample.value().get('foo')).toBe('changed');
+			
+			sample.value().history().back();
+			expect(sample.value().get('value')).toBe('Sample');
+
+			sample.value().history().forward();
+			expect(sample.value().get('value')).toBe('changed2');
+
+			expect(sample.value().history().list()).toHaveLength(3);
+			sample.value().history().snapshot();
+			expect(sample.value().history().list()).toHaveLength(4);
+		});
+
+		it('should back to a token', () => {
+			interface Props { value: string, foo: string };
+
+			class Sample extends ValueObject<Props>{ 
+				private constructor(props: Props) {
+					super(props);
+				}
+
+				public static create(props: Props): IResult<Sample> {
+					return Result.success(new Sample(props));
+				}
+			};
+
+			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
+
+			const step2 = ID.createShort();
+			const step3 = ID.createShort();
+			const step4 = ID.createShort();
+
+			sample.value().change('foo', 'bar0');
+			sample.value().change('foo', 'bar1');
+			sample.value().history().snapshot(step2);
+
+			sample.value().change('foo', 'bar2');
+			sample.value().change('foo', 'bar3');
+			sample.value().history().snapshot(step3);
+
+			sample.value().change('foo', 'bar4');
+			sample.value().change('foo', 'bar5');
+			sample.value().history().snapshot(step4);
+			
+			expect(sample.value().get('foo')).toBe('bar5');
+			sample.value().history().back(step2);
+			
+			expect(sample.value().get('foo')).toBe('bar2');
+
+			sample.value().history().forward(step4);
+			expect(sample.value().get('foo')).toBe('bar5');
+		});
 	});
 });

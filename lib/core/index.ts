@@ -17,7 +17,7 @@ import {
 	IHistory,
 	IPublicHistory,
 } from "../index.types";
-import { ValidateType } from '../utils/check-types';
+import { Validator } from '../utils/validator';
 
 /**
  * @description Iterator allows sequential traversal through a complex data structure without exposing its internal details.
@@ -675,8 +675,8 @@ export class ID<T = string> implements IDomainID<T> {
 export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> {
 	protected props: Props & EntityProps;
 	private _id: IDomainID<string>;
-	public static validator: ValidateType = ValidateType.create();
-	public validator: ValidateType = ValidateType.create();
+	public static validator: Validator = Validator.create();
+	public validator: Validator = Validator.create();
 	private readonly autoMapper: AutoMapper<Props>;
 
 	constructor(props: Props, id?: string, config?: ISettings) { 
@@ -872,8 +872,8 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> {
  */
 export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	protected props: Props;
-	public static validator: ValidateType = ValidateType.create();
-	public validator: ValidateType = ValidateType.create();
+	public static validator: Validator = Validator.create();
+	public validator: Validator = Validator.create();
 	private readonly autoMapper: AutoMapper<Props>;
 
 	constructor(props: Props, config?: ISettings) {
@@ -974,7 +974,12 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	 * @returns a new instance of value object.
 	 */
 	clone(): IResult<ValueObject<Props>> {
-		return ValueObject.bind(this).create(this.props);
+		const instance = Reflect.getPrototypeOf(this);
+		if (!instance) return Result.fail('Could not get value object instance');
+		const args = [this.props, this.config];
+		const obj = Reflect.construct(instance.constructor, args);
+		if (obj instanceof ValueObject) return Result.success(obj);
+		return Result.fail('Could not create instance of value object');
 	}
 
 	/**
@@ -1009,7 +1014,7 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
  * @description Auto Mapper transform a domain resource into object.
  */
 export class AutoMapper<Props> {
-	private validator: ValidateType = ValidateType.create();
+	private validator: Validator = Validator.create();
 
 	/**
 	 * @description Transform a value object into a simple value.
@@ -1233,6 +1238,7 @@ export class History<Props> implements IHistory<Props> {
 		this.iterator.prev();
 		
 		if (token) {
+			this.iterator.toLast();
 			while (this.iterator.hasPrev()) {
 				const prev = this.iterator.prev();
 				if (prev.token?.equal(token)) return prev;
@@ -1254,6 +1260,7 @@ export class History<Props> implements IHistory<Props> {
 		this.iterator.next();
 
 		if (token) {
+			this.iterator.toFirst();
 			while (this.iterator.hasNext()) {
 				const next = this.iterator.next();
 				if (next.token?.equal(token)) return next;

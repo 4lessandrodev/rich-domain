@@ -1,12 +1,12 @@
 import { Aggregate, Entity, ID, ValueObject } from "../core";
 
-export class ValidateType {
-	private static instance: ValidateType;
+export class Validator {
+	private static instance: Validator;
 	private constructor() {}
 
-	public static create(): ValidateType {
-		if (!ValidateType.instance) {
-			this.instance = new ValidateType();
+	public static create(): Validator {
+		if (!Validator.instance) {
+			this.instance = new Validator();
 		}
 		return this.instance;
 	}
@@ -71,10 +71,10 @@ export class ValidateType {
 	number(target: number) {
 		return {
 			isEqualTo: (value: number): boolean => target === value,
-			isGreaterThan: (value: number): boolean => value > target,
-			isLessThan: (value: number): boolean => value < target,
-			isLessOrEqualTo: (value: number): boolean => value <= target,
-			isGreaterOrEqualTo: (value: number): boolean => value >= target,
+			isGreaterThan: (value: number): boolean => target > value,
+			isLessThan: (value: number): boolean => target < value,
+			isLessOrEqualTo: (value: number): boolean => target <= value,
+			isGreaterOrEqualTo: (value: number): boolean => target >= value,
 			isSafeInteger: (): boolean => target <= Number.MAX_SAFE_INTEGER && target >= Number.MIN_SAFE_INTEGER,
 			isPositive: (): boolean => target >= 0,
 			isNegative: (): boolean => target < 0,
