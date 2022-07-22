@@ -827,7 +827,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any, id?: string): IResult<Entity<any>, any, any> {
-		if(!this.isValidProps(props)) return Result.fail('Props are required to create an instance of ' + this.name);
+		if(!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.success(new this(props, id));
 	};
 }
@@ -862,7 +862,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any, id?: string): IResult<Aggregate<any>, any, any> {
-		if(!this.isValidProps(props)) return Result.fail('Props are required to create an instance of ' + this.name);
+		if(!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.success(new this(props, id));
 	};
 }
@@ -1005,7 +1005,7 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any): IResult<ValueObject<any>, any, any> {
-		if (!this.isValidProps(props)) return Result.fail('Props are required to create an instance of ' + this.name);
+		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.success(new this(props));
 	};
 }
