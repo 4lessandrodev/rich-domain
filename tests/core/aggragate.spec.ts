@@ -1,5 +1,5 @@
 import { Aggregate, Result, ValueObject } from "../../lib/core";
-import { ISettings, IResult } from "../../lib/index.types";
+import { ISettings, IResult } from "../../lib/types";
 
 describe('aggregate', () => {
 
@@ -207,6 +207,7 @@ describe('aggregate', () => {
 
 			expect(agg.value().get('createdAt')).toBeDefined();
 			expect(agg.value().get('createdAt')).toBeDefined();
+			expect(agg.value().toObject().name).toBe('Leticia');
 		});
 
 		it('should create a date from props if provide value', () => {

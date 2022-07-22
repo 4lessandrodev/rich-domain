@@ -1,6 +1,6 @@
 import { Aggregate, Entity, ID, Result, ValueObject } from "../../lib/core";
-import { IResult } from "../../lib/index.types";
-import { Validator } from "../../lib/utils/validator";
+import { IResult } from "../../lib/types";
+import { Validator } from "../../lib/utils";
 
 describe('check-types', () => {
 

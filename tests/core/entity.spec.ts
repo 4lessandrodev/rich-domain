@@ -1,5 +1,5 @@
-import {  Entity, Result } from "../../lib/core/index";
-import { IResult } from "../../lib/index.types";
+import {  Entity, Result } from "../../lib/core";
+import { IResult } from "../../lib/types";
 
 describe("entity", () => {
 

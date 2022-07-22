@@ -1,5 +1,5 @@
 import { ID, Result, ValueObject } from "../../lib/core";
-import { ICommand, IPropsValidation, IResult } from "../../lib/index.types";
+import { ICommand, IPropsValidation, IResult } from "../../lib/types";
 
 describe('value-object', () => {
 

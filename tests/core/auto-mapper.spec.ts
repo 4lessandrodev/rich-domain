@@ -1,5 +1,5 @@
 import { AutoMapper, Entity, ID, Iterator, ValueObject } from "../../lib/core";
-import { IDomainID } from "../../lib/index.types";
+import { IDomainID } from "../../lib/types";
 
 describe('auto-mapper', () => {
 

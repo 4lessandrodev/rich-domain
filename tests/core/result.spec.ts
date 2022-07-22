@@ -1,5 +1,5 @@
 import { Result } from "../../lib/core";
-import { ICommand } from "../../lib/index.types";
+import { ICommand } from "../../lib/types";
 
 describe('result', () => {
 
