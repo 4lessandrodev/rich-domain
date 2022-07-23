@@ -16,8 +16,27 @@ import {
 	IHistoryProps,
 	IHistory,
 	IPublicHistory,
+	IDomainEvent,
+	IHandle,
+	IEvent,
+	IDispatchOptions,
+	IReplaceOptions,
 } from "../types";
 import { Validator } from '../utils/validator';
+
+/**
+ * @description Domain Event with state.
+ */
+export class DomainEvent<T> implements IDomainEvent<T> {
+	public aggregate!: T;
+	public createdAt!: Date;
+	public callback: IHandle<T>;
+	constructor(aggregate: T, callback: IHandle<T>){
+		this.aggregate = aggregate;
+		this.createdAt = new Date();
+		this.callback = callback;
+	}
+}
 
 /**
  * @description Iterator allows sequential traversal through a complex data structure without exposing its internal details.
@@ -54,6 +73,18 @@ export class Iterator<T> implements IIterator<T> {
 	 */
 	public static create<U>(config?: ITeratorConfig<U>): Iterator<U> {
 		return new Iterator<U>(config);
+	}
+
+	/**
+	 * @description Remove one item if found
+	 * @param item to be removed
+	 */
+	removeItem(item: T) : void {
+		const index = this.items.findIndex((value) => JSON.stringify(item) === JSON.stringify(value));
+		if (index !== -1) {
+			this.items.splice(index, 1);
+			if (index >= this.currentIndex) this.prev();
+		}
 	}
 
 	/**
@@ -855,6 +886,19 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 	}
 
 	/**
+	 * @description Add event to aggregate
+	 * @param event Event to be dispatched
+	 * @param replace 'REPLACE_DUPLICATED' option to remove old event with the same name and id
+	 */
+	addEvent(event: IHandle<Aggregate<Props>>, replace?: IReplaceOptions): void {
+		DomainEvents.addEvent({ event: new DomainEvent(this, event), replace: replace === 'REPLACE_DUPLICATED' })
+	}
+
+	deleteEvent(eventName: string): void {
+		DomainEvents.deleteEvent({ eventName, id: this.id });
+	}
+
+	/**
 	 * 
 	 * @param props params as Props
 	 * @param id optional uuid as string, second arg. If not provided a new one will be generated.
@@ -1281,4 +1325,60 @@ export class History<Props> implements IHistory<Props> {
 		return this.iterator.total();
 	}
 
+}
+
+/**
+ * @description Domain Events manager.
+ */
+export abstract class DomainEvents {
+	public static events: IIterator<IDomainEvent<Aggregate<any>>> = Iterator.create();
+
+	/**
+	 * @description Add event to state.
+	 * @param param event to be added.
+	 */
+	public static addEvent({ event, replace }: IEvent<Aggregate<any>>) {
+		const target = Reflect.getPrototypeOf(event.callback);
+		const eventName = event.callback?.eventName ?? target?.constructor.name as string;
+		if (!!replace) this.deleteEvent({ eventName, id: event.aggregate.id });
+		event.callback.eventName = eventName;
+		DomainEvents.events.addToEnd(event);
+	}
+
+	/**
+	 * @description Dispatch event for a provided name and an aggregate id.
+	 * @param options params to find event to dispatch it.
+	 * @returns promise void.
+	 */
+	public static async dispatch(options: IDispatchOptions): Promise<void> {
+		const eventsToDispatch: Array<IDomainEvent<Aggregate<any>>> = [];
+		this.events.toFirst();
+		while (this.events.hasNext()) {
+			const event = this.events.next();
+			if (event.aggregate.id.equal(options.id) && event.callback.eventName === options.eventName) {
+				this.events.toFirst();
+				eventsToDispatch.push(event);
+				this.events.removeItem(event);
+			}
+		}
+		eventsToDispatch.forEach((agg) => agg.callback.dispatch(agg));
+	}
+
+	/**
+	 * @description Delete an event from state.
+	 * @param options to find event to be deleted.
+	 */
+	public static deleteEvent(options: IDispatchOptions): void {
+		this.events.toFirst();
+		while (this.events.hasNext()) {
+			const event = this.events.next();
+			const target = Reflect.getPrototypeOf(event.callback);
+			const eventName = event.callback?.eventName ?? target?.constructor.name;
+			
+			if (event.aggregate.id.equal(options.id) && options.eventName === eventName) {
+				this.events.toFirst();
+				this.events.removeItem(event);
+			}
+		}
+	}
 }

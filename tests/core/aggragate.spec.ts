@@ -1,5 +1,5 @@
-import { Aggregate, Result, ValueObject } from "../../lib/core";
-import { ISettings, IResult } from "../../lib/types";
+import { Aggregate, DomainEvents, Result, ValueObject } from "../../lib/core";
+import { ISettings, IResult, IHandle, IDomainEvent } from "../../lib/types";
 
 describe('aggregate', () => {
 
@@ -228,6 +228,66 @@ describe('aggregate', () => {
 			expect(agg.value().get('updatedAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
 			agg.value().set('name').to('Lana');
 			expect(agg.value().get('updatedAt')).not.toEqual(new Date('2022-01-01T03:00:00.000Z'));
+		});
+
+		it('should add domain event', async () => {
+
+			class Handler implements IHandle<UserAgg> {
+				eventName: string = 'Handler Event';
+				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
+					console.log(event.aggregate.toObject());
+				}
+			}
+
+			const agg = UserAgg.create({ name: 'Jane' }).value();
+
+			agg.addEvent(new Handler(), 'REPLACE_DUPLICATED');
+
+			expect(DomainEvents.events.total()).toBe(1);
+
+			agg.deleteEvent('Handler Event');
+
+			expect(DomainEvents.events.total()).toBe(0);
+		});
+
+		it('should add domain event', async () => {
+
+			class Handler implements IHandle<UserAgg> {
+				eventName: string = 'Handler Event';
+				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
+					console.log(event.aggregate.toObject());
+				}
+			}
+
+			const agg = UserAgg.create({ name: 'Jane' }).value();
+
+			agg.addEvent(new Handler(), 'REPLACE_DUPLICATED');
+
+			expect(DomainEvents.events.total()).toBe(1);
+
+			DomainEvents.dispatch({ eventName: 'Handler Event', id: agg.id })
+
+			expect(DomainEvents.events.total()).toBe(0);
+		});
+
+		it('should add domain event', async () => {
+
+			class Handler implements IHandle<UserAgg> {
+				eventName = undefined;
+				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
+					console.log(event.aggregate.toObject());
+				}
+			}
+
+			const agg = UserAgg.create({ name: 'Jane' }).value();
+
+			agg.addEvent(new Handler(), 'REPLACE_DUPLICATED');
+
+			expect(DomainEvents.events.total()).toBe(1);
+
+			DomainEvents.dispatch({ eventName: Handler.name, id: agg.id })
+
+			expect(DomainEvents.events.total()).toBe(0);
 		});
 	});
 });

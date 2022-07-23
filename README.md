@@ -180,6 +180,39 @@ export class Product extends Aggregate<Props> {
 
 ```
 
+### Domain Events
+
+You can add event to the aggregates.
+Events are stored in memory and deleted after dispatch.
+
+```ts
+
+import { DomainEvents, IHandle } from 'rich-domain';
+
+class ProductCreated implements IHandle<Product> {
+	// optional custom name. default is the className
+	eventName: string = 'CustomEventName';
+
+	dispatch(event: IDomainEvent<Product>): Promise<void> {
+
+		// logic goes here. do something important
+		console.log(event);
+	}
+}
+
+const result = Product.create({ name, price });
+
+const product = result.value();
+
+const event = new ProductCreated();
+
+product.addEvent(event);
+
+// dispatch event
+DomainEvents.dispatch({ eventName: 'CustomEventName', id: product.id });
+
+```
+
 ### Result
 
 Ensure application never throws

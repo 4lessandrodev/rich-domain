@@ -241,4 +241,14 @@ describe('iterator', () => {
 			});
 		});
 	});
+
+	describe('delete item', () => {
+		it("should delete a provided item", () => {
+			const ite = Iterator.create({ initialData: [1, 2, 3, 4, 5, 6, 7] });
+
+			ite.removeItem(3);
+
+			expect(ite.toArray()).toEqual([1, 2, 4, 5, 6, 7]);
+		});
+	});
 });

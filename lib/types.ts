@@ -95,6 +95,8 @@ export interface IIterator<T> {
 	total(): number;
 
 	clone(): IIterator<T>;
+
+	removeItem(item: T): void;
 }
 
 /**
@@ -183,3 +185,48 @@ export interface IPublicHistory<Props> {
 }
 
 export type IPropsValidation<T> = { [P in keyof Required<T>]: (value: T[P]) => boolean };
+
+/**
+ * @description Domain Events Params
+ * @param aggregate the entity to add the event.
+ * @param createdAt the current date time the event was created.
+ * @param callback the event handler to be executed on dispatch.
+ */
+export interface IDomainEvent<T> {
+	aggregate: T;
+	createdAt: Date;
+	callback: IHandle<T>;
+}
+
+/**
+ * @description Define a handler to be executed on dispatch an event.
+ * @var eventName is optional value as string or undefine.
+ * @method dispatch is the method to be executed on dispatch the event.
+ */
+export interface IHandle<T> {
+	/**
+	 * @description eventName is optional value. Default is className
+	 */
+	eventName?: string;
+	dispatch(event: IDomainEvent<T>): Promise<void> | void;
+}
+
+/**
+ * @description Options to dispatch some event.
+ * @param eventName is the value defined on handler. Default is the class name.
+ * @param id is the ID to identify the aggregate on state.
+ */
+export interface IDispatchOptions {
+	eventName: string;
+	id: IDomainID<string>;
+}
+
+/**
+ * @description Event options
+ */
+export interface IEvent<G> {
+	event: IDomainEvent<G>;
+	replace?: boolean;
+}
+
+export type IReplaceOptions = 'REPLACE_DUPLICATED' | 'UPDATE' | 'KEEP';
