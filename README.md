@@ -112,17 +112,18 @@ Have an id (preferably a GUID rather than a DB generated int because business tr
 
 import { Entity, Result, IResult } from 'rich-domain';
 
-interface Props { name: Name; age: Age; };
+// id must be defined on props as optional string. If not provided a new one will be generated.
+interface Props { id?: string; name: Name; age: Age; };
 
 export class User extends Entity<Props> {
-	private constructor(props: Props, id?: string){
-		super(props, id);
+	private constructor(props: Props){
+		super(props);
 	}
 
-	public static create(props: Props, id?: string): IResult<User> {
+	public static create(props: Props): IResult<User> {
 		
 		// your business validation
-		return Result.success(new User(props, id));
+		return Result.success(new User(props));
 	}
 }
 
@@ -170,17 +171,18 @@ Encapsulate and are composed of entity classes and value objects that change tog
 
 import { Aggregate, Result, IResult } from 'rich-domain';
 
-interface Props { name: Name, price: Currency }
+// id must be defined on props as optional string. If not provided a new one will be generated.
+interface Props { id?: string; name: Name; price: Currency }
 
 export class Product extends Aggregate<Props> {
-	private constructor(props: Props, id?: string){
-		super(props, id);
+	private constructor(props: Props){
+		super(props);
 	}
 
-	public static create(props: Props, id?: string): IResult<Product> {
+	public static create(props: Props): IResult<Product> {
 		
 		// your business validation
-		return Result.success(new Product(props, id));
+		return Result.success(new Product(props));
 	}
 }
 

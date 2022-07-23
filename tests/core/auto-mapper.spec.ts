@@ -224,27 +224,31 @@ describe('auto-mapper', () => {
 			}
 
 			interface Props {
+				id?: string;
 				name: NameVo;
 				age: AgeVo;
 				notes: Array<number>;
 			}
 
 			class SimpleEntity extends Entity<Props>{
-				private constructor(props: Props, id?: string, config?: any) {
-					super(props, id, config);
+				private constructor(props: Props, config?: any) {
+					super(props, config);
 				}
 			}
 
 			const age = AgeVo.create({ value: 21 }).value();
 			const name = NameVo.create({ value: 'some value' }).value();
-			const agg = SimpleEntity.create({ age, name, notes: [1,2,3] }, "1519cb69-9904-4f2b-84e1-e6e95431cf24");
+			const agg = SimpleEntity.create({ id: "1519cb69-9904-4f2b-84e1-e6e95431cf24", age, name, notes: [1,2,3] });
 
 			const user = agg.value();
+
+			expect(user.id.value()).toBe('1519cb69-9904-4f2b-84e1-e6e95431cf24');
 
 			const autoMapper = new AutoMapper<Props>();
 
 			const obj = autoMapper.entityToObj(user);
 			
+			expect(obj.id).toBe('1519cb69-9904-4f2b-84e1-e6e95431cf24');
 			expect(obj.age).toBe(21);
 			expect(obj.name).toBe('some value');
 			expect(obj.createdAt).toBeInstanceOf(Date);

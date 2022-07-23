@@ -5,19 +5,19 @@ describe("entity", () => {
 
 	describe("simple entity", () => {
 
-		interface Props { foo: string };
+		interface Props { id?: string, foo: string };
 		
 		class EntitySample extends Entity<Props> {
-			private constructor(props: Props, id?: string) {
-				super(props, id);
+			private constructor(props: Props) {
+				super(props);
 			}
 
 			public isValidValue(value: any): boolean {
 				return value !== undefined;
 			}
 
-			public static create(props: Props, id?: string): IResult<EntitySample> {
-				return Result.success(new EntitySample(props, id))
+			public static create(props: Props): IResult<EntitySample> {
+				return Result.success(new EntitySample(props))
 			}
 		}
 
@@ -32,8 +32,8 @@ describe("entity", () => {
 	describe('toObject', () => {
 
 		class En extends Entity<{ key: string }>{
-			private constructor(props: { key: string }, id?: string) {
-				super(props, id)
+			private constructor(props: { key: string }) {
+				super(props)
 			}
 		}
 
@@ -41,13 +41,12 @@ describe("entity", () => {
 
 		const entity = En.create(
 			{
+				id,
 				key: 'value',
 				createdAt: new Date('2022-07-20T15:46:54.373Z'),
 				updatedAt: new Date('2022-07-20T15:46:54.373Z')
-			},
-			id
+			}
 		);
-
 
 		it('should get object with success', () => {
 			expect(entity.value().toObject()).toEqual({

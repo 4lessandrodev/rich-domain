@@ -711,13 +711,13 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	public validator: Validator = Validator.create();
 	private readonly autoMapper: AutoMapper<Props>;
 
-	constructor(props: Props, id?: string, config?: ISettings) { 
+	constructor(props: Props, config?: ISettings) { 
 		super(props, config, new History({ 
 			props: Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props }),
 			action: 'create',
 		 }));
 		this.props = Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props });
-		this._id = ID.create(id);
+		this._id = ID.create(props?.['id'] ?? props?.['_id']);
 		this.autoMapper = new AutoMapper();
 	}
 
@@ -855,13 +855,13 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	/**
 	 * 
 	 * @param props params as Props
-	 * @param id optional uuid as string, second arg. If not provided a new one will be generated.
+	 * @param id optional uuid as string in props. If not provided on props a new one will be generated.
 	 * @returns instance of result with a new Entity on state if success.
 	 * @summary result state will be `null` case failure.
 	 */
-	public static create(props: any, id?: string): IResult<Entity<any>, any, any> {
+	public static create(props: any): IResult<Entity<any>, any, any> {
 		if(!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
-		return Result.success(new this(props, id));
+		return Result.success(new this(props));
 	};
 }
 
@@ -870,8 +870,8 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
  */
 export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 
-	constructor(props: Props, id?: string, config?: ISettings) { 
-		super(props, id, config);
+	constructor(props: Props, config?: ISettings) { 
+		super(props, config);
 	}
 
 	/**
@@ -907,9 +907,9 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 	 * @returns instance of result with a new Aggregate on state if success.
 	 * @summary result state will be `null` case failure.
 	 */
-	public static create(props: any, id?: string): IResult<Aggregate<any>, any, any> {
+	public static create(props: any): IResult<Aggregate<any>, any, any> {
 		if(!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
-		return Result.success(new this(props, id));
+		return Result.success(new this(props));
 	};
 }
 
@@ -1163,6 +1163,10 @@ export class AutoMapper<Props> {
 		const isAggregate = this.validator.isAggregate(entity);
 
 		const props = entity?.['props'] ?? {};
+
+		delete props?.['_id'];
+
+		delete props?.['id'];
 
 		const isValueObject = this.validator.isValueObject(entity);
 

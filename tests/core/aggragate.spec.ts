@@ -6,12 +6,13 @@ describe('aggregate', () => {
 	describe('aggregate native methods', () => {
 
 		interface Props {
+			id: string;
 			name: string;
 		}
 
 		class AggregateErr extends Aggregate<Props> {
-			private constructor(props: Props, id?: string, config?: ISettings) {
-				super(props, id, config)
+			private constructor(props: Props, config?: ISettings) {
+				super(props, config)
 			}
 		}
 
@@ -26,7 +27,7 @@ describe('aggregate', () => {
 		});
 
 		it('should create a valid aggregate', () => {
-			const obj = AggregateErr.create({ name: 'Jane' }, '23366cbf-86cd-4de3-874a-5a11b4fe5dac');
+			const obj = AggregateErr.create({ id: '23366cbf-86cd-4de3-874a-5a11b4fe5dac', name: 'Jane' });
 			expect(obj.isFailure()).toBeFalsy();
 			expect(obj.value().get('name')).toBe('Jane');
 			expect(obj.value().hashCode().value()).toBe('[Aggregate@AggregateErr]:23366cbf-86cd-4de3-874a-5a11b4fe5dac')
@@ -36,17 +37,18 @@ describe('aggregate', () => {
 	describe('basic-aggregate', () => {
 
 		interface Props {
+			id?: string;
 			name: string;
 			age: number;
 		}
 
 		class BasicAggregate extends Aggregate<Props> {
-			private constructor(props: Props, id?: string) {
-				super(props, id)
+			private constructor(props: Props) {
+				super(props)
 			}
 
-			public static create(props: Props, id?: string): Result<BasicAggregate> {
-				return Result.success(new BasicAggregate(props, id));
+			public static create(props: Props): Result<BasicAggregate> {
+				return Result.success(new BasicAggregate(props));
 			}
 		}
 
@@ -63,7 +65,11 @@ describe('aggregate', () => {
 		});
 
 		it('should create a basic aggregate with a provided id', () => {
-			const agg = BasicAggregate.create({ name: 'Jane Doe', age: 18 }, '8b51a5a2-d47a-4431-884a-4c7d77e1a201');
+			const agg = BasicAggregate.create({
+				id: '8b51a5a2-d47a-4431-884a-4c7d77e1a201',
+				name: 'Jane Doe',
+				age: 18
+			});
 
 			expect(agg.value().isNew()).toBeFalsy();
 
@@ -122,15 +128,16 @@ describe('aggregate', () => {
 		});
 
 		interface AggProps {
+			id?: string;
 			age: AgeVo;
 		}
 		class UserAgg extends Aggregate<AggProps>{
-			private constructor(props: AggProps, id?: string) {
-				super(props, id);
+			private constructor(props: AggProps) {
+				super(props);
 			}
 			
-			public static create(props: AggProps, id?: string): IResult<Aggregate<AggProps>> {
-				return Result.success(new UserAgg(props, id));
+			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
+				return Result.success(new UserAgg(props));
 			}
 		}
 
@@ -189,17 +196,18 @@ describe('aggregate', () => {
 	describe('createdAt and updatedAt', () => {
 
 		interface AggProps {
+			id?: string;
 			name: string;
 			createdAt?: Date;
 			updatedAt?: Date;
 		}
 		class UserAgg extends Aggregate<AggProps>{
-			private constructor(props: AggProps, id?: string) {
-				super(props, id);
+			private constructor(props: AggProps) {
+				super(props);
 			}
 			
-			public static create(props: AggProps, id?: string): IResult<Aggregate<AggProps>> {
-				return Result.success(new UserAgg(props, id));
+			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
+				return Result.success(new UserAgg(props));
 			}
 		}
 		it('should create a new date if props are defined on props', () => {
