@@ -1,6 +1,6 @@
 {
 	"name": "rich-domain",
-	"version": "1.5.0-beta",
+	"version": "1.5.1-beta",
 	"description": "This package provide utils file and interfaces to assistant build a complex application with domain driving design",
 	"main": "index.js",
 	"types": "index.d.ts",
@@ -43,6 +43,7 @@
 	],
 	"scripts": {
 		"test": "jest --runInBand --silent",
+		"test:verbose": "jest --runInBand",
 		"prebuild": "rimraf ./dist && npm run check:circular-deps && ./clear.sh",
 		"postbuild": "cp -r ./dist/* ./",
 		"build": "tsc -p tsconfig.lib.json",

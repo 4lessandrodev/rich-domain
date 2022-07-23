@@ -21,6 +21,7 @@ import {
 	IEvent,
 	IDispatchOptions,
 	IReplaceOptions,
+	IAdapter,
 } from "../types";
 import { Validator } from '../utils/validator';
 
@@ -487,8 +488,8 @@ export class GettersAndSetters<Props> {
 	 * @param key the property key you want to get
 	 * @returns the value of property
 	 */
-	get(key: keyof Props) {
-		if (this.config.deactivateGetters) return null as unknown as Props[keyof Props];
+	get<Key extends keyof Props>(key: Key) {
+		if (this.config.deactivateGetters) return null as unknown as Props[Key];
 		return this.props[key];
 	}
 
@@ -732,7 +733,8 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @description Get value as object from entity.
 	 * @returns object with properties.
 	 */
-	toObject<T>(): T extends {} ? T & EntityMapperPayload: {[key in keyof Props]: any } & EntityMapperPayload {
+	toObject<T>(adpter?: IAdapter<this, T>): T extends {} ? T & EntityMapperPayload : { [key in keyof Props]: any } & EntityMapperPayload {
+		if (adpter && typeof adpter?.build === 'function') return adpter.build(this).value() as any;
 		return this.autoMapper.entityToObj(this) as any;
 	}
 
@@ -1030,7 +1032,8 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	 * @description Get value from value object.
 	 * @returns value as string, number or any type defined.
 	 */
-	toObject<T>(): T {
+	toObject<T>(adpter? :IAdapter<this, T>): T {
+		if (adpter && typeof adpter?.build === 'function') return adpter.build(this).value();
 		return this.autoMapper.valueObjectToObj(this) as unknown as T;
 	}
 

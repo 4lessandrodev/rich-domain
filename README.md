@@ -126,6 +126,12 @@ export class User extends Entity<Props> {
 	}
 }
 
+```
+
+How to instantiate an entity
+
+```ts
+
 // create entity attributes
 
 const attrAge = Age.create({ value: 21 });
@@ -193,7 +199,7 @@ class ProductCreated implements IHandle<Product> {
 	// optional custom name. default is the className
 	eventName: string = 'CustomEventName';
 
-	dispatch(event: IDomainEvent<Product>): Promise<void> {
+	async dispatch(event: IDomainEvent<Product>): Promise<void> {
 
 		// logic goes here. do something important
 		console.log(event);
@@ -240,7 +246,7 @@ console.log(result.metaData());
 
 > Object { foo: "bar" }
 
-// if success error will be null
+// if success, the error will be null
 
 console.log(result.error());
 
@@ -268,7 +274,7 @@ console.log(result.error());
 
 > "something went wrong!"
 
-// if failure payload data will be null
+// if failure, the payload data will be null
 
 console.log(result.value());
 
@@ -340,5 +346,35 @@ const id = ID.createShort();
 console.log(id.value());
 
 > "LO123RE3MID0193T"
+
+```
+
+### Adapter
+
+How to adapt the data from persistence to domain or from domain to persistence.
+
+```ts
+
+import { IAdapter, Result } from 'rich-domain';
+
+// from domain to data layer
+class MyAdapterA implements IAdapter<DomainUser, DataUser>{
+	build(target: DomainUser): Result<DataUser> {
+		// ...
+	}
+}
+
+// from data layer to domain
+class MyAdapterB implements IAdapter<DataUser, DomainUser>{
+	build(target: DataUser): Result<DomainUser> {
+		// ...
+	}
+}
+
+// you also may use adapter in toObject function.
+
+const myAdapter = new MyAdapterA();
+
+domainUser.toObject<Model>(myAdapter);
 
 ```

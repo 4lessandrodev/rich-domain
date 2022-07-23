@@ -144,7 +144,7 @@ export interface IResultExecute<X, Y> extends IResultHook<Y> {
 	withData(data: X): IResultHook<Y>;
 }
 
-export type OBJ = {};
+export type OBJ = { };
 
 export type EntityProps = OBJ | { createdAt?: Date, updatedAt?: Date };
 
@@ -230,3 +230,7 @@ export interface IEvent<G> {
 }
 
 export type IReplaceOptions = 'REPLACE_DUPLICATED' | 'UPDATE' | 'KEEP';
+
+export interface IAdapter<F, T>{
+	build(target: F): IResult<T>;
+}
