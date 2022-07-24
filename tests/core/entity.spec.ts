@@ -61,9 +61,9 @@ describe("entity", () => {
 			expect(entity.value().hashCode().value()).toBe('[Entity@En]:973e6c78-6771-4a86-ba55-f759a1e68f8c');
 		});
 
-		it('should clone entity with success', () => {
+		it('should clone entity with success and keep the same id', () => {
 			const clone = entity.value().clone();
-			expect(clone.value().id.value()).not.toBe(id);
+			expect(clone.value().id.value()).toBe(id);
 			expect(clone.value().get('key')).toBe('value');
 		});
 
@@ -96,6 +96,4 @@ describe("entity", () => {
 			expect(result.isFailure()).toBeTruthy();
 		});
 	});
-
-
 });

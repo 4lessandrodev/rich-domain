@@ -1,5 +1,5 @@
 import { AutoMapper, Entity, ID, Iterator, ValueObject } from "../../lib/core";
-import { IDomainID } from "../../lib/types";
+import { UID } from "../../lib/types";
 
 describe('auto-mapper', () => {
 
@@ -126,7 +126,7 @@ describe('auto-mapper', () => {
 
 			const ids = Iterator.create({ initialData: ['927be849b0b1', '927be849b0b2', '927be849b0b3'] });
 
-			const IDS: IDomainID<string>[] = [];
+			const IDS: UID<string>[] = [];
 
 			while (ids.hasNext()) {
 				IDS.push(ID.create(ids.next()));

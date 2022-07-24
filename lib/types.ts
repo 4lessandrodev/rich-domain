@@ -26,9 +26,9 @@ export interface IResult<T, D = string, M = {}> {
 /**
  * 
  */
-export interface IDomainID<T = string> {
+export interface UID<T = string> {
 
-	toShort(): IDomainID<string>;
+	toShort(): UID<string>;
 
 	value(): string;
 
@@ -38,13 +38,13 @@ export interface IDomainID<T = string> {
 
 	isShortID(): boolean;
 
-	equal(id: IDomainID<string>): boolean;
+	equal(id: UID<string>): boolean;
 	
-	deepEqual(id: IDomainID<string>): boolean;
+	deepEqual(id: UID<string>): boolean;
 
-	cloneAsNew(): IDomainID<string>;
+	cloneAsNew(): UID<string>;
 
-	clone(): IDomainID<T>;
+	clone(): UID<T>;
 }
 
 /**
@@ -157,29 +157,29 @@ export interface EntityMapperPayload {
 export interface IHistoryProps<Props> {
 	props: Props;
 	action: 'create' | 'update';
-	token?: IDomainID<string>;
+	token?: UID<string>;
 	ocurredAt?: Date;
 }
 
 export interface IHistory<Props> {
 	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props>;
-	back(token?: IDomainID<string>): IHistoryProps<Props>;
-	forward(token?: IDomainID<string>): IHistoryProps<Props>;
+	back(token?: UID<string>): IHistoryProps<Props>;
+	forward(token?: UID<string>): IHistoryProps<Props>;
 	count(): number;
 	list(): Array<IHistoryProps<Props>>;
 }
 
 export interface IEntityHistory<Props> {
-	back(token?: IDomainID<string>): IHistoryProps<Props> | null;
-	forward(token?: IDomainID<string>): IHistoryProps<Props> | null;
+	back(token?: UID<string>): IHistoryProps<Props> | null;
+	forward(token?: UID<string>): IHistoryProps<Props> | null;
 	count(): number;
 	list(): Array<IHistoryProps<Props>>;
 }
 
 export interface IPublicHistory<Props> {
-	snapshot(token?: IDomainID<string>): IHistoryProps<Props>;
-	back(token?: IDomainID<string>): IHistoryProps<Props>;
-	forward(token?: IDomainID<string>): IHistoryProps<Props>;
+	snapshot(token?: UID<string>): IHistoryProps<Props>;
+	back(token?: UID<string>): IHistoryProps<Props>;
+	forward(token?: UID<string>): IHistoryProps<Props>;
 	count(): number;
 	list(): Array<IHistoryProps<Props>>;
 }
@@ -218,7 +218,7 @@ export interface IHandle<T> {
  */
 export interface IDispatchOptions {
 	eventName: string;
-	id: IDomainID<string>;
+	id: UID<string>;
 }
 
 /**

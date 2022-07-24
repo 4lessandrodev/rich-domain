@@ -1044,6 +1044,11 @@ describe('check-types', () => {
 				expect(checker.number(9).isBetween(1, 10)).toBeTruthy();
 			});
 
+			it('should string not to be positive', () => {
+				expect(checker.number('lorem' as any).isBetween(1, 10)).toBeFalsy();
+				expect(checker.number('9' as any).isBetween(1, 10)).toBeFalsy();
+			});
+
 			it('should 11 not to be between 1 and 10', () => {
 				expect(checker.number(11).isBetween(1, 10)).toBeFalsy();
 			});
@@ -1148,6 +1153,18 @@ describe('check-types', () => {
 				expect(checker.string(' ').isEmpty()).toBeTruthy();
 			});
 
+			it('should null to be empty', () => {
+				expect(checker.string(null as any).isEmpty()).toBeTruthy();
+			});
+
+			it('should undefined to be empty', () => {
+				expect(checker.string(undefined as any).isEmpty()).toBeTruthy();
+			});
+
+			it('should number not to be empty', () => {
+				expect(checker.string(1 as any).isEmpty()).toBeFalsy();
+			});
+
 			it('should not to be empty', () => {
 				expect(checker.string('abc').isEmpty()).toBeFalsy();
 			});
@@ -1235,6 +1252,12 @@ describe('check-types', () => {
 				expect(checker.date(monthAgo).isBeforeNow()).toBeTruthy();
 				expect(checker.date(monthAgo).isAfterOrEqualTo(currentDate)).toBeFalsy();
 				expect(checker.date(nextMonth).isBetween(monthAgo, currentDate)).toBeFalsy();
+				expect(checker.date(nextMonth).isBeforeThan(currentDate)).toBeFalsy();
+				expect(checker.date(currentDate).isBeforeThan(nextMonth)).toBeTruthy();
+				expect(checker.date(nextMonth).isBeforeOrEqualTo(currentDate)).toBeFalsy();
+				expect(checker.date(currentDate).isBeforeOrEqualTo(nextMonth)).toBeTruthy();
+				expect(checker.date(nextMonth).isAfterThan(currentDate)).toBeTruthy();
+				expect(checker.date(currentDate).isAfterThan(nextMonth)).toBeFalsy();
 			});
 
 			it('should next month not before now', () => {
@@ -1243,6 +1266,27 @@ describe('check-types', () => {
 				expect(checker.date(nextMonth).isAfterOrEqualTo(currentDate)).toBeTruthy();
 				expect(checker.date(currentDate).isBetween(monthAgo, nextMonth)).toBeTruthy();
 			});
+
+			it('should be weekend', () => {
+
+				const weekendDate = new Date('2022-07-24 00:00:00');
+				expect(checker.date(weekendDate).isWeekend()).toBeTruthy();
+
+				const weekDay = new Date('2022-07-27 00:00:00');
+				expect(checker.date(weekDay).isWeekend()).toBeFalsy();
+
+			});
+
+			it('should not be weekend if provide a string', () => {
+				expect(checker.date('today' as any).isWeekend()).toBeFalsy();
+			})
 		});
+
+		describe('regex', () => {
+			it('should to match regex', () => {
+				expect(checker.string('hello').match(/hello/g)).toBeTruthy();
+				expect(checker.string('hello').match(/hi/g)).toBeFalsy();
+			})
+		})
 	})
 });

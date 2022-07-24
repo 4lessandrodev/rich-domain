@@ -1,5 +1,5 @@
-import { Aggregate, DomainEvents, Result, ValueObject } from "../../lib/core";
-import { ISettings, IResult, IHandle, IDomainEvent } from "../../lib/types";
+import { Aggregate, DomainEvents, ID, Result, ValueObject } from "../../lib/core";
+import { ISettings, IResult, IHandle, IDomainEvent, UID } from "../../lib/types";
 
 describe('aggregate', () => {
 
@@ -55,7 +55,7 @@ describe('aggregate', () => {
 		it('should create a basic aggregate with success', () => {
 
 			const agg = BasicAggregate.create({ name: 'Jane Doe', age: 21 });
-	
+
 			expect(agg.value().id).toBeDefined();
 
 			expect(agg.value().isNew()).toBeTruthy();
@@ -135,7 +135,7 @@ describe('aggregate', () => {
 			private constructor(props: AggProps) {
 				super(props);
 			}
-			
+
 			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
 				return Result.success(new UserAgg(props));
 			}
@@ -147,7 +147,7 @@ describe('aggregate', () => {
 			const user = UserAgg.create({ age });
 
 			expect(user.isSuccess()).toBeTruthy();
-			
+
 		});
 
 		it('should get value from age with success', () => {
@@ -160,7 +160,7 @@ describe('aggregate', () => {
 				.get('value');
 
 			expect(result).toBe(21);
-			
+
 		});
 
 		it('should set a new age with success and navigate on history', () => {
@@ -171,15 +171,15 @@ describe('aggregate', () => {
 			expect(user.get('age').get('value')).toBe(21);
 
 			const age18 = AgeVo.create({ value: 18 }).value();
-			
+
 			expect(user.history().count()).toBe(1);
 
 			const result = user
 				.set('age')
 				.to(age18);
-			
+
 			expect(result.get('age').get('value')).toBe(18);
-			
+
 			expect(user.history().count()).toBe(2);
 
 			user.history().back();
@@ -205,7 +205,7 @@ describe('aggregate', () => {
 			private constructor(props: AggProps) {
 				super(props);
 			}
-			
+
 			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
 				return Result.success(new UserAgg(props));
 			}
@@ -297,5 +297,77 @@ describe('aggregate', () => {
 
 			expect(DomainEvents.events.total()).toBe(0);
 		});
+
+		it('should change id', () => {
+			const agg = UserAgg.create({
+				name: 'James Stuart',
+				id: 'valid_id'
+			});
+
+			const user = agg.value();
+			expect(user.id.value()).toBe('valid_id');
+			expect(user.get('id')).toBe('valid_id');
+
+			user.set('id').to('changed_id');
+			expect(user.id.value()).toBe('changed_id');
+			expect(user.get('id')).toBe("changed_id");
+
+			expect(user.toObject().id).toBe('changed_id');
+
+			user.change('id', 'new_changed_id');
+
+			expect(user.id.value()).toBe('new_changed_id');
+			expect(user.get('id')).toBe("new_changed_id");
+
+			user.change('id', ID.create('new uuid') as any);
+
+			expect(user.get('id')).toBe("new uuid");
+
+			user.set('id').to(ID.create('new uuid2') as any);
+
+			expect(user.get('id')).toBe("new uuid2");
+
+			user.change('id', 9887822939 as any);
+			expect(user.get('id')).toBe("9887822939");
+
+			user.set('id').to(7454 as any);
+			expect(user.get('id')).toBe("7454");
+		})
+	});
+
+	describe('aggregate with domain id', () => {
+
+		it('should be success if define id as UID', () => {
+
+			interface Props {
+				id: UID;
+				name: string;
+				createdAt: Date;
+				updatedAt: Date;
+			}
+
+			class Product extends Aggregate<Props>{
+				private constructor(props: Props) {
+					super(props)
+				}
+
+				public static create(props: Props): IResult<Product> {
+					return Result.success(new Product(props));
+				}
+			}
+
+			const result = Product.create({
+				id: ID.create('fd15df0c-af60-45ce-9976-33c6197e5ca0'),
+				name: 'James',
+				createdAt: new Date(),
+				updatedAt: new Date()
+			});
+			
+			const id = result.value().toObject().id;
+			
+			expect(id).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
+			expect(result.value().id.value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
+			expect(result.value().get('id').value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
+		})
 	});
 });

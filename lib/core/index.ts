@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 import {
 	ISettings,
 	ICommand,
-	IDomainID,
+	UID,
 	IIterator,
 	IResult,
 	IResultExecute,
@@ -519,6 +519,22 @@ export class GettersAndSetters<Props> {
 						if (!validation(key, value)) return this;
 					}
 				}
+				if (key === 'id' && this instanceof Entity) {
+					if (this.validator.isString(value) || this.validator.isNumber(value)) {
+						this['_id'] = ID.create(value);
+						this['props'][key] = this['_id'].value();
+						this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+						this.snapshotSet();
+						return this;
+					}
+					if (this.validator.isID(value)) {
+						this['_id'] = value as unknown as ID<string>;
+						this['props'][key] = this['_id'].value();
+						this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+						this.snapshotSet();
+						return this;
+					}
+				}
 				this.props[key] = value;
 				this.props = Object.assign({}, { ...this.props }, { updatedAt: new Date() });
 				this.snapshotSet();
@@ -544,7 +560,22 @@ export class GettersAndSetters<Props> {
 				if (!validation(key, value)) return this;
 			}
 		}
-		
+		if (key === 'id' && this instanceof Entity) {
+			if (this.validator.isString(value) || this.validator.isNumber(value)) {
+				this['_id'] = ID.create(value);
+				this['props'][key] = this['_id'].value();
+				this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+				this.snapshotSet();
+				return this;
+			}
+			if (this.validator.isID(value)) {
+				this['_id'] = value as unknown as ID<string>;
+				this['props'][key] = this['_id'].value();
+				this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+				this.snapshotSet();
+				return this;
+			}
+		}
 		this.props[key] = value;
 		this.props = Object.assign({}, { ...this.props }, { createdAt: new Date() });
 		this.snapshotSet();
@@ -557,7 +588,7 @@ export class GettersAndSetters<Props> {
  * @method create
  * @param value as string
  */
-export class ID<T = string> implements IDomainID<T> {
+export class ID<T = string> implements UID<T> {
 	private _value: string;
 	private _isNew: boolean;
 	private _createdAt: Date;
@@ -585,7 +616,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @description Update id value to a short value one. 16bytes.
 	 * @returns instance of ID with short value. 16bytes
 	 */
-	toShort():IDomainID<string> {
+	toShort():UID<string> {
 		let short = '';
 		let longValue = this._value;
 		
@@ -602,7 +633,7 @@ export class ID<T = string> implements IDomainID<T> {
 		}
 		this._createdAt = new Date();
 		this._value = short;
-		return this as unknown as IDomainID<string>;
+		return this as unknown as UID<string>;
 	}
 
 	/**
@@ -647,7 +678,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @param id instance of ID
 	 * @returns `true` if provided id value and instance value has the same value and `false` if not.
 	 */
-	equal(id: IDomainID<any>): boolean {
+	equal(id: UID<any>): boolean {
 		return (typeof this._value === typeof id.value()) && (this._value as any === id.value());
 	}
 	
@@ -656,7 +687,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @param id instance of ID
 	 * @returns `true` if provided id and instance is equal and `false` if not.
 	 */
-	deepEqual(id: IDomainID<any>): boolean {
+	deepEqual(id: UID<any>): boolean {
 		const A = JSON.stringify(this);
 		const B = JSON.stringify(id);
 		return A === B;
@@ -666,7 +697,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @description Create a clone from instance. This function does not change instance state.
 	 * @returns a cloned instance with the same properties and value.
 	 */
-	cloneAsNew(): IDomainID<string> {
+	cloneAsNew(): UID<string> {
 		const newUUID = new ID<string>(this._value);
 		newUUID.setAsNew();
 		return newUUID;
@@ -675,8 +706,8 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @description Create a clone from instance. This function does not change instance state.
 	 * @returns a cloned instance with the same value.
 	 */
-	clone(): IDomainID<T> {
-		return new ID(this._value) as unknown as IDomainID<T>;
+	clone(): UID<T> {
+		return new ID(this._value) as unknown as UID<T>;
 	}
 
 	/**
@@ -684,7 +715,7 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @param id value as string optional.If you do not provide a value a new id value will be generated.
 	 * @returns instance of ID.
 	 */
-	public static createShort(id?: string | number): IDomainID<string> {
+	public static createShort(id?: string | number): UID<string> {
 		const _id = new ID(id);
 		if (typeof id === 'undefined') _id.setAsNew();
 		_id.toShort();
@@ -696,8 +727,8 @@ export class ID<T = string> implements IDomainID<T> {
 	 * @param id value as string optional.If you do not provide a value a new uuid value will be generated.
 	 * @returns instance of ID.
 	 */
-	public static create<T = string | number>(id?: T): IDomainID<string> {
-		return new ID(id) as unknown as IDomainID<string>;
+	public static create<T = string | number>(id?: T): UID<string> {
+		return new ID(id) as unknown as UID<string>;
 	}
 }
 
@@ -706,7 +737,7 @@ export class ID<T = string> implements IDomainID<T> {
  */
 export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> {
 	protected props: Props & EntityProps;
-	private _id: IDomainID<string>;
+	protected _id: UID<string>;
 	public static validator: Validator = Validator.create();
 	public validator: Validator = Validator.create();
 	private readonly autoMapper: AutoMapper<Props>;
@@ -717,7 +748,9 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 			action: 'create',
 		 }));
 		this.props = Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props });
-		this._id = ID.create(props?.['id'] ?? props?.['_id']);
+		const isID = this.validator.isID(props?.['id']);
+		const isStringOrNumber = this.validator.isString(props?.['id']) || this.validator.isNumber(props?.['id']);
+		this._id = isStringOrNumber ? ID.create(props?.['id']) : isID ? props?.['id'] : ID.create();
 		this.autoMapper = new AutoMapper();
 	}
 
@@ -742,7 +775,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @description Get id as ID instance
 	 * @returns ID instance
 	 */
-	get id(): IDomainID<string> {
+	get id(): UID<string> {
 		return this._id;
 	}
 
@@ -754,7 +787,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * 
 	 * @summary className is defined on constructor config param
 	 */
-	hashCode(): IDomainID<string> {
+	hashCode(): UID<string> {
 		const name = Reflect.getPrototypeOf(this);
 		return ID.create(`[Entity@${name?.constructor?.name}]:${this.id.value()}`);
 	}
@@ -770,14 +803,13 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 
 	/**
 	 * @description Get a new instanced based on current Entity.
-	 * @param id value to identify the new entity instance.
 	 * @summary if not provide an id a new one will be generated.
 	 * @returns new Entity instance.
 	 */
-	clone(id?: string): IResult<Entity<Props>> {
+	clone(): IResult<Entity<Props>> {
 		const instance = Reflect.getPrototypeOf(this);
 		if (!instance) return Result.fail('Could not get entity instance');
-		const args = [this.props, ID.create(id).value(), this.config];
+		const args = [this.props, this.config];
 		const entity = Reflect.construct(instance.constructor, args);
 		if (entity instanceof Entity) return Result.success(entity);
 		return Result.fail('Could not create instance of entity');
@@ -794,7 +826,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 			 * @param token a 16bytes value to identify the target state on history.
 			 * @returns previous state found.
 			 */
-			back: (token?: IDomainID<string>): IHistoryProps<Props> => {
+			back: (token?: UID<string>): IHistoryProps<Props> => {
 				const prevState = this._MetaHistory.back(token);
 				this.props = prevState ? prevState.props : this.props;
 				return prevState;
@@ -805,7 +837,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 			 * @param token a 16bytes value to identify the target state on history.
 			 * @returns next state found.
 			 */
-			forward: (token?: IDomainID<string>): IHistoryProps<Props> => {
+			forward: (token?: UID<string>): IHistoryProps<Props> => {
 				const nextState = this._MetaHistory.forward(token);
 				this.props = nextState ? nextState.props : this.props;
 				return nextState;
@@ -816,7 +848,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 			 * @param token a 16bytes key to identify the state on history.
 			 * @returns 
 			 */
-			snapshot: (token?: IDomainID<string>): IHistoryProps<Props> => {
+			snapshot: (token?: UID<string>): IHistoryProps<Props> => {
 				return this._MetaHistory.snapshot({
 					action: 'update',
 					props: this.props,
@@ -882,7 +914,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 	 * 
 	 * @summary className is defined on constructor config param
 	 */
-	public hashCode(): IDomainID<string> {
+	public hashCode(): UID<string> {
 		const name = Reflect.getPrototypeOf(this);
 		return ID.create(`[Aggregate@${name?.constructor.name}]:${this.id.value()}`);
 	}
@@ -970,7 +1002,7 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 			 * @param token a value to identify the target state on history.
 			 * @returns previous state found.
 			 */
-			back: (token?: IDomainID<string>): IHistoryProps<Props> => {
+			back: (token?: UID<string>): IHistoryProps<Props> => {
 				const prevState = this._MetaHistory.back(token);
 				this.props = prevState ? prevState?.props : this.props;
 				return prevState;
@@ -980,7 +1012,7 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 			 * @param token a value to identify the target state on history.
 			 * @returns next state found.
 			 */
-			forward: (token?: IDomainID<string>): IHistoryProps<Props> => {
+			forward: (token?: UID<string>): IHistoryProps<Props> => {
 				const nextState = this._MetaHistory.forward(token);
 				this.props = nextState ? nextState?.props : this.props;
 				return nextState;
@@ -990,7 +1022,7 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 			 * @param token a key to identify the state on history.
 			 * @returns 
 			 */
-			snapshot: (token?: IDomainID<string>): IHistoryProps<Props> => {
+			snapshot: (token?: UID<string>): IHistoryProps<Props> => {
 				return this._MetaHistory.snapshot({
 					action: 'update',
 					props: this.props,
@@ -1164,10 +1196,6 @@ export class AutoMapper<Props> {
 
 		const props = entity?.['props'] ?? {};
 
-		delete props?.['_id'];
-
-		delete props?.['id'];
-
 		const isValueObject = this.validator.isValueObject(entity);
 
 		const isSimpleValue = this.validator.isBoolean(entity) ||
@@ -1248,7 +1276,7 @@ export class History<Props> implements IHistory<Props> {
 	 * @param token ID as token.
 	 * @returns true if token already exists for some prop state on history and false if not.
 	 */
-	private tokenAlreadyExists(token: IDomainID<string>): boolean {
+	private tokenAlreadyExists(token: UID<string>): boolean {
 		const iterate = this.iterator.clone();
 		iterate.toLast();
 		while (iterate.hasPrev()) {

@@ -110,10 +110,11 @@ Have an id (preferably a GUID rather than a DB generated int because business tr
 
 ```ts
 
-import { Entity, Result, IResult } from 'rich-domain';
+import { Entity, Result, IResult, UID } from 'rich-domain';
 
-// id must be defined on props as optional string. If not provided a new one will be generated.
-interface Props { id?: string; name: Name; age: Age; };
+// id must be defined on props as optional string or UID. 
+// If not provided a new one will be generated.
+interface Props { id?: UID; name: Name; age: Age; };
 
 export class User extends Entity<Props> {
 	private constructor(props: Props){
@@ -169,10 +170,11 @@ Encapsulate and are composed of entity classes and value objects that change tog
 
 ```ts
 
-import { Aggregate, Result, IResult } from 'rich-domain';
+import { Aggregate, Result, IResult, UID } from 'rich-domain';
 
-// id must be defined on props as optional string. If not provided a new one will be generated.
-interface Props { id?: string; name: Name; price: Currency }
+// id must be defined on props as optional string or UID. 
+// If not provided a new one will be generated.
+interface Props { id?: UID; name: Name; price: Currency }
 
 export class Product extends Aggregate<Props> {
 	private constructor(props: Props){
@@ -311,7 +313,7 @@ result.execute(logger).withData(result.error()).on('fail');
 
 ### ID
 
-Id use uuid or short uuid
+Id use uuid or short uuid. the type of ID is UID
 
 ```ts
 
@@ -339,7 +341,7 @@ console.log(id.equal(id2))
 
 ### Short ID
 
-16bytes based on uuid
+16bytes based on uuid. the type of Short ID is UID
 
 ```ts
 

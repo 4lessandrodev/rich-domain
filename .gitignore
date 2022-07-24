@@ -9,3 +9,5 @@ index.types.d.ts
 index.types.js
 types.d.ts
 types.js
+
+!tests/*
