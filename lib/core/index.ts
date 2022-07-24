@@ -514,11 +514,9 @@ export class GettersAndSetters<Props> {
 				if (typeof validation === 'function') {
 					if (!validation(value)) return this;
 				}
-				if (Reflect.has(this, 'validation')) {
-					const validation = Reflect.get(this, 'validation');
-					if (typeof validation === 'function') {
-						if (!validation(key, value)) return this;
-					}
+				if (this instanceof ValueObject || this instanceof Entity) {
+					const canUpdate = this.validation(key, value);
+					if (!canUpdate) return this;
 				}
 				if (key === 'id' && this instanceof Entity) {
 					if (this.validator.isString(value) || this.validator.isNumber(value)) {
@@ -555,11 +553,9 @@ export class GettersAndSetters<Props> {
 		if (typeof validation === 'function') {
 			if (!validation(value)) return this;
 		}
-		if (Reflect.has(this, 'validation')) {
-			const validation = Reflect.get(this, 'validation');
-			if (typeof validation === 'function') {
-				if (!validation(key, value)) return this;
-			}
+		if (this instanceof ValueObject || this instanceof Entity) {
+			const canUpdate = this.validation(key, value);
+			if (!canUpdate) return this;
 		}
 		if (key === 'id' && this instanceof Entity) {
 			if (this.validator.isString(value) || this.validator.isNumber(value)) {

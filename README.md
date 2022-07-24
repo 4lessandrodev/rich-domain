@@ -30,7 +30,7 @@ export class HumanAge extends ValueObject<Props> {
 		return this.validator.number(value).isBetween(0, 130);
 	}
 
-	public static create(props: Props): IResult<HumanAge> {
+	public static create(props: Props): IResult<ValueObject<Props>> {
 		
 		const message = `${props.value} is an invalid value`;
 
@@ -421,7 +421,7 @@ class HumanAge extends ValueObject<Props> {
 		return isNumber(value) && number.isBetween(0, 130),
 	}
 
-	public static create(props: Props): IResult<HumanAge> {
+	public static create(props: Props): IResult<ValueObject<Props>> {
 		
 		const message = `${props.value} is an invalid value`;
 
@@ -458,7 +458,7 @@ console.log(successExample.isSuccess());
 
 const age = successExample.value();
 
-console.log(age.value());
+console.log(age.get('value'));
 
 > 21
 
@@ -466,7 +466,7 @@ console.log(age.value());
 
 age.set('value').to(720);
 
-console.log(age.value());
+console.log(age.get('value'));
 
 > 21
 
@@ -474,7 +474,7 @@ console.log(age.value());
 
 age.set('value').to(72);
 
-console.log(age.value());
+console.log(age.get('value'));
 
 > 72
 
@@ -519,14 +519,54 @@ class HumanAge extends ValueObject<Props> {
 	// the "set" function automatically will use this method to validate value before set it.
 	validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
 
+		const { isDate } = this.validator;
+
 		const options: IPropsValidation<Props> = {
-			// on set false the prop never will be set
+			// on define false to the prop, It never will be set.
 			value: _ => false,
-			birthDay: _ => false
+			birthDay: (date) => isDate(date)
 		} 
 
 		return options[key](value);
 	};
+
+	public static create(props: Props): IResult<ValueObject<Props>> {			
+		return Result.success(new HumanAge(props));
+	}
 }
+
+```
+
+Example
+
+```ts
+
+const result = HumanAge.create({ value: 21, birthDay: new Date('2001-07-24T14:46:35.808Z') });
+
+const age = result.value();
+
+console.log(age.get('value'));
+
+> 21
+
+console.log(age.get('birthDay'));
+
+> "2001-07-24T14:46:35.808Z"
+
+// if try to change value...
+
+age.set('value').to(55);
+
+console.log(age.get('value'));
+
+> 21 // no changes
+
+// but if you try to change the birthDay attribute...
+
+age.set('birthDay').to(new Date());
+
+console.log(age.get('birthDay'));
+
+> "2022-07-24T14:46:35.808Z" // changes
 
 ```

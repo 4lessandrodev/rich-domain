@@ -320,36 +320,37 @@ describe('value-object', () => {
 		class HumanAge extends ValueObject<Props> {
 			private constructor(props: Props) {
 				super(props);
+				this.validation.bind(this);
 			}
 
-			say() {
-				console.log(this.validator.isDate);
-			}
 			// the "set" function automatically will use this method to validate value before set it.
-			// validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
-				
-			// 	const options: IPropsValidation<Props> = {
-			// 		// on set false the prop never will be set
-			// 		value: _ => false,
-			// 		birthDay: _ => true,
-			// 	}
+			validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
 
-			// 	return options[key](value);
-			// };
+				const options: IPropsValidation<Props> = {
+					value: _ => true,
+					// on set false the prop never will be set
+					birthDay: _ => false,
+				}
 
-			public static create(props: Props): Result<HumanAge> {			
+				return options[key](value);
+			};
+
+			public static create(props: Props): IResult<ValueObject<Props>> {			
 				return Result.success(new HumanAge(props));
 			}
 		}
 
-		it.skip('should disable set with success', () => {
+		it('should disable set with success', () => {
 			const result = HumanAge.create({ value: 10, birthDay: new Date('2022-01-01T03:00:00.000Z') });
 			const age = result.value();
 			
-			age.say();
-			age.set('birthDay').to(new Date());
-			// expect(age.get('birthDay')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
 			expect(age.get('value')).toBe(10);
+			
+			age.set('birthDay').to(new Date());
+			age.set('value').to(55);
+
+			expect(age.get('birthDay')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
+			expect(age.get('value')).toBe(55);
 		})
 	})
 });

@@ -73,19 +73,4 @@ describe('getters and setters', () => {
 		expect(gettersAndSetters.set('key').to('change', validation).get('key')).toBe('change');
 	});
 
-	it('should do not change', () => {
-		class MyClass extends GettersAndSetters<{ key: string }> {
-			constructor(props: { key: string }) {
-				super(props);
-			}
-
-			validation(key: 'key', value: string): boolean {
-				return value !== 'change' && typeof key === 'string';
-			}
-		}
-
-		const instance = new MyClass({ key: 'value' });
-		expect(instance.change('key', 'change').get('key')).toBe('value');
-		expect(instance.change('key', 'changed').get('key')).toBe('changed');
-	});
 });
