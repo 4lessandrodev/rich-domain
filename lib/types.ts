@@ -124,8 +124,8 @@ export interface IProxy<T, D> {
 }
 
 export interface ISettings {
-	deactivateGetters?: boolean;
-	deactivateSetters?: boolean;
+	disableGetters?: boolean;
+	disableSetters?: boolean;
 }
 
 export interface IResultObject<T, D, M> {

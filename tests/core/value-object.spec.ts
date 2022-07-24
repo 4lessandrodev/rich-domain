@@ -67,7 +67,7 @@ describe('value-object', () => {
 
 	describe('simple value-object', () => {
 
-		interface Props { 
+		interface Props {
 			value: string;
 		};
 
@@ -86,7 +86,7 @@ describe('value-object', () => {
 			expect(obj.isFailure()).toBeFalsy();
 			expect(obj.value().get('value')).toBe('Hello World');
 		});
-		
+
 		it('should change value with success', () => {
 			const obj = StringVo.create({ value: 'Hello World' });
 			expect(obj.value().get('value')).toBe('Hello World');
@@ -97,7 +97,7 @@ describe('value-object', () => {
 
 	describe('hooks on value object result', () => {
 
-		interface Props { 
+		interface Props {
 			value: string;
 		};
 
@@ -127,7 +127,7 @@ describe('value-object', () => {
 
 	describe('native validation', () => {
 
-		interface Props { 
+		interface Props {
 			value: string;
 			age: number;
 		};
@@ -142,7 +142,7 @@ describe('value-object', () => {
 				const options: IPropsValidation<Props> = {
 					value: (value: string) => value.length < 15,
 					age: (value: number) => value > 0 && value < 130
-				} 
+				}
 
 				return options[key](value);
 			};
@@ -166,12 +166,12 @@ describe('value-object', () => {
 		});
 
 		it('should transform value object to object', () => {
-			class Sample extends ValueObject<string>{ 
+			class Sample extends ValueObject<string>{
 				private constructor(props: string) {
 					super(props);
 				}
 			};
-				
+
 			const valueObject = Sample.create('Example');
 
 			expect(valueObject.value().toObject()).toBe('Example');
@@ -179,12 +179,12 @@ describe('value-object', () => {
 
 
 		it('should transform value object to object', () => {
-			class Sample extends ValueObject<{ value: string }>{ 
+			class Sample extends ValueObject<{ value: string }>{
 				private constructor(props: { value: string }) {
 					super(props);
 				}
 			};
-				
+
 			const valueObject = Sample.create({ value: 'Sample' });
 
 			expect(valueObject.value().toObject()).toBe('Sample');
@@ -192,16 +192,16 @@ describe('value-object', () => {
 
 		it('should transform value object to object', () => {
 
-			class Sample extends ValueObject<{ value: string, foo: string }>{ 
-				private constructor(props: { value: string, foo: string  }) {
+			class Sample extends ValueObject<{ value: string, foo: string }>{
+				private constructor(props: { value: string, foo: string }) {
 					super(props);
 				}
 			};
-			
+
 			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
 
-			class Obj extends ValueObject<{ value: Sample, other: string }> { 
-				private constructor(props: { value: Sample, other: string  }) {
+			class Obj extends ValueObject<{ value: Sample, other: string }> {
+				private constructor(props: { value: Sample, other: string }) {
 					super(props);
 				}
 			};
@@ -215,8 +215,8 @@ describe('value-object', () => {
 		});
 
 		it('should clone a value object with success', () => {
-			class Sample extends ValueObject<{ value: string, foo: string }>{ 
-				private constructor(props: { value: string, foo: string  }) {
+			class Sample extends ValueObject<{ value: string, foo: string }>{
+				private constructor(props: { value: string, foo: string }) {
 					super(props);
 				}
 			};
@@ -232,7 +232,7 @@ describe('value-object', () => {
 
 			interface Props { value: string, foo: string };
 
-			class Sample extends ValueObject<Props>{ 
+			class Sample extends ValueObject<Props>{
 				private constructor(props: Props) {
 					super(props);
 				}
@@ -245,9 +245,9 @@ describe('value-object', () => {
 			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
 
 			expect(sample.value().history().count()).toBe(1);
-			
+
 			sample.value().set('foo').to('changed');
-			
+
 			expect(sample.value().history().count()).toBe(2);
 			expect(sample.value().get('value')).toBe('Sample');
 			expect(sample.value().get('foo')).toBe('changed'); // changed
@@ -258,7 +258,7 @@ describe('value-object', () => {
 			sample.value().history().back();
 			expect(sample.value().get('value')).toBe('changed2');
 			expect(sample.value().get('foo')).toBe('changed');
-			
+
 			sample.value().history().back();
 			expect(sample.value().get('value')).toBe('Sample');
 
@@ -273,7 +273,7 @@ describe('value-object', () => {
 		it('should back to a token', () => {
 			interface Props { value: string, foo: string };
 
-			class Sample extends ValueObject<Props>{ 
+			class Sample extends ValueObject<Props>{
 				private constructor(props: Props) {
 					super(props);
 				}
@@ -300,14 +300,56 @@ describe('value-object', () => {
 			sample.value().change('foo', 'bar4');
 			sample.value().change('foo', 'bar5');
 			sample.value().history().snapshot(step4);
-			
+
 			expect(sample.value().get('foo')).toBe('bar5');
 			sample.value().history().back(step2);
-			
+
 			expect(sample.value().get('foo')).toBe('bar2');
 
 			sample.value().history().forward(step4);
 			expect(sample.value().get('foo')).toBe('bar5');
 		});
 	});
+
+	describe('disable set', () => {
+		interface Props {
+			value: number;
+			birthDay: Date;
+		};
+
+		class HumanAge extends ValueObject<Props> {
+			private constructor(props: Props) {
+				super(props);
+			}
+
+			say() {
+				console.log(this.validator.isDate);
+			}
+			// the "set" function automatically will use this method to validate value before set it.
+			// validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
+				
+			// 	const options: IPropsValidation<Props> = {
+			// 		// on set false the prop never will be set
+			// 		value: _ => false,
+			// 		birthDay: _ => true,
+			// 	}
+
+			// 	return options[key](value);
+			// };
+
+			public static create(props: Props): Result<HumanAge> {			
+				return Result.success(new HumanAge(props));
+			}
+		}
+
+		it.skip('should disable set with success', () => {
+			const result = HumanAge.create({ value: 10, birthDay: new Date('2022-01-01T03:00:00.000Z') });
+			const age = result.value();
+			
+			age.say();
+			age.set('birthDay').to(new Date());
+			// expect(age.get('birthDay')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
+			expect(age.get('value')).toBe(10);
+		})
+	})
 });

@@ -382,3 +382,151 @@ const myAdapter = new MyAdapterA();
 domainUser.toObject<Model>(myAdapter);
 
 ```
+
+### Advanced concepts
+
+How to validate props on set value.
+
+```ts
+
+import { ValueObject, IPropsValidation, Result } from 'rich-domain';
+
+interface Props { value: number };
+
+// Here we have a super smart value object
+class HumanAge extends ValueObject<Props> {
+	private constructor(props: Props){
+		super(props);
+	}
+
+	// the "set" function automatically will use this method to validate value before set it.
+	validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
+
+		// validator instance is available on value object instance
+		const { isNumber, number } = this.validator;
+
+		const options: IPropsValidation<Props> = {
+			value: (value: number) => isNumber(value) && number.isBetween(0, 130),
+		} 
+
+		return options[key](value);
+	};
+
+	// the "create" function must use this method to validate props before instantiate.
+	public static isValidProps({ value }: Props): boolean {
+
+		// validator instance is available on value object instance
+		const { isNumber, number } = this.validator;
+
+		return isNumber(value) && number.isBetween(0, 130),
+	}
+
+	public static create(props: Props): IResult<HumanAge> {
+		
+		const message = `${props.value} is an invalid value`;
+
+		// your business validation
+		if(!this.isValidProps(props)) return Result.fail(message);
+
+		return Result.success(new HumanAge(props));
+	}
+}
+
+```
+
+Using value objects with advanced validations
+
+```ts
+
+// example how to use.
+
+const failExample = HumanAge.create({ value: 1000 });
+
+console.log(failExample.isFailure());
+
+> true
+
+console.log(failExample.value());
+
+> null
+
+const successExample = HumanAge.create({ value: 21 });
+
+console.log(successExample.isSuccess());
+
+> true
+
+const age = successExample.value();
+
+console.log(age.value());
+
+> 21
+
+// do nothing on try set an invalid value
+
+age.set('value').to(720);
+
+console.log(age.value());
+
+> 21
+
+// change if provide a valid value
+
+age.set('value').to(72);
+
+console.log(age.value());
+
+> 72
+
+```
+
+### How to disable getters and setters
+
+Disable getters for all keys on instance.
+On try to get a value for any key the value will be null.
+
+```ts
+
+import { ISettings, ValueObject } from 'rich-domain';
+
+const options: ISettings = {
+	disableGetters: true, 
+	disableSetters: true
+}
+
+class HumanAge extends ValueObject<Props> {
+	private constructor(props: Props){
+		super(props, options);
+	}
+}
+
+```
+
+How to disable setter for a specific key.
+Just provide false for prop you want to disable on `validation`
+
+```ts
+
+import { ISettings, ValueObject } from 'rich-domain';
+
+interface Props { value: number; birthDay: Date };
+
+class HumanAge extends ValueObject<Props> {
+	private constructor(props: Props){
+		super(props);
+	}
+
+	// the "set" function automatically will use this method to validate value before set it.
+	validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
+
+		const options: IPropsValidation<Props> = {
+			// on set false the prop never will be set
+			value: _ => false,
+			birthDay: _ => false
+		} 
+
+		return options[key](value);
+	};
+}
+
+```

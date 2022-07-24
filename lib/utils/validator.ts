@@ -1,7 +1,7 @@
 import { Aggregate, Entity, ID, ValueObject } from "../core";
 
 export class Validator {
-	private static instance: Validator;
+	private static instance: Validator = null as unknown as Validator;
 	private constructor() { }
 
 	public static create(): Validator {
@@ -118,3 +118,5 @@ export class Validator {
 		}
 	}
 }
+
+export default Validator.create();

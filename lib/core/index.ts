@@ -456,13 +456,14 @@ export class Result<T, D = string, M = {}> implements IResult<T, D, M> {
 export class GettersAndSetters<Props> {
 	protected props: Props;
 	protected readonly _MetaHistory: IHistory<Props>;
+	validator: Validator = Validator.create();
 
-	protected config: ISettings = { deactivateGetters: false, deactivateSetters: false };
+	protected config: ISettings = { disableGetters: false, disableSetters: false };
 
 	constructor(props: Props, config?: ISettings, history?: IHistory<Props>) {
 		this.props = props;
-		this.config.deactivateGetters = !!config?.deactivateGetters;
-		this.config.deactivateSetters = !!config?.deactivateSetters;
+		this.config.disableGetters = !!config?.disableGetters;
+		this.config.disableSetters = !!config?.disableSetters;
 		this._MetaHistory = history!;
 	}
 
@@ -489,7 +490,7 @@ export class GettersAndSetters<Props> {
 	 * @returns the value of property
 	 */
 	get<Key extends keyof Props>(key: Key) {
-		if (this.config.deactivateGetters) return null as unknown as Props[Key];
+		if (this.config.disableGetters) return null as unknown as Props[Key];
 		return this.props[key];
 	}
 
@@ -509,7 +510,7 @@ export class GettersAndSetters<Props> {
 			 * @returns instance of this.
 			 */
 			to: (value: Props[Key], validation?: (value: Props[Key]) => boolean):  GettersAndSetters<Props> => {
-				if (this.config.deactivateSetters) return this;
+				if (this.config.disableSetters) return this;
 				if (typeof validation === 'function') {
 					if (!validation(value)) return this;
 				}
@@ -550,7 +551,7 @@ export class GettersAndSetters<Props> {
 	 * @returns instance of own class.
 	 */
 	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean) {
-		if (this.config.deactivateSetters) return this;
+		if (this.config.disableSetters) return this;
 		if (typeof validation === 'function') {
 			if (!validation(value)) return this;
 		}
