@@ -16,3 +16,4 @@ types.d.ts.map
 types.js.map
 
 !tests/*
+!lib/*

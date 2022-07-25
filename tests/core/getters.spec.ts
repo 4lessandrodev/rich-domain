@@ -1,15 +1,15 @@
 import { GettersAndSetters } from '../../lib/core/index';
 describe('getters and setters', () => {
 
-	class Def extends GettersAndSetters<any>{ 
+	class Def extends GettersAndSetters<any>{
 		getConfig() {
 			return this.config;
 		}
 	};
 
 	it('should be active by default', () => {
-		
-		const gettersAndSetters = new Def({});
+
+		const gettersAndSetters = new Def({}, 'ValueObject');
 
 		expect(gettersAndSetters.getConfig()).toEqual({
 			disableGetters: false,
@@ -18,7 +18,7 @@ describe('getters and setters', () => {
 	});
 
 	it('should be disabled if provide param', () => {
-		const gettersAndSetters = new Def({}, {
+		const gettersAndSetters = new Def({}, 'ValueObject', {
 			disableGetters: false,
 			disableSetters: false
 		});
@@ -26,14 +26,14 @@ describe('getters and setters', () => {
 	});
 
 	it('should get null if getter is deactivate', () => {
-		const gettersAndSetters = new GettersAndSetters<{ key: 'value' }>({ key: 'value' }, {
+		const gettersAndSetters = new GettersAndSetters<{ key: 'value' }>({ key: 'value' }, 'ValueObject', {
 			disableGetters: true
 		});
 		expect(gettersAndSetters.get('key')).toBeNull();
 	});
 
 	it('should set nothing if setter is deactivate', () => {
-		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, {
+		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject', {
 			disableSetters: true
 		});
 		gettersAndSetters.set('key').to('changed')
@@ -41,29 +41,29 @@ describe('getters and setters', () => {
 	});
 
 	it('should change value with success', () => {
-		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' });
+		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject');
 		expect(gettersAndSetters.change('key', 'changed').get('key')).toBe('changed');
 	});
 
 	it('should set value with success', () => {
-		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' });
+		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject');
 		expect(gettersAndSetters.set('key').to('changed').get('key')).toBe('changed');
 	});
 
 	it('should do not set if do not pass on validation', () => {
-		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' });
+		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject');
 		const validation = (value: string) => value !== 'changed';
 		expect(gettersAndSetters.change('key', 'changed', validation).get('key')).toBe('value');
 		expect(gettersAndSetters.change('key', 'change', validation).get('key')).toBe('change');
 	});
 
 	it('should do not change if is deactivate', () => {
-		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, { disableSetters: true });
+		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject', { disableSetters: true });
 		expect(gettersAndSetters.change('key', 'changed').get('key')).toBe('value');
 	});
 
 	it('should do not set if do not pass on validation', () => {
-		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' });
+		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject');
 		const validation = (value: string) => value !== 'changed';
 		expect(gettersAndSetters.set('key').to('changed', validation).get('key')).toBe('value');
 		expect(gettersAndSetters.set('key').to('change', validation).get('key')).toBe('change');

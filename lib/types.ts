@@ -27,23 +27,14 @@ export interface IResult<T, D = string, M = {}> {
  * 
  */
 export interface UID<T = string> {
-
 	toShort(): UID<string>;
-
 	value(): string;
-
 	isNew(): boolean;
-
 	createdAt(): Date;
-
 	isShortID(): boolean;
-
 	equal(id: UID<string>): boolean;
-	
 	deepEqual(id: UID<string>): boolean;
-
 	cloneAsNew(): UID<string>;
-
 	clone(): UID<T>;
 }
 
@@ -61,41 +52,23 @@ export interface ITeratorConfig<T> {
  */
 export interface IIterator<T> {
 	hasNext(): boolean;
-
 	hasPrev(): boolean;
-
 	next(): T;
-
 	prev(): T;
-
 	first(): T;
-
 	last(): T;
-
 	isEmpty(): boolean;
-
 	toFirst(): IIterator<T>;
-
 	toLast(): IIterator<T>;
-
 	toArray(): Array<T>;
-
 	clear(): IIterator<T>;
-
 	addToEnd(data: T): IIterator<T>;
-
 	add(data: T): IIterator<T>;
-
 	addToStart(data: T): IIterator<T>;
-
 	removeLast(): IIterator<T>;
-
 	removeFirst(): IIterator<T>;
-
 	total(): number;
-
 	clone(): IIterator<T>;
-
 	removeItem(item: T): void;
 }
 
@@ -233,4 +206,46 @@ export type IReplaceOptions = 'REPLACE_DUPLICATED' | 'UPDATE' | 'KEEP';
 
 export interface IAdapter<F, T>{
 	build(target: F): IResult<T>;
+}
+
+export interface IEntity<Props>{
+	toObject<T>(adapter?: IAdapter<IEntity<Props>, any>): T extends {} ? T & EntityMapperPayload : { [key in keyof Props]: any } & EntityMapperPayload;
+	get id(): UID<string>;
+	hashCode(): UID<string>;
+	isNew(): boolean;
+	clone(): IResult<IEntity<Props>>;
+}
+
+export interface IValueObject<Props>{
+	clone(): IResult<IValueObject<Props>>;
+	toObject<T>(adapter?: IAdapter<this, T>): T;
+}
+
+
+
+export interface IGettersAndSetters<Props> {
+	validation<Key extends keyof Props>(_key: Key, _value: Props[Key]): boolean;
+	get<Key extends keyof Props>(key: Key): Props[Key];
+	set<Key extends keyof Props>(key: Key): {
+		to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => IGettersAndSetters<Props>
+	};
+	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean): IGettersAndSetters<Props>;
+	history(): IPublicHistory<Props>;
+}
+
+export interface IAggregate<Props>{
+	toObject<T>(adapter?: IAdapter<this, T>): T extends {} ? T & EntityMapperPayload : { [key in keyof Props]: any } & EntityMapperPayload;
+	get id(): UID<string>;
+	hashCode(): UID<string>;
+	isNew(): boolean;
+	clone(): IResult<IEntity<Props>>;
+	addEvent(event: IHandle<IAggregate<Props>>, replace?: IReplaceOptions): void;
+	deleteEvent(eventName: string): void;
+}
+
+export type IParentName = 'ValueObject' | 'Entity';
+
+export interface IAutoMapper<Props> {
+	valueObjectToObj(valueObject: IValueObject<Props>): { [key in keyof Props]: any };
+	entityToObj(entity: IEntity<Props>): { [key in keyof Props]: any } & EntityMapperPayload;
 }

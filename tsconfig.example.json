@@ -1,0 +1,19 @@
+{
+	"compilerOptions": {
+		"module": "CommonJS",
+		"noImplicitAny": false,
+		"declaration": false,
+		"removeComments": false,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"skipDefaultLibCheck": false,
+		"skipLibCheck": false,
+		"target": "ES2020",
+		"strict": true,
+		"lib": ["ES2020"],
+		"outDir": "./example",
+		"esModuleInterop": true
+	},
+	"include": ["example/*"],
+	"exclude": ["/**/*.spec.ts", "/*.spec.ts", "tests", "*/tests", "lib/*"]
+}

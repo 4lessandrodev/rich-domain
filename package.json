@@ -49,7 +49,9 @@
 		"build": "tsc -p tsconfig.lib.json",
 		"prepublish": "npm run build",
 		"postpublish": "./clear.sh",
-		"check:circular-deps": "madge --circular --extensions ts ./lib"
+		"check:circular-deps": "madge --circular --extensions ts ./lib",
+		"preexample":"tsc -p tsconfig.example.json",
+		"example": "node ./example/index.js"
 	},
 	"files": [
 		"core/*",
@@ -58,6 +60,10 @@
 		"index.d.ts",
 		"types.d.ts",
 		"types.js",
-		"package.json"
+		"package.json",
+		"index.d.ts.map",
+		"index.js.map",
+		"types.d.ts.map",
+		"types.js.map"
 	]
 }
