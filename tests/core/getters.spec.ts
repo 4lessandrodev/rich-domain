@@ -1,32 +1,28 @@
 import { GettersAndSetters } from '../../lib/core/index';
 describe('getters and setters', () => {
 
-	it('should be active by default', () => {
-		const gettersAndSetters = new GettersAndSetters<any>({});
-		expect(gettersAndSetters).toEqual({ 
-			"_MetaHistory": undefined,
-			"config": {
-				"disableGetters": false, "disableSetters": false
-			},
-			"props": {},
-			"validator": {}
-		});
-	});
+	class Def extends GettersAndSetters<any>{ 
+		getConfig() {
+			return this.config;
+		}
+	};
 
 	it('should be active by default', () => {
-		const gettersAndSetters = new GettersAndSetters<any>({}, {
+		
+		const gettersAndSetters = new Def({});
+
+		expect(gettersAndSetters.getConfig()).toEqual({
 			disableGetters: false,
 			disableSetters: false
 		});
-		expect(gettersAndSetters).toEqual({ 
-			"_MetaHistory": undefined,
-			"config": {
-				"disableGetters": false, "disableSetters": false
-			},
-			"props": {},
-			"validator": {}
+	});
+
+	it('should be disabled if provide param', () => {
+		const gettersAndSetters = new Def({}, {
+			disableGetters: false,
+			disableSetters: false
 		});
-		expect(gettersAndSetters.validator.date).toBeDefined();
+		expect(gettersAndSetters.getConfig()).toEqual({ disableGetters: false, disableSetters: false });
 	});
 
 	it('should get null if getter is deactivate', () => {

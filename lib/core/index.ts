@@ -10,7 +10,6 @@ import {
 	IResultObject,
 	IResultOptions,
 	ITeratorConfig,
-	OBJ,
 	EntityProps,
 	EntityMapperPayload,
 	IHistoryProps,
@@ -450,21 +449,193 @@ export class Result<T, D = string, M = {}> implements IResult<T, D, M> {
 	}
 }
 
+
+/**
+ * @description Manage state props as history.
+ */
+
+ export class History<Props> implements IHistory<Props> {
+	private readonly iterator: IIterator<IHistoryProps<Props>>;
+
+	constructor(props?: IHistoryProps<Props>) {
+		let _props = props ? Object.assign({}, { ...props }, { action: 'create' }): undefined;
+		_props = _props ? Object.assign({}, { ..._props }, { token: ID<string>.createShort() }): undefined;
+		_props = _props ? Object.assign({}, { ..._props }, { ocurredAt: new Date() }): undefined;
+
+		this.iterator = Iterator.create({
+			initialData: _props ? [_props]: [],
+			restartOnFinish: false,
+			returnCurrentOnReversion: true
+		});
+	}
+
+	/**
+	 * 
+	 * @param token ID as token.
+	 * @returns true if token already exists for some prop state on history and false if not.
+	 */
+	private tokenAlreadyExists(token: UID<string>): boolean {
+		const iterate = this.iterator.clone();
+		iterate.toLast();
+		while (iterate.hasPrev()) {
+			const prev = iterate.prev();
+			if (token.equal(prev.token!)) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * @description Get all props on state as history.
+	 * @returns a list of props on state.
+	 */
+	list(): IHistoryProps<Props>[] {
+		return this.iterator.toArray();
+	}
+	/**
+	 * @description Create a new snapshot from current state.
+	 * @param props as object to be pushed into history.
+	 * @returns props pushed.
+	 */
+	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props> {
+		const token = props.token?.toShort() ?? ID<string>.createShort();
+		const tokenAlreadyExists = (this.tokenAlreadyExists(token));
+		props.token = tokenAlreadyExists ? ID<string>.createShort() : token;
+		const ocurredAt = props.ocurredAt ?? new Date();
+		props.ocurredAt = ocurredAt;
+		this.iterator.add(props);
+		this.iterator.toLast();
+		return props;
+	}
+	/**
+	 * @description Get previous props state and apply to instance.
+	 * @param token a 16bytes value to identify the target state on history.
+	 * @returns previous state found or null if not found.
+	 */
+	back(token?: ID<string>): IHistoryProps<Props> {
+		this.iterator.prev();
+		
+		if (token) {
+			this.iterator.toLast();
+			while (this.iterator.hasPrev()) {
+				const prev = this.iterator.prev();
+				if (prev.token?.equal(token)) return prev;
+			}
+		}
+
+		if (this.iterator.hasPrev()) return this.iterator.prev();
+
+		this.iterator.toFirst();
+		return this.iterator.first();
+	}
+
+	/**
+	 * @description Get next props state and apply to instance.
+	 * @param token a 16bytes value to identify the target state on history.
+	 * @returns next state found or null if not found.
+	 */
+	forward(token?: ID<string>): IHistoryProps<Props> {
+		this.iterator.next();
+
+		if (token) {
+			this.iterator.toFirst();
+			while (this.iterator.hasNext()) {
+				const next = this.iterator.next();
+				if (next.token?.equal(token)) return next;
+			}
+		}
+		
+		if (this.iterator.hasNext()) return this.iterator.next();
+
+		this.iterator.toLast();
+		return this.iterator.last();
+	}
+
+	/**
+	 * @description Get total of props on state as history.
+	 * @returns total of props on state.
+	 */
+	count(): number {
+		return this.iterator.total();
+	}
+
+}
+
+/**
+ * @description Domain Events manager.
+ */
+export abstract class DomainEvents {
+	public static events: IIterator<IDomainEvent<Aggregate<any>>> = Iterator.create();
+
+	/**
+	 * @description Add event to state.
+	 * @param param event to be added.
+	 */
+	public static addEvent({ event, replace }: IEvent<Aggregate<any>>) {
+		const target = Reflect.getPrototypeOf(event.callback);
+		const eventName = event.callback?.eventName ?? target?.constructor.name as string;
+		if (!!replace) this.deleteEvent({ eventName, id: event.aggregate.id });
+		event.callback.eventName = eventName;
+		DomainEvents.events.addToEnd(event);
+	}
+
+	/**
+	 * @description Dispatch event for a provided name and an aggregate id.
+	 * @param options params to find event to dispatch it.
+	 * @returns promise void.
+	 */
+	public static async dispatch(options: IDispatchOptions): Promise<void> {
+		const eventsToDispatch: Array<IDomainEvent<Aggregate<any>>> = [];
+		this.events.toFirst();
+		while (this.events.hasNext()) {
+			const event = this.events.next();
+			if (event.aggregate.id.equal(options.id) && event.callback.eventName === options.eventName) {
+				this.events.toFirst();
+				eventsToDispatch.push(event);
+				this.events.removeItem(event);
+			}
+		}
+		eventsToDispatch.forEach((agg) => agg.callback.dispatch(agg));
+	}
+
+	/**
+	 * @description Delete an event from state.
+	 * @param options to find event to be deleted.
+	 */
+	public static deleteEvent(options: IDispatchOptions): void {
+		this.events.toFirst();
+		while (this.events.hasNext()) {
+			const event = this.events.next();
+			const target = Reflect.getPrototypeOf(event.callback);
+			const eventName = event.callback?.eventName ?? target?.constructor.name;
+			
+			if (event.aggregate.id.equal(options.id) && options.eventName === eventName) {
+				this.events.toFirst();
+				this.events.removeItem(event);
+			}
+		}
+	}
+}
+
+
 /**
  * @description defines getter and setter to all domain instances.
  */
 export class GettersAndSetters<Props> {
-	protected props: Props;
-	protected readonly _MetaHistory: IHistory<Props>;
-	validator: Validator = Validator.create();
+	private readonly _MetaHistory: IHistory<Props>;
+	protected autoMapper: AutoMapper<Props>;
+	protected validator: Validator = Validator.create();
+	protected static validator: Validator = Validator.create();
 
 	protected config: ISettings = { disableGetters: false, disableSetters: false };
 
-	constructor(props: Props, config?: ISettings, history?: IHistory<Props>) {
-		this.props = props;
+	constructor(protected props: Props, config?: ISettings) {
 		this.config.disableGetters = !!config?.disableGetters;
 		this.config.disableSetters = !!config?.disableSetters;
-		this._MetaHistory = history!;
+		this._MetaHistory = new History({ 
+			props: Object.assign({}, {...this.props}),
+			action: 'create',
+		});
+		this.autoMapper = new AutoMapper();
 	}
 
 	/**
@@ -477,7 +648,7 @@ export class GettersAndSetters<Props> {
 		if (typeof this._MetaHistory !== 'undefined') {
 			this._MetaHistory.snapshot({
 				action: 'update',
-				props: this.props,
+				props: Object.assign({}, {...this.props}),
 				ocurredAt: new Date(),
 				token: ID.createShort()
 			});
@@ -490,7 +661,10 @@ export class GettersAndSetters<Props> {
 	 * @returns the value of property
 	 */
 	get<Key extends keyof Props>(key: Key) {
-		if (this.config.disableGetters) return null as unknown as Props[Key];
+		if (this.config.disableGetters) {
+			console.warn(`Trying to get key: "${String(key)}" but the getters are deactivated`);
+			return null as unknown as Props[Key]
+		};
 		return this.props[key];
 	}
 
@@ -510,32 +684,47 @@ export class GettersAndSetters<Props> {
 			 * @returns instance of this.
 			 */
 			to: (value: Props[Key], validation?: (value: Props[Key]) => boolean):  GettersAndSetters<Props> => {
-				if (this.config.disableSetters) return this;
+				if (this.config.disableSetters) {
+					console.warn(`Trying to set value: "${value}" for key: "${String(key)}" but, %c the setters are deactivated`);
+					return this
+				};
 				if (typeof validation === 'function') {
-					if (!validation(value)) return this;
+					if (!validation(value)) {
+						console.warn(`Trying to set value: "${value}" for key: "${String(key)}" but failed validation`);
+						return this
+					};
 				}
 				if (this instanceof ValueObject || this instanceof Entity) {
 					const canUpdate = this.validation(key, value);
-					if (!canUpdate) return this;
+					if (!canUpdate) {
+						console.warn(`Trying to set value: "${value}" for key: "${String(key)}" but failed validation`);
+						return this;
+					}
 				}
 				if (key === 'id' && this instanceof Entity) {
 					if (this.validator.isString(value) || this.validator.isNumber(value)) {
 						this['_id'] = ID.create(value);
 						this['props'][key] = this['_id'].value();
-						this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+						if (this instanceof Entity) {
+							this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+						}
 						this.snapshotSet();
 						return this;
 					}
 					if (this.validator.isID(value)) {
 						this['_id'] = value as unknown as ID<string>;
 						this['props'][key] = this['_id'].value();
-						this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+						if (this instanceof Entity) {
+							this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+						}
 						this.snapshotSet();
 						return this;
 					}
 				}
 				this.props[key] = value;
-				this.props = Object.assign({}, { ...this.props }, { updatedAt: new Date() });
+				if (this instanceof Entity) {
+					this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+				}
 				this.snapshotSet();
 				return this;
 			}
@@ -549,34 +738,110 @@ export class GettersAndSetters<Props> {
 	 * @returns instance of own class.
 	 */
 	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean) {
-		if (this.config.disableSetters) return this;
+		if (this.config.disableSetters) {
+			console.warn(`Trying to set value: "${value}" for key: "${String(key)}" but the setters are deactivated`);
+			return this
+		};
 		if (typeof validation === 'function') {
-			if (!validation(value)) return this;
+			if (!validation(value)) {
+				console.warn(`Trying to set value: "${value}" for key: "${String(key)}" but failed validation`);
+				return this
+			};
 		}
 		if (this instanceof ValueObject || this instanceof Entity) {
 			const canUpdate = this.validation(key, value);
-			if (!canUpdate) return this;
+			if (!canUpdate) {
+				console.warn(`Trying to set value: "${value}" for key: "${String(key)}" but failed validation`);
+				return this;
+			}
 		}
 		if (key === 'id' && this instanceof Entity) {
 			if (this.validator.isString(value) || this.validator.isNumber(value)) {
 				this['_id'] = ID.create(value);
 				this['props'][key] = this['_id'].value();
-				this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+				if (this instanceof Entity) {
+					this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+				}
 				this.snapshotSet();
 				return this;
 			}
 			if (this.validator.isID(value)) {
 				this['_id'] = value as unknown as ID<string>;
 				this['props'][key] = this['_id'].value();
-				this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+				if (this instanceof Entity) {
+					this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+				}
 				this.snapshotSet();
 				return this;
 			}
 		}
 		this.props[key] = value;
-		this.props = Object.assign({}, { ...this.props }, { createdAt: new Date() });
+		if (this instanceof Entity) {
+			this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
+		}
 		this.snapshotSet();
 		return this;
+	}
+
+
+	/**
+	 * @description Manage props state as history.
+	 * @returns IPublicHistory<Props>
+	 */
+	 history(): IPublicHistory<Props> {
+		return {
+			/**
+			 * @description Get previous props state and apply to instance.
+			 * @param token a 16bytes value to identify the target state on history.
+			 * @returns previous state found.
+			 */
+			back: (token?: UID<string>): IHistoryProps<Props> => {
+				const prevState = this._MetaHistory.back(token);
+				this.props = prevState ? prevState.props : this.props;
+				return prevState;
+			},
+
+			/**
+			 * @description Get next props state and apply to instance.
+			 * @param token a 16bytes value to identify the target state on history.
+			 * @returns next state found.
+			 */
+			forward: (token?: UID<string>): IHistoryProps<Props> => {
+				const nextState = this._MetaHistory.forward(token);
+				this.props = nextState ? nextState.props : this.props;
+				return nextState;
+			},
+
+			/**
+			 * @description Create a new snapshot from current state.
+			 * @param token a 16bytes key to identify the state on history.
+			 * @returns 
+			 */
+			snapshot: (token?: UID<string>): IHistoryProps<Props> => {
+				return this._MetaHistory.snapshot({
+					action: 'update',
+					props: Object.assign({}, {...this.props}),
+					ocurredAt: new Date(),
+					token,
+				});
+			},
+
+			/**
+			 * @description Get all props on state as history.
+			 * @returns a list of props on state.
+			 */
+			list: (): IHistoryProps<Props>[] => {
+				return this._MetaHistory.list()
+			},
+
+			/**
+			 * @description Get total of props on state as history.
+			 * @returns total of props on state.
+			 */
+			count: (): number => {
+				return this._MetaHistory.count()
+			},
+		}	
 	}
 }
 
@@ -733,22 +998,12 @@ export class ID<T = string> implements UID<T> {
  * @description Entity identified by an id
  */
 export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> {
-	protected props: Props & EntityProps;
 	protected _id: UID<string>;
-	public static validator: Validator = Validator.create();
-	public validator: Validator = Validator.create();
-	private readonly autoMapper: AutoMapper<Props>;
-
 	constructor(props: Props, config?: ISettings) { 
-		super(props, config, new History({ 
-			props: Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props }),
-			action: 'create',
-		 }));
-		this.props = Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props });
+		super(Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props }), config);
 		const isID = this.validator.isID(props?.['id']);
 		const isStringOrNumber = this.validator.isString(props?.['id']) || this.validator.isNumber(props?.['id']);
 		this._id = isStringOrNumber ? ID.create(props?.['id']) : isID ? props?.['id'] : ID.create();
-		this.autoMapper = new AutoMapper();
 	}
 
 	/**
@@ -812,65 +1067,6 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		return Result.fail('Could not create instance of entity');
 	}
 
-	/**
-	 * @description Manage props state as history.
-	 * @returns IPublicHistory<Props>
-	 */
-	history(): IPublicHistory<Props> {
-		return {
-			/**
-			 * @description Get previous props state and apply to instance.
-			 * @param token a 16bytes value to identify the target state on history.
-			 * @returns previous state found.
-			 */
-			back: (token?: UID<string>): IHistoryProps<Props> => {
-				const prevState = this._MetaHistory.back(token);
-				this.props = prevState ? prevState.props : this.props;
-				return prevState;
-			},
-
-			/**
-			 * @description Get next props state and apply to instance.
-			 * @param token a 16bytes value to identify the target state on history.
-			 * @returns next state found.
-			 */
-			forward: (token?: UID<string>): IHistoryProps<Props> => {
-				const nextState = this._MetaHistory.forward(token);
-				this.props = nextState ? nextState.props : this.props;
-				return nextState;
-			},
-
-			/**
-			 * @description Create a new snapshot from current state.
-			 * @param token a 16bytes key to identify the state on history.
-			 * @returns 
-			 */
-			snapshot: (token?: UID<string>): IHistoryProps<Props> => {
-				return this._MetaHistory.snapshot({
-					action: 'update',
-					props: this.props,
-					ocurredAt: new Date(),
-					token,
-				});
-			},
-
-			/**
-			 * @description Get all props on state as history.
-			 * @returns a list of props on state.
-			 */
-			list: (): IHistoryProps<Props>[] => {
-				return this._MetaHistory.list()
-			},
-
-			/**
-			 * @description Get total of props on state as history.
-			 * @returns total of props on state.
-			 */
-			count: (): number => {
-				return this._MetaHistory.count()
-			},
-		}	
-	}
 
 	/**
 	 * @description Method to validate props. This method is used to validate props on create a instance.
@@ -945,19 +1141,9 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> {
 /**
  * @description ValueObject an attribute for entity and aggregate
  */
-export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
-	protected props: Props;
-	public static validator: Validator = Validator.create();
-	public validator: Validator = Validator.create();
-	private readonly autoMapper: AutoMapper<Props>;
-
+export class ValueObject<Props> extends GettersAndSetters<Props> {
 	constructor(props: Props, config?: ISettings) {
-		super(props, config, new History({ 
-			props: props,
-			action: 'create'
-		 }));
-		this.props = props;
-		this.autoMapper = new AutoMapper();
+		super(props, config);
 	}
 
 	/**
@@ -991,58 +1177,6 @@ export class ValueObject<Props extends OBJ> extends GettersAndSetters<Props> {
 	 *	}
 	 */
 	validation<Key extends keyof Props>(_key: Key, _value: Props[Key]): boolean { return true };
-
-	history(): IPublicHistory<Props> {
-		return {
-			/**
-			 * @description Get previous props state and apply to instance.
-			 * @param token a value to identify the target state on history.
-			 * @returns previous state found.
-			 */
-			back: (token?: UID<string>): IHistoryProps<Props> => {
-				const prevState = this._MetaHistory.back(token);
-				this.props = prevState ? prevState?.props : this.props;
-				return prevState;
-			},
-			/**
-			 * @description Get next props state and apply to instance.
-			 * @param token a value to identify the target state on history.
-			 * @returns next state found.
-			 */
-			forward: (token?: UID<string>): IHistoryProps<Props> => {
-				const nextState = this._MetaHistory.forward(token);
-				this.props = nextState ? nextState?.props : this.props;
-				return nextState;
-			},
-			/**
-			 * @description Create a new snapshot from current state.
-			 * @param token a key to identify the state on history.
-			 * @returns 
-			 */
-			snapshot: (token?: UID<string>): IHistoryProps<Props> => {
-				return this._MetaHistory.snapshot({
-					action: 'update',
-					props: this.props,
-					ocurredAt: new Date(),
-					token
-				});
-			},
-			/**
-			 * @description Get all props on state as history.
-			 * @returns a list of props on state.
-			 */
-			list: (): IHistoryProps<Props>[] => {
-				return this._MetaHistory.list()
-			},
-			/**
-			 * @description Get total of props on state as history.
-			 * @returns total of props on state.
-			 */
-			count: (): number => {
-				return this._MetaHistory.count();
-			}
-		}	
-	}
 
 	/**
 	 * @description Get an instance copy.
@@ -1219,10 +1353,10 @@ export class AutoMapper<Props> {
 			
 			keys.forEach((key) => {
 				
-				const isArray = this.validator.isArray(props?.[key]);
+				const isArray = this.validator.isArray(props?.[key as any]);
 
 				if (isArray) {
-					const arr: Array<any> = props?.[key] as unknown as Array<any> ?? [];
+					const arr: Array<any> = props?.[key as any] as unknown as Array<any> ?? [];
 
 					const subProps = arr.map(
 						(item) => this.entityToObj(item as any)
@@ -1231,14 +1365,14 @@ export class AutoMapper<Props> {
 					result = Object.assign({}, { ...result }, { [key]: subProps });
 				}
 
-				const isSimple = this.validator.isValueObject(props?.[key]) ||
-				this.validator.isBoolean(props?.[key]) ||
-				this.validator.isNumber(props?.[key]) ||
-				this.validator.isString(props?.[key]) ||
-				this.validator.isDate(props?.[key]);
+				const isSimple = this.validator.isValueObject(props?.[key as any]) ||
+				this.validator.isBoolean(props?.[key as any]) ||
+				this.validator.isNumber(props?.[key as any]) ||
+				this.validator.isString(props?.[key as any]) ||
+				this.validator.isDate(props?.[key as any]);
 
 				if (isSimple) {
-					const data = this.valueObjectToObj(props[key] as any);
+					const data = this.valueObjectToObj(props[key as any] as any);
 
 					result = Object.assign({}, { ...result }, { [key]: data });
 				}
@@ -1246,171 +1380,5 @@ export class AutoMapper<Props> {
 		}
 
 		return result as any;
-	}
-}
-
-/**
- * @description Manage state props as history.
- */
-
-export class History<Props> implements IHistory<Props> {
-	private readonly iterator: IIterator<IHistoryProps<Props>>;
-
-	constructor(props?: IHistoryProps<Props>) {
-		let _props = props ? Object.assign({}, { ...props }, { action: 'create' }): undefined;
-		_props = _props ? Object.assign({}, { ..._props }, { token: ID<string>.createShort() }): undefined;
-		_props = _props ? Object.assign({}, { ..._props }, { ocurredAt: new Date() }): undefined;
-
-		this.iterator = Iterator.create({
-			initialData: _props ? [_props]: [],
-			restartOnFinish: false,
-			returnCurrentOnReversion: true
-		});
-	}
-
-	/**
-	 * 
-	 * @param token ID as token.
-	 * @returns true if token already exists for some prop state on history and false if not.
-	 */
-	private tokenAlreadyExists(token: UID<string>): boolean {
-		const iterate = this.iterator.clone();
-		iterate.toLast();
-		while (iterate.hasPrev()) {
-			const prev = iterate.prev();
-			if (token.equal(prev.token!)) return true;
-		}
-		return false;
-	}
-
-	/**
-	 * @description Get all props on state as history.
-	 * @returns a list of props on state.
-	 */
-	list(): IHistoryProps<Props>[] {
-		return this.iterator.toArray();
-	}
-	/**
-	 * @description Create a new snapshot from current state.
-	 * @param props as object to be pushed into history.
-	 * @returns props pushed.
-	 */
-	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props> {
-		const token = props.token?.toShort() ?? ID<string>.createShort();
-		const tokenAlreadyExists = (this.tokenAlreadyExists(token));
-		props.token = tokenAlreadyExists ? ID<string>.createShort() : token;
-		const ocurredAt = props.ocurredAt ?? new Date();
-		props.ocurredAt = ocurredAt;
-		this.iterator.add(props);
-		this.iterator.toLast();
-		return props;
-	}
-	/**
-	 * @description Get previous props state and apply to instance.
-	 * @param token a 16bytes value to identify the target state on history.
-	 * @returns previous state found or null if not found.
-	 */
-	back(token?: ID<string>): IHistoryProps<Props> {
-		this.iterator.prev();
-		
-		if (token) {
-			this.iterator.toLast();
-			while (this.iterator.hasPrev()) {
-				const prev = this.iterator.prev();
-				if (prev.token?.equal(token)) return prev;
-			}
-		}
-
-		if (this.iterator.hasPrev()) return this.iterator.prev();
-
-		this.iterator.toFirst();
-		return this.iterator.first();
-	}
-
-	/**
-	 * @description Get next props state and apply to instance.
-	 * @param token a 16bytes value to identify the target state on history.
-	 * @returns next state found or null if not found.
-	 */
-	forward(token?: ID<string>): IHistoryProps<Props> {
-		this.iterator.next();
-
-		if (token) {
-			this.iterator.toFirst();
-			while (this.iterator.hasNext()) {
-				const next = this.iterator.next();
-				if (next.token?.equal(token)) return next;
-			}
-		}
-		
-		if (this.iterator.hasNext()) return this.iterator.next();
-
-		this.iterator.toLast();
-		return this.iterator.last();
-	}
-
-	/**
-	 * @description Get total of props on state as history.
-	 * @returns total of props on state.
-	 */
-	count(): number {
-		return this.iterator.total();
-	}
-
-}
-
-/**
- * @description Domain Events manager.
- */
-export abstract class DomainEvents {
-	public static events: IIterator<IDomainEvent<Aggregate<any>>> = Iterator.create();
-
-	/**
-	 * @description Add event to state.
-	 * @param param event to be added.
-	 */
-	public static addEvent({ event, replace }: IEvent<Aggregate<any>>) {
-		const target = Reflect.getPrototypeOf(event.callback);
-		const eventName = event.callback?.eventName ?? target?.constructor.name as string;
-		if (!!replace) this.deleteEvent({ eventName, id: event.aggregate.id });
-		event.callback.eventName = eventName;
-		DomainEvents.events.addToEnd(event);
-	}
-
-	/**
-	 * @description Dispatch event for a provided name and an aggregate id.
-	 * @param options params to find event to dispatch it.
-	 * @returns promise void.
-	 */
-	public static async dispatch(options: IDispatchOptions): Promise<void> {
-		const eventsToDispatch: Array<IDomainEvent<Aggregate<any>>> = [];
-		this.events.toFirst();
-		while (this.events.hasNext()) {
-			const event = this.events.next();
-			if (event.aggregate.id.equal(options.id) && event.callback.eventName === options.eventName) {
-				this.events.toFirst();
-				eventsToDispatch.push(event);
-				this.events.removeItem(event);
-			}
-		}
-		eventsToDispatch.forEach((agg) => agg.callback.dispatch(agg));
-	}
-
-	/**
-	 * @description Delete an event from state.
-	 * @param options to find event to be deleted.
-	 */
-	public static deleteEvent(options: IDispatchOptions): void {
-		this.events.toFirst();
-		while (this.events.hasNext()) {
-			const event = this.events.next();
-			const target = Reflect.getPrototypeOf(event.callback);
-			const eventName = event.callback?.eventName ?? target?.constructor.name;
-			
-			if (event.aggregate.id.equal(options.id) && options.eventName === eventName) {
-				this.events.toFirst();
-				this.events.removeItem(event);
-			}
-		}
 	}
 }

@@ -4,6 +4,18 @@
 
 This lib provide some useful utilities to build a rich domain.
 
+### Installation
+
+```sh
+
+$ npm install rich-domain
+
+# OR
+
+$ yarn add rich-domain
+
+```
+
 ### Value Object
 
 Use value-object as attributes for your entities and aggregates.
@@ -121,7 +133,7 @@ export class User extends Entity<Props> {
 		super(props);
 	}
 
-	public static create(props: Props): IResult<User> {
+	public static create(props: Props): Result<User> {
 		
 		// your business validation
 		return Result.success(new User(props));
@@ -507,7 +519,7 @@ Just provide false for prop you want to disable on `validation`
 
 ```ts
 
-import { ISettings, ValueObject } from 'rich-domain';
+import { IPropsValidation, ValueObject } from 'rich-domain';
 
 interface Props { value: number; birthDay: Date };
 

@@ -246,24 +246,25 @@ describe('value-object', () => {
 
 			expect(sample.value().history().count()).toBe(1);
 
-			sample.value().set('foo').to('changed');
+			sample.value().set('foo').to('changed'); // set
 
 			expect(sample.value().history().count()).toBe(2);
 			expect(sample.value().get('value')).toBe('Sample');
 			expect(sample.value().get('foo')).toBe('changed'); // changed
 
-			sample.value().set('value').to('changed2'); // changed
+			sample.value().set('value').to('changed2'); // set changed
 			expect(sample.value().get('value')).toBe('changed2');
 
 			sample.value().history().back();
-			expect(sample.value().get('value')).toBe('changed2');
+			expect(sample.value().get('value')).toBe('Sample');
 			expect(sample.value().get('foo')).toBe('changed');
 
 			sample.value().history().back();
 			expect(sample.value().get('value')).toBe('Sample');
+			expect(sample.value().get('foo')).toBe('bar');
 
 			sample.value().history().forward();
-			expect(sample.value().get('value')).toBe('changed2');
+			expect(sample.value().get('value')).toBe('Sample');
 
 			expect(sample.value().history().list()).toHaveLength(3);
 			sample.value().history().snapshot();
@@ -304,7 +305,7 @@ describe('value-object', () => {
 			expect(sample.value().get('foo')).toBe('bar5');
 			sample.value().history().back(step2);
 
-			expect(sample.value().get('foo')).toBe('bar2');
+			expect(sample.value().get('foo')).toBe('bar1');
 
 			sample.value().history().forward(step4);
 			expect(sample.value().get('foo')).toBe('bar5');

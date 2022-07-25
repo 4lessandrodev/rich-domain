@@ -10,4 +10,9 @@ index.types.js
 types.d.ts
 types.js
 
+index.d.ts.map
+index.js.map
+types.d.ts.map
+types.js.map
+
 !tests/*
