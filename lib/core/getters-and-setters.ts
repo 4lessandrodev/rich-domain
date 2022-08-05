@@ -23,6 +23,8 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 			action: 'create',
 		});
 		this.parentName = parentName;
+		GettersAndSetters.validator = Validator.create();
+		this.validator = Validator.create();
 	}
 
 	/**
