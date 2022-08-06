@@ -442,7 +442,7 @@ class HumanAge extends ValueObject<Props> {
 		return isNumber(value) && number.isBetween(0, 130),
 	}
 
-	public static create(props: Props): IResult<ValueObject<Props>> {
+	public static create(props: Props): IResult<HumanAge> {
 		
 		const message = `${props.value} is an invalid value`;
 
@@ -551,7 +551,7 @@ class HumanAge extends ValueObject<Props> {
 		return options[key](value);
 	};
 
-	public static create(props: Props): IResult<ValueObject<Props>> {			
+	public static create(props: Props): IResult<HumanAge> {			
 		return Result.OK(new HumanAge(props));
 	}
 }
