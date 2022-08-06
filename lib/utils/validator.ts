@@ -6,9 +6,9 @@ export class Validator {
 
 	public static create(): Validator {
 		if (!Validator.instance) {
-			this.instance = new Validator();
+			Validator.instance = new Validator();
 		}
-		return this.instance;
+		return Validator.instance;
 	}
 
 	isArray(props: any): boolean {
@@ -28,11 +28,11 @@ export class Validator {
 		if (!isObj || props === null) return false;
 		if (JSON.stringify(props) === JSON.stringify({})) return true;
 		const hasKeys = Object.keys(props).length > 0;
-		const isNotArray = !this.isArray(props);
-		const isNotEntity = !this.isEntity(props);
-		const isNotAggregate = !this.isAggregate(props);
-		const isNotValueObject = !this.isValueObject(props);
-		const isNotId = !this.isID(props);
+		const isNotArray = !Validator.instance.isArray(props);
+		const isNotEntity = !Validator.instance.isEntity(props);
+		const isNotAggregate = !Validator.instance.isAggregate(props);
+		const isNotValueObject = !Validator.instance.isValueObject(props);
+		const isNotId = !Validator.instance.isID(props);
 		return hasKeys && isNotAggregate && isNotArray && isNotEntity && isNotValueObject && isNotId;
 	}
 	isNull(props: any): boolean {
@@ -49,7 +49,7 @@ export class Validator {
 	}
 	isEntity(props: any): boolean {
 		const isEntity = props instanceof Entity;
-		return !this.isAggregate(props) && isEntity;
+		return !Validator.instance.isAggregate(props) && isEntity;
 	}
 	isAggregate(props: any): boolean {
 		return props instanceof Aggregate;
@@ -65,56 +65,56 @@ export class Validator {
 	}
 	number(target: number) {
 		return {
-			isEqualTo: (value: number): boolean => this.isNumber(target) && this.isNumber(value) && target === value,
-			isGreaterThan: (value: number): boolean => this.isNumber(target) && this.isNumber(value) && target > value,
-			isLessThan: (value: number): boolean => this.isNumber(target) && this.isNumber(value) && target < value,
-			isLessOrEqualTo: (value: number): boolean => this.isNumber(target) &&
-				this.isNumber(value) && target <= value,
-			isGreaterOrEqualTo: (value: number): boolean => this.isNumber(target) &&
-				this.isNumber(value) && target >= value,
-			isSafeInteger: (): boolean => this.isNumber(target) &&
+			isEqualTo: (value: number): boolean => Validator.instance.isNumber(target) && Validator.instance.isNumber(value) && target === value,
+			isGreaterThan: (value: number): boolean => Validator.instance.isNumber(target) && Validator.instance.isNumber(value) && target > value,
+			isLessThan: (value: number): boolean => Validator.instance.isNumber(target) && Validator.instance.isNumber(value) && target < value,
+			isLessOrEqualTo: (value: number): boolean => Validator.instance.isNumber(target) &&
+				Validator.instance.isNumber(value) && target <= value,
+			isGreaterOrEqualTo: (value: number): boolean => Validator.instance.isNumber(target) &&
+				Validator.instance.isNumber(value) && target >= value,
+			isSafeInteger: (): boolean => Validator.instance.isNumber(target) &&
 				target <= Number.MAX_SAFE_INTEGER && target >= Number.MIN_SAFE_INTEGER,
-			isPositive: (): boolean => this.isNumber(target) && target >= 0,
-			isNegative: (): boolean => this.isNumber(target) && target < 0,
-			isPair: (): boolean => this.isNumber(target) && target % 2 === 0,
-			isInteger: (): boolean => this.isNumber(target) && target - Math.trunc(target) === 0,
-			isBetween: (min: number, max: number): boolean => this.isNumber(target) && target < max && target > min
+			isPositive: (): boolean => Validator.instance.isNumber(target) && target >= 0,
+			isNegative: (): boolean => Validator.instance.isNumber(target) && target < 0,
+			isPair: (): boolean => Validator.instance.isNumber(target) && target % 2 === 0,
+			isInteger: (): boolean => Validator.instance.isNumber(target) && target - Math.trunc(target) === 0,
+			isBetween: (min: number, max: number): boolean => Validator.instance.isNumber(target) && target < max && target > min
 		}
 	}
 	string(target: string) {
 		return {
-			hasLengthGreaterThan: (length: number): boolean => this.isString(target) && target.length > length,
-			hasLengthGreaterOrEqualTo: (length: number): boolean => this.isString(target) && target.length >= length,
-			hasLengthLessThan: (length: number): boolean => this.isString(target) && target.length < length,
-			hasLengthLessOrEqualTo: (length: number): boolean => this.isString(target) && target.length <= length,
-			hasLengthEqualTo: (length: number): boolean => this.isString(target) && target.length === length,
-			hasLengthBetween: (min: number, max: number): boolean => this.isString(target) &&
+			hasLengthGreaterThan: (length: number): boolean => Validator.instance.isString(target) && target.length > length,
+			hasLengthGreaterOrEqualTo: (length: number): boolean => Validator.instance.isString(target) && target.length >= length,
+			hasLengthLessThan: (length: number): boolean => Validator.instance.isString(target) && target.length < length,
+			hasLengthLessOrEqualTo: (length: number): boolean => Validator.instance.isString(target) && target.length <= length,
+			hasLengthEqualTo: (length: number): boolean => Validator.instance.isString(target) && target.length === length,
+			hasLengthBetween: (min: number, max: number): boolean => Validator.instance.isString(target) &&
 				target.length >= min && target.length <= max,
-			includes: (value: string): boolean => this.isString(target) && target.includes(value) || value.split('').map((char) => target.includes(char)).includes(true),
-			isEmpty: (): boolean => (this.isUndefined(target) ||
-				this.isNull(target)) ||
-				(this.isString(target) &&
+			includes: (value: string): boolean => Validator.instance.isString(target) && target.includes(value) || value.split('').map((char) => target.includes(char)).includes(true),
+			isEmpty: (): boolean => (Validator.instance.isUndefined(target) ||
+				Validator.instance.isNull(target)) ||
+				(Validator.instance.isString(target) &&
 					target.trim() === ''),
 			match:(regex: RegExp): boolean => regex.test(target)
 		}
 	}
 	date(target: Date) {
 		return {
-			isBeforeThan: (value: Date): boolean => (this.isDate(target) &&
-				this.isDate(value)) && target.getTime() < value.getTime(),
-			isBeforeOrEqualTo: (value: Date): boolean => (this.isDate(target) &&
-				this.isDate(value)) && target.getTime() <= value.getTime(),
-			isAfterNow: (): boolean => this.isDate(target) && target.getTime() > Date.now(),
-			isBeforeNow: (): boolean => this.isDate(target) && target.getTime() < Date.now(),
-			isBetween: (start: Date, end: Date): boolean => this.isDate(target) &&
+			isBeforeThan: (value: Date): boolean => (Validator.instance.isDate(target) &&
+				Validator.instance.isDate(value)) && target.getTime() < value.getTime(),
+			isBeforeOrEqualTo: (value: Date): boolean => (Validator.instance.isDate(target) &&
+				Validator.instance.isDate(value)) && target.getTime() <= value.getTime(),
+			isAfterNow: (): boolean => Validator.instance.isDate(target) && target.getTime() > Date.now(),
+			isBeforeNow: (): boolean => Validator.instance.isDate(target) && target.getTime() < Date.now(),
+			isBetween: (start: Date, end: Date): boolean => Validator.instance.isDate(target) &&
 				target.getTime() > start.getTime() &&
 				target.getTime() < end.getTime(),
-			isWeekend: (): boolean => this.isDate(target) && target.getDay() === 0 ||
-				this.isDate(target) && target.getDay() === 6,
-			isAfterThan: (value: Date): boolean => (this.isDate(target) &&
-				this.isDate(value)) && target.getTime() > value.getTime(),
-			isAfterOrEqualTo: (value: Date): boolean => (this.isDate(target) &&
-				this.isDate(value)) && target.getTime() >= value.getTime(),
+			isWeekend: (): boolean => Validator.instance.isDate(target) && target.getDay() === 0 ||
+				Validator.instance.isDate(target) && target.getDay() === 6,
+			isAfterThan: (value: Date): boolean => (Validator.instance.isDate(target) &&
+				Validator.instance.isDate(value)) && target.getTime() > value.getTime(),
+			isAfterOrEqualTo: (value: Date): boolean => (Validator.instance.isDate(target) &&
+				Validator.instance.isDate(value)) && target.getTime() >= value.getTime(),
 		}
 	}
 }

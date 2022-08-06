@@ -12,20 +12,20 @@ describe("entity", () => {
 				super(props);
 			}
 
-			public isValidValue(value: any): boolean {
+			public isValidProps(value: any): boolean {
 				return value !== undefined;
 			}
 
 			public static create(props: Props): IResult<EntitySample> {
-				return Result.success(new EntitySample(props))
+				return Result.OK(new EntitySample(props))
 			}
 		}
 
 		it('should get prototype', () => {
 			const ent = EntitySample.create({ foo: 'bar' });
-			
+
 			ent.value().change('foo', 'changed');
-			expect(ent.isSuccess()).toBeTruthy();	
+			expect(ent.isOK()).toBeTruthy();	
 		});
 	});
 
@@ -93,7 +93,39 @@ describe("entity", () => {
 
 		it('should return fail if provide null props', () => {
 			const result = En.create(null);
-			expect(result.isFailure()).toBeTruthy();
+			expect(result.isFail()).toBeTruthy();
 		});
 	});
+
+	describe("should accept validation without error", () => {
+		interface Props { id?: string, foo: string };
+		
+		class EntitySample extends Entity<Props> {
+			private constructor(props: Props) {
+				super(props);
+			}
+
+			validation<Key extends keyof Props>(_key: Key, _value: Props[Key]): boolean {
+				return _key === 'foo';
+			}
+
+			public isValidProps(value: any): boolean {
+				return value !== undefined;
+			}
+
+			public static create(props: Props): IResult<EntitySample> {
+				return Result.OK(new EntitySample(props))
+			}
+		}
+
+		it('should get prototype', () => {
+			const ent = EntitySample.create({ foo: 'bar' });
+
+			ent.value().change('foo', 'changed');
+			expect(ent.isOK()).toBeTruthy();
+
+			ent.value().change('id', 'changed');
+			expect(ent.value().id.value()).not.toBe('changed');
+		});
+	})
 });

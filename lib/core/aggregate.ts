@@ -49,7 +49,7 @@ import Result from "./result";
 	 */
 	public static create(props: any): IResult<Aggregate<any>, any, any> {
 		if(!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
-		return Result.success(new this(props));
+		return Result.OK(new this(props));
 	};
 }
 export default Aggregate;

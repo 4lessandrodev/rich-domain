@@ -16,17 +16,17 @@ describe('value-object', () => {
 
 		it('should return fails if provide a null value', () => {
 			const obj = GenericVo.create(null);
-			expect(obj.isFailure()).toBeTruthy();
+			expect(obj.isFail()).toBeTruthy();
 		});
 
 		it('should return fails if provide an undefined value', () => {
 			const obj = GenericVo.create(undefined);
-			expect(obj.isFailure()).toBeTruthy();
+			expect(obj.isFail()).toBeTruthy();
 		});
 
 		it('should create a valid value-object', () => {
 			const obj = GenericVo.create({ value: 'Hello World' });
-			expect(obj.isFailure()).toBeFalsy();
+			expect(obj.isFail()).toBeFalsy();
 			expect(obj.value().get('value')).toBe('Hello World');
 		});
 
@@ -49,17 +49,17 @@ describe('value-object', () => {
 
 		it('should return success if provide a null value', () => {
 			const obj = GenericVo.create(null);
-			expect(obj.isSuccess()).toBeTruthy();
+			expect(obj.isOK()).toBeTruthy();
 		});
 
 		it('should return success if provide an undefined value', () => {
 			const obj = GenericVo.create(undefined);
-			expect(obj.isSuccess()).toBeTruthy();
+			expect(obj.isOK()).toBeTruthy();
 		});
 
 		it('should create a valid value-object', () => {
 			const obj = GenericVo.create({ value: 'Hello World' });
-			expect(obj.isFailure()).toBeFalsy();
+			expect(obj.isFail()).toBeFalsy();
 			expect(obj.value().get('value')).toBe('Hello World');
 		});
 
@@ -76,14 +76,14 @@ describe('value-object', () => {
 				super(props);
 			}
 
-			public static create(props: Props): IResult<ValueObject<Props>, string> {
-				return Result.success(new StringVo(props));
+			public static create(props: Props): IResult<StringVo> {
+				return Result.OK(new StringVo(props));
 			}
 		}
 
 		it('should create a valid value-object', () => {
 			const obj = StringVo.create({ value: 'Hello World' });
-			expect(obj.isFailure()).toBeFalsy();
+			expect(obj.isFail()).toBeFalsy();
 			expect(obj.value().get('value')).toBe('Hello World');
 		});
 
@@ -106,8 +106,8 @@ describe('value-object', () => {
 				super(props);
 			}
 
-			public static create(props: Props): IResult<ValueObject<Props>, string> {
-				return Result.success(new StringVo(props));
+			public static create(props: Props): IResult<StringVo> {
+				return Result.OK(new StringVo(props));
 			}
 		}
 
@@ -147,8 +147,8 @@ describe('value-object', () => {
 				return options[key](value);
 			};
 
-			public static create(props: Props): IResult<ValueObject<Props>, string> {
-				return Result.success(new StringVo(props));
+			public static create(props: Props): IResult<StringVo> {
+				return Result.OK(new StringVo(props));
 			}
 		}
 
@@ -238,7 +238,7 @@ describe('value-object', () => {
 				}
 
 				public static create(props: Props): IResult<Sample> {
-					return Result.success(new Sample(props));
+					return Result.OK(new Sample(props));
 				}
 			};
 
@@ -280,15 +280,15 @@ describe('value-object', () => {
 				}
 
 				public static create(props: Props): IResult<Sample> {
-					return Result.success(new Sample(props));
+					return Result.OK(new Sample(props));
 				}
 			};
 
 			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
 
-			const step2 = ID.createShort();
-			const step3 = ID.createShort();
-			const step4 = ID.createShort();
+			const step2 = ID.short();
+			const step3 = ID.short();
+			const step4 = ID.short();
 
 			sample.value().change('foo', 'bar0');
 			sample.value().change('foo', 'bar1');
@@ -336,8 +336,8 @@ describe('value-object', () => {
 				return options[key](value);
 			};
 
-			public static create(props: Props): IResult<ValueObject<Props>> {			
-				return Result.success(new HumanAge(props));
+			public static create(props: Props): IResult<HumanAge> {			
+				return Result.OK(new HumanAge(props));
 			}
 		}
 

@@ -23,6 +23,8 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 			action: 'create',
 		});
 		this.parentName = parentName;
+		GettersAndSetters.validator = Validator.create();
+		this.validator = Validator.create();
 	}
 
 	/**
@@ -37,11 +39,10 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 				action: 'update',
 				props: Object.assign({}, { ...this.props }),
 				ocurredAt: new Date(),
-				token: ID.createShort()
+				token: ID.short()
 			});
 		}
 	}
-
 
 	/**
 	 * @description Validation used to `set` and `change` methods to validate value before set it.
@@ -70,7 +71,40 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 	 *		};
 	 *	
 	 *		public static create(props: Props): IResult<ValueObject<Props>, string> {
-	 *			return Result.success(new StringVo(props));
+	 *			return Result.OK(new StringVo(props));
+	 *		}
+	 *	}
+	 */
+	validation(_key: any, _value: any): boolean;
+
+	/**
+	 * @description Validation used to `set` and `change` methods to validate value before set it.
+	 * @param _key prop key type
+	 * @param _value prop value type
+	 * @returns true if value is valid and false if is invalid.
+	 * 
+	 * 
+	 * @example
+	 * interface Props { 
+	 *		value: string;
+	 *		age: number;
+	 *	};
+	 *	
+	 *	class StringVo extends ValueObject<Props>{
+	 *		private constructor(props: Props) { super(props) }
+	 *	
+	 *		validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
+	 *
+	 *			const options: IPropsValidation<Props> = {
+	 *				value: (value: string) => value.length < 15,
+	 *				age: (value: number) => value > 0
+	 *			} 
+	 *	
+	 *			return options[key](value);
+	 *		};
+	 *	
+	 *		public static create(props: Props): IResult<ValueObject<Props>, string> {
+	 *			return Result.OK(new StringVo(props));
 	 *		}
 	 *	}
 	 */

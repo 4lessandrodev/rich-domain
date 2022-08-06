@@ -18,9 +18,9 @@ describe('ID', () => {
 		});
 
 		it('should create a new short id', () => {
-			const shortID = ID.createShort();
+			const shortID = ID.short();
 			expect(shortID.isNew()).toBeTruthy();
-			expect(shortID.isShortID()).toBeTruthy();
+			expect(shortID.isShort()).toBeTruthy();
 			expect(shortID.value()).toHaveLength(16);
 		});
 
@@ -30,7 +30,7 @@ describe('ID', () => {
 
 			expect(id.value()).toBe(value);
 			expect(id.isNew()).toBeFalsy();
-			expect(id.isShortID()).toBeFalsy();
+			expect(id.isShort()).toBeFalsy();
 		});
 
 		it('should clone a existing id with success', () => {
@@ -40,15 +40,15 @@ describe('ID', () => {
 		});
 
 		it('should define short id to 16bytes', () => {
-			const shortId = ID.createShort('shorter');
+			const shortId = ID.short('shorter');
 			expect(shortId.createdAt()).toBeDefined();
 			expect(shortId.value()).toHaveLength(16);
 		});
 
 		it('should convert number to string', () => {
-			const shortId = ID.createShort(1234567891011124);
+			const shortId = ID.short(1234567891011124);
 			expect(typeof ID.create(1234567891011124).toShort().value() === 'string').toBeTruthy();
-			expect(shortId.isShortID()).toBeTruthy();
+			expect(shortId.isShort()).toBeTruthy();
 		});
 
 		it('null must not be equal', () => {
@@ -63,7 +63,7 @@ describe('ID', () => {
 		});
 
 		it('must clone id as a new one', () => {
-			const a = ID.createShort('LO123RE3MID0193T');
+			const a = ID.short('LO123RE3MID0193T');
 			expect(a.isNew()).toBeFalsy();
 
 			const clone = a.cloneAsNew();

@@ -18,17 +18,17 @@ describe('aggregate', () => {
 
 		it('should return fails if provide a null value', () => {
 			const obj = AggregateErr.create(null);
-			expect(obj.isFailure()).toBeTruthy();
+			expect(obj.isFail()).toBeTruthy();
 		});
 
 		it('should return fails if provide an undefined value', () => {
 			const obj = AggregateErr.create(undefined);
-			expect(obj.isFailure()).toBeTruthy();
+			expect(obj.isFail()).toBeTruthy();
 		});
 
 		it('should create a valid aggregate', () => {
 			const obj = AggregateErr.create({ id: '23366cbf-86cd-4de3-874a-5a11b4fe5dac', name: 'Jane' });
-			expect(obj.isFailure()).toBeFalsy();
+			expect(obj.isFail()).toBeFalsy();
 			expect(obj.value().get('name')).toBe('Jane');
 			expect(obj.value().hashCode().value()).toBe('[Aggregate@AggregateErr]:23366cbf-86cd-4de3-874a-5a11b4fe5dac')
 		});
@@ -48,7 +48,7 @@ describe('aggregate', () => {
 			}
 
 			public static create(props: Props): Result<BasicAggregate> {
-				return Result.success(new BasicAggregate(props));
+				return Result.OK(new BasicAggregate(props));
 			}
 		}
 
@@ -110,7 +110,7 @@ describe('aggregate', () => {
 
 			public static create(props: Props): IResult<ValueObject<Props>> {
 				if (!this.isValidValue(props.value)) return Result.fail('Invalid value');
-				return Result.success(new AgeVo(props));
+				return Result.OK(new AgeVo(props));
 			}
 		}
 
@@ -137,7 +137,7 @@ describe('aggregate', () => {
 			}
 
 			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
-				return Result.success(new UserAgg(props));
+				return Result.OK(new UserAgg(props));
 			}
 		}
 
@@ -146,7 +146,7 @@ describe('aggregate', () => {
 			const age = AgeVo.create({ value: 21 }).value();
 			const user = UserAgg.create({ age });
 
-			expect(user.isSuccess()).toBeTruthy();
+			expect(user.isOK()).toBeTruthy();
 
 		});
 
@@ -207,7 +207,7 @@ describe('aggregate', () => {
 			}
 
 			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
-				return Result.success(new UserAgg(props));
+				return Result.OK(new UserAgg(props));
 			}
 		}
 		it('should create a new date if props are defined on props', () => {
@@ -352,7 +352,7 @@ describe('aggregate', () => {
 				}
 
 				public static create(props: Props): IResult<Product> {
-					return Result.success(new Product(props));
+					return Result.OK(new Product(props));
 				}
 			}
 
