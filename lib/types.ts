@@ -16,8 +16,8 @@
 export interface IResult<T, D = string, M = {}> {
 	value(): T;
 	error(): D;
-	isFailure(): boolean;
-	isSuccess(): boolean;
+	isFail(): boolean;
+	isOK(): boolean;
 	metaData(): M;
 	toObject(): IResultObject<T, D, M>;
 	execute:<X, Y>(command: ICommand<X|void, Y>)=>IResultExecute<X, Y>;
@@ -31,7 +31,7 @@ export interface UID<T = string> {
 	value(): string;
 	isNew(): boolean;
 	createdAt(): Date;
-	isShortID(): boolean;
+	isShort(): boolean;
 	equal(id: UID<string>): boolean;
 	deepEqual(id: UID<string>): boolean;
 	cloneAsNew(): UID<string>;
@@ -102,8 +102,8 @@ export interface ISettings {
 }
 
 export interface IResultObject<T, D, M> {
-	isSuccess: boolean;
-	isFailure: boolean;
+	isOK: boolean;
+	isFail: boolean;
 	data: T | null;
 	error: D | null;
 	metaData: M;

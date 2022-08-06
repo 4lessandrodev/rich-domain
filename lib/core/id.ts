@@ -87,7 +87,7 @@ import { UID } from "../types";
 	 * @description Check if id instance is short. 16bytes
 	 * @returns `true` if id instance has short value and 'false` cause not.
 	 */
-	isShortID(): boolean {
+	isShort(): boolean {
 		return this._value.length === this.MAX_SIZE;
 	}
 
@@ -133,7 +133,7 @@ import { UID } from "../types";
 	 * @param id value as string optional.If you do not provide a value a new id value will be generated.
 	 * @returns instance of ID.
 	 */
-	public static createShort(id?: string | number): UID<string> {
+	public static short(id?: string | number): UID<string> {
 		const _id = new ID(id);
 		if (typeof id === 'undefined') _id.setAsNew();
 		_id.toShort();

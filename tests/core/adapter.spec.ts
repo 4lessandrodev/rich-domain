@@ -11,7 +11,7 @@ describe('adpter', () => {
 		}
 
 		public static create(props: NameProps): IResult<DomainName> {
-			return Result.success(new DomainName(props));
+			return Result.OK(new DomainName(props));
 		}
 	}
 
@@ -24,7 +24,7 @@ describe('adpter', () => {
 		}
 
 		public static create(props: UserProps): IResult<DomainUser> {
-			return Result.success(new DomainUser(props));
+			return Result.OK(new DomainUser(props));
 		}
 	}
 
@@ -49,7 +49,7 @@ describe('adpter', () => {
 	class DataUserAdapter implements IAdapter<DomainUser,Model>{
 		build(target: DomainUser): IResult<Model> {
 			
-			return Result.success({
+			return Result.OK({
 				id: target.id.value(),
 				createdAt: target.get('createdAt') as Date,
 				updatedAt: target.get('updatedAt') as Date,
@@ -73,7 +73,7 @@ describe('adpter', () => {
 			const adpter = new DomainUserAdapter();
 			const domainUser = adpter.build(userModel);
 
-			expect(domainUser.isSuccess()).toBeTruthy();
+			expect(domainUser.isOK()).toBeTruthy();
 			expect(domainUser.value().get('name').get('value')).toBe('John Stuart');
 			expect(domainUser.value().id.value()).toBe('valid_id');
 			expect(domainUser.value().get('createdAt')).toEqual(new Date('2020-01-01T04:00:23.000Z'));

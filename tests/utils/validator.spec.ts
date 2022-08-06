@@ -11,7 +11,7 @@ describe('check-types', () => {
 		}
 
 		public static create(): IResult<Aggregate<any>, string> {
-			return Result.success(new Agg('hello'));
+			return Result.OK(new Agg('hello'));
 		}
 	};
 
@@ -21,7 +21,7 @@ describe('check-types', () => {
 		}
 
 		public static create(): IResult<Entity<any>, string> {
-			return Result.success(new Ent('hello'));
+			return Result.OK(new Ent('hello'));
 		}
 	};
 
@@ -31,7 +31,7 @@ describe('check-types', () => {
 		}
 
 		public static create(): IResult<ValueObject<any>, string> {
-			return Result.success(new Vo('hello'));
+			return Result.OK(new Vo('hello'));
 		}
 	};
 

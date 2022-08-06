@@ -9,7 +9,7 @@ import Iterator from "./iterator";
  * @default D is string.
  * @default M is empty object {}.
  */
- export class Result<T, D = string, M = {}> implements IResult<T, D, M> {
+ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 
 	private readonly _isSuccess: boolean;
 	private readonly _isFailure: boolean;
@@ -26,14 +26,27 @@ import Iterator from "./iterator";
 	}
 
 	/**
+	 * @description Create an instance of Result as success state.
+	 * @returns instance of Result<void>.
+	 */
+	 public static OK(): Result<void>;
+	/**
 	 * @description Create an instance of Result as success state with data and metadata to payload.
 	 * @param data as T to payload.
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	public static success<T, D, M>(data: T, metaData?: M): Result<T, D, M> {
+	public static OK<T, D, M>(data: T, metaData?: M): Result<T, D, M>;
+	/**
+	 * @description Create an instance of Result as success state with data and metadata to payload.
+	 * @param data as T to payload.
+	 * @param metaData as M to state.
+	 * @returns instance of Result.
+	 */
+	public static OK<T, D, M>(data?: T, metaData?: M): Result<T, D, M> {
 		return new Result(true, data, null, metaData) as unknown as Result<T, D, M>;
 	}
+
 	/**
 	 * @description Create an instance of Result as failure state with error and metadata to payload.
 	 * @param error as D to payload.
@@ -63,7 +76,7 @@ import Iterator from "./iterator";
 		if (iterator.isEmpty()) return Result.fail<A, B, M>('No results provided on combine param' as unknown as B);
 		while (iterator.hasNext()) {
 			const currentResult = iterator.next();
-			if (currentResult.isFailure()) return currentResult;
+			if (currentResult.isFail()) return currentResult;
 		}
 		return iterator.first();
 	}
@@ -81,8 +94,8 @@ import Iterator from "./iterator";
 			 * @returns command payload or undefined.
 			 */
 			on: (option: IResultOptions): Y | undefined => {
-				if (option === 'success' && this.isSuccess()) return command.execute();
-				if (option === 'fail' && this.isFailure()) return command.execute();
+				if (option === 'success' && this.isOK()) return command.execute();
+				if (option === 'fail' && this.isFail()) return command.execute();
 			},
 			/**
 			 * @description Use this option the command require arguments.
@@ -97,8 +110,8 @@ import Iterator from "./iterator";
 					 * @returns command payload or undefined.
 					 */
 					on: (option: IResultOptions): Y | undefined => {
-						if (option === 'success' && this.isSuccess()) return command.execute(data);
-						if (option === 'fail' && this.isFailure()) return command.execute(data);
+						if (option === 'success' && this.isOK()) return command.execute(data);
+						if (option === 'fail' && this.isFail()) return command.execute(data);
 					}
 				}
 			}
@@ -124,7 +137,7 @@ import Iterator from "./iterator";
 	 * @description Check if result instance is failure.
 	 * @returns `true` case result instance failure or `false` case is success one.
 	 */
-	isFailure(): boolean {
+	isFail(): boolean {
 		return this._isFailure;
 	}
 
@@ -132,7 +145,7 @@ import Iterator from "./iterator";
 	 * @description Check if result instance is success.
 	 * @returns `true` case result instance success or `false` case is failure one.
 	 */
-	isSuccess(): boolean {
+	isOK(): boolean {
 		return this._isSuccess;
 	}
 
@@ -158,8 +171,8 @@ import Iterator from "./iterator";
 	 */
 	toObject(): IResultObject<T, D, M> {
 		return {
-			isSuccess: this._isSuccess,
-			isFailure: this._isFailure,
+			isOK: this._isSuccess,
+			isFail: this._isFailure,
 			data: this._data as T | null,
 			error: this._error as D | null,
 			metaData: this._metaData as M
