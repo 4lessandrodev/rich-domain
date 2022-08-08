@@ -17,7 +17,7 @@ describe("entity", () => {
 			}
 
 			public static create(props: Props): IResult<EntitySample> {
-				return Result.OK(new EntitySample(props))
+				return Result.Ok(new EntitySample(props))
 			}
 		}
 
@@ -25,7 +25,7 @@ describe("entity", () => {
 			const ent = EntitySample.create({ foo: 'bar' });
 
 			ent.value().change('foo', 'changed');
-			expect(ent.isOK()).toBeTruthy();	
+			expect(ent.isOk()).toBeTruthy();	
 		});
 	});
 
@@ -114,7 +114,7 @@ describe("entity", () => {
 			}
 
 			public static create(props: Props): IResult<EntitySample> {
-				return Result.OK(new EntitySample(props))
+				return Result.Ok(new EntitySample(props))
 			}
 		}
 
@@ -122,10 +122,15 @@ describe("entity", () => {
 			const ent = EntitySample.create({ foo: 'bar' });
 
 			ent.value().change('foo', 'changed');
-			expect(ent.isOK()).toBeTruthy();
+			expect(ent.isOk()).toBeTruthy();
 
 			ent.value().change('id', 'changed');
 			expect(ent.value().id.value()).not.toBe('changed');
+		});
+
+		it('should create many entities', () => {
+			const payload = EntitySample.createMany([]);
+			expect(payload.result.isFail()).toBeTruthy();
 		});
 	})
 });

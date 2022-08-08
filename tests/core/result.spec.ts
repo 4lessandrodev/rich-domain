@@ -18,7 +18,7 @@ describe('result', () => {
 			const result = Result.fail('fail', { message: 'some metadata info' });
 
 			expect(result.error()).toBe('fail');
-			expect(result.isOK()).toBeFalsy();
+			expect(result.isOk()).toBeFalsy();
 			expect(result.isFail()).toBeTruthy();
 			const payloadA = result.execute(new Command()).on('fail')
 			const payloadB = result.execute(new Command()).withData('args provided').on('fail');
@@ -34,9 +34,9 @@ describe('result', () => {
 	});
 
 	describe('success', () => {
-		const success1 = Result.OK(1);
-		const success2 = Result.OK(2);
-		const success3 = Result.OK(3);
+		const success1 = Result.Ok(1);
+		const success2 = Result.Ok(2);
+		const success3 = Result.Ok(3);
 
 		it('should return first if success', () => {
 			expect(Result.combine([ success1, success2, success3 ]).value()).toBe(1);
@@ -53,9 +53,9 @@ describe('result', () => {
 			const command = new Command();
 			const commandSpy = jest.spyOn(command, 'execute');
 
-			const success = Result.OK(1);
+			const success = Result.Ok(1);
 
-			const payload = success.execute(command).on('success');
+			const payload = success.execute(command).on('Ok');
 			expect(commandSpy).toHaveBeenCalled();
 			expect(payload).toBe(1);
 		});
@@ -71,35 +71,35 @@ describe('result', () => {
 			const command = new Command();
 			const commandSpy = jest.spyOn(command, 'execute');
 
-			const success = Result.OK(1);
+			const success = Result.Ok(1);
 
-			const payload = success.execute(command).withData(1).on('success');
+			const payload = success.execute(command).withData(1).on('Ok');
 			expect(commandSpy).toHaveBeenCalled();
 			expect(payload).toBe(2);
 		});
 
 		it('should get an {} if metadata is not provided', () => {
-			const success = Result.OK(1);
+			const success = Result.Ok(1);
 			expect(success.metaData()).toEqual({});
 		});
 
 		it('should get metadata if provided', () => {
-			const success = Result.OK(1, { meta: 'Data' });
+			const success = Result.Ok(1, { meta: 'Data' });
 			expect(success.metaData()).toEqual({ meta: 'Data' });
 		});
 
 		it('should get object result', () => {
-			const success = Result.OK(1, { meta: 'Data' });
+			const success = Result.Ok(1, { meta: 'Data' });
 			expect(success.toObject()).toEqual({
-				"data": 1, "error": null, "isFail": false, "isOK": true, "metaData": { "meta": "Data" }
+				"data": 1, "error": null, "isFail": false, "isOk": true, "metaData": { "meta": "Data" }
 			});
 		});
 
 		it('should accept void', () => {
 
-			const result: Result = Result.OK();
+			const result: Result = Result.Ok();
 
-			expect(result.isOK()).toBeTruthy();
+			expect(result.isOk()).toBeTruthy();
 
 			expect(result.isFail()).toBeFalsy();
 

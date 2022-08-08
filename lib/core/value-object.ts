@@ -22,7 +22,7 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 		if (!instance) return Result.fail('Could not get value object instance');
 		const args = [this.props, this.config];
 		const obj = Reflect.construct(instance.constructor, args);
-		if (obj instanceof ValueObject) return Result.OK(obj);
+		if (obj instanceof ValueObject) return Result.Ok(obj);
 		return Result.fail('Could not create instance of value object');
 	}
 
@@ -51,7 +51,7 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 	 */
 	public static create(props: any): IResult<ValueObject<any>, any, any> {
 		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
-		return Result.OK(new this(props));
+		return Result.Ok(new this(props));
 	};
 }
 

@@ -1,8 +1,9 @@
-import { IGettersAndSetters, IHistory, IHistoryProps, IParentName, IPublicHistory, ISettings, UID } from "../types";
+import {  IParentName, IPublicHistory, ISettings, UID } from "../types";
+import { ICreateManyDomain, IGettersAndSetters, IHistory, IHistoryProps } from "../types";
 import { Validator } from "../utils";
+import createManyDomainInstances from "./create-many-domain-instance";
 import History from "./history";
 import ID from "./id";
-// import ValueObject from "./value-object";
 
 /**
  * @description defines getter and setter to all domain instances.
@@ -25,6 +26,35 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 		this.parentName = parentName;
 		GettersAndSetters.validator = Validator.create();
 		this.validator = Validator.create();
+	}
+
+	/**
+	 * @description Create many domain instances
+	 * @param data Array of options
+	 * @returns data and result.
+	 * @summary result: final result of validating each instance
+	 * @summary data: all created instances as iterator of Result.
+	 * @callback Class you can use this function to create the args and define types to Props.
+	 * 
+	 * @example
+	 * 
+	 * const { result, data } = ValueObject.createMany([
+	 *   Class<AgeProps>(Age, props),
+	 *   Class<NameProps>(Name, props),
+	 *   Class<PriceProps>(Price, props)
+	 * ]);
+	 * 
+	 * result.isOk() // true
+	 * 
+	 * const age = data.next() as IResult<Age>;
+	 * const name = data.next() as IResult<Name>;
+	 * const price = data.next() as IResult<Price>;
+	 * 
+	 * age.value().get('value') // 21
+	 * 
+	 */
+	public static createMany(data: ICreateManyDomain) { 
+		return createManyDomainInstances(data);
 	}
 
 	/**
@@ -71,7 +101,7 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 	 *		};
 	 *	
 	 *		public static create(props: Props): IResult<ValueObject<Props>, string> {
-	 *			return Result.OK(new StringVo(props));
+	 *			return Result.Ok(new StringVo(props));
 	 *		}
 	 *	}
 	 */
@@ -104,7 +134,7 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 	 *		};
 	 *	
 	 *		public static create(props: Props): IResult<ValueObject<Props>, string> {
-	 *			return Result.OK(new StringVo(props));
+	 *			return Result.Ok(new StringVo(props));
 	 *		}
 	 *	}
 	 */

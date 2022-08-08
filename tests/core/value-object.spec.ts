@@ -1,4 +1,4 @@
-import { ID, Result, ValueObject } from "../../lib/core";
+import { Class, ID, Result, ValueObject } from "../../lib/core";
 import { ICommand, IPropsValidation, IResult } from "../../lib/types";
 
 describe('value-object', () => {
@@ -49,12 +49,12 @@ describe('value-object', () => {
 
 		it('should return success if provide a null value', () => {
 			const obj = GenericVo.create(null);
-			expect(obj.isOK()).toBeTruthy();
+			expect(obj.isOk()).toBeTruthy();
 		});
 
 		it('should return success if provide an undefined value', () => {
 			const obj = GenericVo.create(undefined);
-			expect(obj.isOK()).toBeTruthy();
+			expect(obj.isOk()).toBeTruthy();
 		});
 
 		it('should create a valid value-object', () => {
@@ -77,7 +77,7 @@ describe('value-object', () => {
 			}
 
 			public static create(props: Props): IResult<StringVo> {
-				return Result.OK(new StringVo(props));
+				return Result.Ok(new StringVo(props));
 			}
 		}
 
@@ -107,7 +107,7 @@ describe('value-object', () => {
 			}
 
 			public static create(props: Props): IResult<StringVo> {
-				return Result.OK(new StringVo(props));
+				return Result.Ok(new StringVo(props));
 			}
 		}
 
@@ -120,7 +120,7 @@ describe('value-object', () => {
 		it('should execute hook on create a valid value object', () => {
 			const data = 'value object created with success';
 			const obj = StringVo.create({ value: 'Hello World' });
-			const payload = obj.execute(new Command()).withData(data).on('success');
+			const payload = obj.execute(new Command()).withData(data).on('Ok');
 			expect(payload).toBe('value object created with success');
 		});
 	})
@@ -148,7 +148,7 @@ describe('value-object', () => {
 			};
 
 			public static create(props: Props): IResult<StringVo> {
-				return Result.OK(new StringVo(props));
+				return Result.Ok(new StringVo(props));
 			}
 		}
 
@@ -238,7 +238,7 @@ describe('value-object', () => {
 				}
 
 				public static create(props: Props): IResult<Sample> {
-					return Result.OK(new Sample(props));
+					return Result.Ok(new Sample(props));
 				}
 			};
 
@@ -280,7 +280,7 @@ describe('value-object', () => {
 				}
 
 				public static create(props: Props): IResult<Sample> {
-					return Result.OK(new Sample(props));
+					return Result.Ok(new Sample(props));
 				}
 			};
 
@@ -336,8 +336,8 @@ describe('value-object', () => {
 				return options[key](value);
 			};
 
-			public static create(props: Props): IResult<HumanAge> {			
-				return Result.OK(new HumanAge(props));
+			public static create(props: Props): IResult<HumanAge> {
+				return Result.Ok(new HumanAge(props));
 			}
 		}
 
@@ -352,6 +352,143 @@ describe('value-object', () => {
 
 			expect(age.get('birthDay')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
 			expect(age.get('value')).toBe(55);
+		});
+	});
+
+	describe('create many', () => {
+
+		interface Props1 {
+			value: number;
+			birthDay: Date;
+		};
+
+		class HumanAge extends ValueObject<Props1> {
+			private constructor(props: Props1) {
+				super(props);
+				this.validation.bind(this);
+			}
+
+			public static isValidProps(props: Props1): boolean {
+				const { number, date } = this.validator;
+				const isValidAge = number(props.value).isBetween(0, 130);
+				const isValidDate = date(props.birthDay).isBeforeNow();
+				return isValidAge && isValidDate;
+			}
+
+			public static create(props: Props1): IResult<HumanAge> {
+				if (!HumanAge.isValidProps(props)) return Result.fail('Invalid props');
+				return Result.Ok(new HumanAge(props));
+			}
+		}
+
+		interface Props2 {
+			value: string;
+		}
+		class GenericVo extends ValueObject<Props2> {
+			constructor(props: Props2) {
+				super(props)
+			}
+		}
+
+		interface Props3 { value: string, foo: string };
+
+		class Sample extends ValueObject<Props3>{
+			private constructor(props: Props3) {
+				super(props);
+			}
+
+			public static create(props: Props3): IResult<Sample> {
+				return Result.Ok(new Sample(props));
+			}
+		};
+
+		it('should create many value objects', () => {
+
+			const payload = ValueObject.createMany([
+				{
+					class: HumanAge,
+					props: { value: 21, birthDay: new Date('2021-01-01') }
+				},
+				{
+					class: GenericVo,
+					props: { value: 'Hello' }
+				},
+				{
+					class: Sample,
+					props: { value: 'hello', foo: 'testing' }
+				}
+			]);
+
+			expect(payload.result.isOk()).toBeTruthy();
+			expect(payload.data.total()).toBe(3);
+		});
+
+		it('should add fails if does not exists create function on class', () => {
+
+			const payload = ValueObject.createMany([
+				{
+					class: {},
+					props: { value: 21, birthDay: new Date() }
+				},
+				{
+					class: GenericVo,
+					props: { value: 'Hello' }
+				},
+				{
+					class: Sample,
+					props: { value: 'hello', foo: 'testing' }
+				}
+			]);
+
+			expect(payload.result.error()).toBe('there is no static method create in undefined class')
+			expect(payload.result.isFail()).toBeTruthy();
+			expect(payload.data.total()).toBe(3);
+		});
+
+		it('should create many using DomainClass helper', () => {
+			const { result, data } = ValueObject.createMany([
+				Class<Props1>(HumanAge, { value: 21, birthDay: new Date('2021-01-01') }),
+				Class<Props2>(GenericVo, { value: 'Hello' }),
+				Class<Props3>(Sample, { value: 'hello', foo: 'testing' })
+			]);
+
+			expect(result.isOk()).toBeTruthy();
+			expect(data.total()).toBe(3);
+
+			const age = data.next() as IResult<HumanAge>;
+			const generic = data.next() as IResult<GenericVo>;
+			const sample = data.next() as IResult<Sample>;
+
+			expect(age.isOk()).toBeTruthy();
+			expect(generic.isOk()).toBeTruthy();
+			expect(sample.isOk()).toBeTruthy();
+
+			expect(age.value().get('value')).toBe(21);
+			expect(generic.value().get('value')).toBe('Hello');
+			expect(sample.value().get('value')).toBe('hello');
+		});
+
+		it('should fails if provide an empty array', () => {
+			const { result, data: iterator } = ValueObject.createMany([]);
+
+			expect(result.isFail()).toBeTruthy();
+			expect(iterator.total()).toBe(0);
+		});
+
+		it('should fails if provide an empty array', () => {
+			const { result, data: iterator } = ValueObject.createMany({} as any);
+
+			expect(result.isFail()).toBeTruthy();
+			expect(iterator.total()).toBe(0);
+		});
+
+		it('should fails if provide an invalid props', () => {
+			const { result, data: iterator } = ValueObject.createMany([
+				Class<Props1>(HumanAge, { value: 210 } as any),
+			]);
+
+			expect(result.isFail()).toBeTruthy();
+			expect(iterator.total()).toBe(1);
 		})
 	})
 });

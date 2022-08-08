@@ -14,7 +14,7 @@ import Iterator from "./iterator";
 	public static addEvent({ event, replace }: IEvent<IAggregate<any>>) {
 		const target = Reflect.getPrototypeOf(event.callback);
 		const eventName = event.callback?.eventName ?? target?.constructor.name as string;
-		if (!!replace) this.deleteEvent({ eventName, id: event.aggregate.id });
+		if (!!replace) DomainEvents.deleteEvent({ eventName, id: event.aggregate.id });
 		event.callback.eventName = eventName;
 		DomainEvents.events.addToEnd(event);
 	}
@@ -26,13 +26,13 @@ import Iterator from "./iterator";
 	 */
 	public static async dispatch(options: IDispatchOptions): Promise<void> {
 		const eventsToDispatch: Array<IDomainEvent<IAggregate<any>>> = [];
-		this.events.toFirst();
-		while (this.events.hasNext()) {
-			const event = this.events.next();
+		DomainEvents.events.toFirst();
+		while (DomainEvents.events.hasNext()) {
+			const event = DomainEvents.events.next();
 			if (event.aggregate.id.equal(options.id) && event.callback.eventName === options.eventName) {
-				this.events.toFirst();
+				DomainEvents.events.toFirst();
 				eventsToDispatch.push(event);
-				this.events.removeItem(event);
+				DomainEvents.events.removeItem(event);
 			}
 		}
 		eventsToDispatch.forEach((agg) => agg.callback.dispatch(agg));
@@ -43,15 +43,15 @@ import Iterator from "./iterator";
 	 * @param options to find event to be deleted.
 	 */
 	public static deleteEvent(options: IDispatchOptions): void {
-		this.events.toFirst();
-		while (this.events.hasNext()) {
-			const event = this.events.next();
+		DomainEvents.events.toFirst();
+		while (DomainEvents.events.hasNext()) {
+			const event = DomainEvents.events.next();
 			const target = Reflect.getPrototypeOf(event.callback);
 			const eventName = event.callback?.eventName ?? target?.constructor.name;
 			
 			if (event.aggregate.id.equal(options.id) && options.eventName === eventName) {
-				this.events.toFirst();
-				this.events.removeItem(event);
+				DomainEvents.events.toFirst();
+				DomainEvents.events.removeItem(event);
 			}
 		}
 	}

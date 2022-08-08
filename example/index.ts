@@ -13,13 +13,13 @@ export class MyValueObject extends ValueObject<Props>{
 	}
 
 	public static create(props: Props): Result<ValueObject<Props>> {
-		return Result.OK(new MyValueObject(props));
+		return Result.Ok(new MyValueObject(props));
 	}
 }
 
 const result = MyValueObject.create({ value: 42 });
 
-assert.equal(result.isOK(), true, 'the result is failure');
+assert.equal(result.isOk(), true, 'the result is failure');
 assert.equal(result.value().get('value'), 42, 'the value is not 42');
 
 result.value().set('value').to(20);

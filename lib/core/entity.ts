@@ -67,7 +67,7 @@ import Result from "./result";
 		if (!instance) return Result.fail('Could not get entity instance');
 		const args = [this.props, this.config];
 		const entity = Reflect.construct(instance.constructor, args);
-		if (entity instanceof Entity) return Result.OK(entity);
+		if (entity instanceof Entity) return Result.Ok(entity);
 		return Result.fail('Could not create instance of entity');
 	}
 
@@ -90,7 +90,7 @@ import Result from "./result";
 	 */
 	public static create(props: any): IResult<Entity<any>, any, any> {
 		if(!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
-		return Result.OK(new this(props));
+		return Result.Ok(new this(props));
 	};
 }
 

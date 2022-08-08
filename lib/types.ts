@@ -7,8 +7,8 @@
  * 
  * @method `value()` get result value. return null if result is failure.
  * @method `error()` get result error. returns null if result is success.
- * @method `isFailure()` check is result is failure
- * @method `isSuccess()` check if result is success
+ * @method `isFail()` check is result is failure
+ * @method `isOk()` check if result is success
  * @method `metaData()` get result metadata
  * @method `toObject()` get an object with result state
  * @method `execute()` execute a hook as command on fail or on success
@@ -17,7 +17,7 @@ export interface IResult<T, D = string, M = {}> {
 	value(): T;
 	error(): D;
 	isFail(): boolean;
-	isOK(): boolean;
+	isOk(): boolean;
 	metaData(): M;
 	toObject(): IResultObject<T, D, M>;
 	execute:<X, Y>(command: ICommand<X|void, Y>)=>IResultExecute<X, Y>;
@@ -75,7 +75,7 @@ export interface IIterator<T> {
 /**
  * 
  */
-export type IResultOptions = 'fail' | 'success';
+export type IResultOptions = 'fail' | 'Ok';
 
 /**
  * 
@@ -102,7 +102,7 @@ export interface ISettings {
 }
 
 export interface IResultObject<T, D, M> {
-	isOK: boolean;
+	isOk: boolean;
 	isFail: boolean;
 	data: T | null;
 	error: D | null;
@@ -245,7 +245,23 @@ export interface IAggregate<Props>{
 
 export type IParentName = 'ValueObject' | 'Entity';
 
+
 export interface IAutoMapper<Props> {
 	valueObjectToObj(valueObject: IValueObject<Props>): { [key in keyof Props]: any };
 	entityToObj(entity: IEntity<Props>): { [key in keyof Props]: any } & EntityMapperPayload;
 }
+
+export interface IManyData {
+	class: any;
+	props: OBJ;
+}
+
+export type ICreateManyDomain = Array<IManyData>;
+
+export interface ICreateManyResult {
+	data: IIterator<IResult<any, any, any>>;
+	result: IResult<any, any, any>;
+}
+
+export type IClass = {};
+

@@ -29,21 +29,21 @@ import Iterator from "./iterator";
 	 * @description Create an instance of Result as success state.
 	 * @returns instance of Result<void>.
 	 */
-	 public static OK(): Result<void>;
+	 public static Ok(): Result<void>;
 	/**
 	 * @description Create an instance of Result as success state with data and metadata to payload.
 	 * @param data as T to payload.
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	public static OK<T, D, M>(data: T, metaData?: M): Result<T, D, M>;
+	public static Ok<T, D, M>(data: T, metaData?: M): Result<T, D, M>;
 	/**
 	 * @description Create an instance of Result as success state with data and metadata to payload.
 	 * @param data as T to payload.
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	public static OK<T, D, M>(data?: T, metaData?: M): Result<T, D, M> {
+	public static Ok<T, D, M>(data?: T, metaData?: M): Result<T, D, M> {
 		return new Result(true, data, null, metaData) as unknown as Result<T, D, M>;
 	}
 
@@ -90,11 +90,11 @@ import Iterator from "./iterator";
 		return {
 			/**
 			 * @description Use this option the command does not require arguments.
-			 * @param option `success` or `fail`
+			 * @param option `Ok` or `fail`
 			 * @returns command payload or undefined.
 			 */
 			on: (option: IResultOptions): Y | undefined => {
-				if (option === 'success' && this.isOK()) return command.execute();
+				if (option === 'Ok' && this.isOk()) return command.execute();
 				if (option === 'fail' && this.isFail()) return command.execute();
 			},
 			/**
@@ -106,11 +106,11 @@ import Iterator from "./iterator";
 				return {
 					/**
 					 * @description Use this option the command does not require arguments.
-					 * @param option `success` or `fail`
+					 * @param option `Ok` or `fail`
 					 * @returns command payload or undefined.
 					 */
 					on: (option: IResultOptions): Y | undefined => {
-						if (option === 'success' && this.isOK()) return command.execute(data);
+						if (option === 'Ok' && this.isOk()) return command.execute(data);
 						if (option === 'fail' && this.isFail()) return command.execute(data);
 					}
 				}
@@ -145,7 +145,7 @@ import Iterator from "./iterator";
 	 * @description Check if result instance is success.
 	 * @returns `true` case result instance success or `false` case is failure one.
 	 */
-	isOK(): boolean {
+	isOk(): boolean {
 		return this._isSuccess;
 	}
 
@@ -162,8 +162,8 @@ import Iterator from "./iterator";
 	 * @returns result state.
 	 * @example 
 	 * {
-	 * 	isSuccess: boolean;
-	 * 	isFailure: boolean;
+	 * 	isOk: boolean;
+	 * 	isFail: boolean;
 	 * 	data: T | null;
 	 * 	error: D | null;
 	 * 	metaData: M | {};
@@ -171,7 +171,7 @@ import Iterator from "./iterator";
 	 */
 	toObject(): IResultObject<T, D, M> {
 		return {
-			isOK: this._isSuccess,
+			isOk: this._isSuccess,
 			isFail: this._isFailure,
 			data: this._data as T | null,
 			error: this._error as D | null,

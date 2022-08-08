@@ -48,7 +48,7 @@ describe('aggregate', () => {
 			}
 
 			public static create(props: Props): Result<BasicAggregate> {
-				return Result.OK(new BasicAggregate(props));
+				return Result.Ok(new BasicAggregate(props));
 			}
 		}
 
@@ -110,7 +110,7 @@ describe('aggregate', () => {
 
 			public static create(props: Props): IResult<ValueObject<Props>> {
 				if (!this.isValidValue(props.value)) return Result.fail('Invalid value');
-				return Result.OK(new AgeVo(props));
+				return Result.Ok(new AgeVo(props));
 			}
 		}
 
@@ -137,7 +137,7 @@ describe('aggregate', () => {
 			}
 
 			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
-				return Result.OK(new UserAgg(props));
+				return Result.Ok(new UserAgg(props));
 			}
 		}
 
@@ -146,7 +146,7 @@ describe('aggregate', () => {
 			const age = AgeVo.create({ value: 21 }).value();
 			const user = UserAgg.create({ age });
 
-			expect(user.isOK()).toBeTruthy();
+			expect(user.isOk()).toBeTruthy();
 
 		});
 
@@ -207,7 +207,7 @@ describe('aggregate', () => {
 			}
 
 			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
-				return Result.OK(new UserAgg(props));
+				return Result.Ok(new UserAgg(props));
 			}
 		}
 		it('should create a new date if props are defined on props', () => {
@@ -352,7 +352,7 @@ describe('aggregate', () => {
 				}
 
 				public static create(props: Props): IResult<Product> {
-					return Result.OK(new Product(props));
+					return Result.Ok(new Product(props));
 				}
 			}
 
