@@ -213,7 +213,11 @@ import { DomainEvents, IHandle } from 'rich-domain';
 
 class ProductCreated implements IHandle<Product> {
 	// optional custom name. default is the className
-	eventName: string = 'CustomEventName';
+	eventName: string;
+	
+	constructor(){
+		this.eventName = 'CustomEventName';
+	}
 
 	async dispatch(event: IDomainEvent<Product>): Promise<void> {
 
