@@ -105,7 +105,7 @@ describe("entity", () => {
 				super(props);
 			}
 
-			validation<Key extends keyof Props>(_key: Key, _value: Props[Key]): boolean {
+			validation<Key extends keyof Props>(_value: Props[Key], _key: Key): boolean {
 				return _key === 'foo';
 			}
 

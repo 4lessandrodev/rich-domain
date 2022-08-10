@@ -137,7 +137,7 @@ describe('value-object', () => {
 				super(props);
 			}
 
-			validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
+			validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean {
 
 				const options: IPropsValidation<Props> = {
 					value: (value: string) => value.length < 15,
@@ -325,7 +325,7 @@ describe('value-object', () => {
 			}
 
 			// the "set" function automatically will use this method to validate value before set it.
-			validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {
+			validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean {
 
 				const options: IPropsValidation<Props> = {
 					value: _ => true,
@@ -489,6 +489,47 @@ describe('value-object', () => {
 
 			expect(result.isFail()).toBeTruthy();
 			expect(iterator.total()).toBe(1);
+		})
+	});
+
+	describe('validation with only one value. no keys', () => {
+		interface Props {
+			value: string;
+		}
+
+		class Simple extends ValueObject<Props> {
+			constructor(props: Props) {
+				super(props)
+			}
+
+			validation(value: string): boolean {
+				return Simple.isValidProps({ value });
+			};
+
+			public static isValidProps({ value }: Props): boolean {
+				const { string } = this.validator;
+				return string(value).hasLengthGreaterThan(10);
+			}
+
+			public static create(props: Props): IResult<Simple> {
+				return Result.Ok(new Simple(props));
+			}
+		}
+
+		it('should validate with only value', () => {
+			const result = Simple.create({ value: 'valid_value' });
+
+			expect(result.isOk()).toBeTruthy();
+
+			expect(result.value().get('value')).toBe('valid_value');
+
+			result.value().set('value').to('change_value');
+			
+			expect(result.value().get('value')).toBe('change_value');
+	
+			result.value().set('value').to('invalid');
+	
+			expect(result.value().get('value')).toBe('change_value');
 		})
 	})
 });

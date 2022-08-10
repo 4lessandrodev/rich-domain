@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+
+### 1.11.0 - 2022-08-10
+
+### Changed
+
+- changed validation method args position
+
+Now second arg is optional. The key is not required
+
+```ts
+
+  // from
+  validation<Key extends keyof Props>(key: Key, value: Props[Key]): boolean {};
+
+  // to
+  validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean {};
+
+```
+
+---
 ### 1.10.0 - 2022-08-07
 
 ### Added

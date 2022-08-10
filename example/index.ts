@@ -8,11 +8,11 @@ export class MyValueObject extends ValueObject<Props>{
 		super(props);
 	}
 
-	validation<Key extends 'value'>(_key: Key, _value: Props[Key]): boolean {
+	validation(): boolean {
 		return false;
 	}
 
-	public static create(props: Props): Result<ValueObject<Props>> {
+	public static create(props: Props): Result<MyValueObject> {
 		return Result.Ok(new MyValueObject(props));
 	}
 }

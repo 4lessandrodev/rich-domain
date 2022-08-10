@@ -224,7 +224,7 @@ export interface IValueObject<Props>{
 
 
 export interface IGettersAndSetters<Props> {
-	validation<Key extends keyof Props>(_key: Key, _value: Props[Key]): boolean;
+	validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean;
 	get<Key extends keyof Props>(key: Key): Props[Key];
 	set<Key extends keyof Props>(key: Key): {
 		to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => IGettersAndSetters<Props>
