@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.11.1 - 2022-08-14
+
+### Added
+
+chore: added license
+ci: added dependa bot
+ci: added build and test step on merge
+docs: added full documentation to readme
+
+---
 
 ### 1.11.0 - 2022-08-10
 
