@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.11.2 - 2022-09-03
+
+### Changed
+
+chore: updated dependencies
+- typescript to version 4.8.2
+- @types/jest to 28.1.8
+- jest 28.1.3
+
+fix: update some types error on update typescript
+
+---
 ### 1.11.1 - 2022-08-14
 
 ### Added

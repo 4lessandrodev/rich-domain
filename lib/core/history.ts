@@ -2,7 +2,6 @@ import { IHistory, IHistoryProps, IIterator, UID } from "../types";
 import ID from "./id";
 import Iterator from "./iterator";
 
-
 /**
  * @description Manage state props as history.
  */
@@ -11,7 +10,7 @@ import Iterator from "./iterator";
 
 	constructor(props?: IHistoryProps<Props>) {
 		let _props = props ? Object.assign({}, { ...props }, { action: 'create' }): undefined;
-		_props = _props ? Object.assign({}, { ..._props }, { token: ID<string>.short() }): undefined;
+		_props = _props ? Object.assign({}, { ..._props }, { token: ID.short() }): undefined;
 		_props = _props ? Object.assign({}, { ..._props }, { ocurredAt: new Date() }): undefined;
 
 		this.iterator = Iterator.create({
@@ -49,9 +48,9 @@ import Iterator from "./iterator";
 	 * @returns props pushed.
 	 */
 	snapshot(props: IHistoryProps<Props>): IHistoryProps<Props> {
-		const token = props.token?.toShort() ?? ID<string>.short();
+		const token = props.token?.toShort() ?? ID.short();
 		const tokenAlreadyExists = (this.tokenAlreadyExists(token));
-		props.token = tokenAlreadyExists ? ID<string>.short() : token;
+		props.token = tokenAlreadyExists ? ID.short() : token;
 		const ocurredAt = props.ocurredAt ?? new Date();
 		props.ocurredAt = ocurredAt;
 		this.iterator.add(props);
