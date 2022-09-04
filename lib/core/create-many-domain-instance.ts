@@ -1,9 +1,9 @@
-import { IClass, ICreateManyDomain, ICreateManyResult, IManyData } from "../types";
+import { IClass, ICreateManyDomain, ICreateManyResult, IManyData, OBJ } from "../types";
 import validator from "../utils/validator";
 import Iterator from "./iterator";
 import Result from "./result";
 
-export const Class = <Props = {}>(domainClass: IClass, props: Props): IManyData => {
+export const Class = <Props extends OBJ = {}>(domainClass: IClass, props: Props): IManyData => {
 	return {
 		class: domainClass,
 		props

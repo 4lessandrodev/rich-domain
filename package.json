@@ -24,7 +24,7 @@
 		"rimraf": "^3.0.2",
 		"ts-jest": "^28.0.5",
 		"ts-node": "^10.8.2",
-		"typescript": "^4.7.4"
+		"typescript": "^4.8.2"
 	},
 	"keywords": [
 		"Complexity",
@@ -50,7 +50,7 @@
 		"prepublish": "npm run build",
 		"postpublish": "./clear.sh",
 		"check:circular-deps": "madge --circular --extensions ts ./lib",
-		"preexample":"tsc -p tsconfig.example.json",
+		"preexample": "tsc -p tsconfig.example.json",
 		"example": "node ./example/index.js"
 	},
 	"files": [
