@@ -10,3 +10,4 @@ export * from './iterator';
 export * from './result';
 export * from './value-object';
 export * from './create-many-domain-instance';
+export * from './crypto';
