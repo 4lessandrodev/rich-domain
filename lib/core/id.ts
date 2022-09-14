@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { UUID } from './crypto';
 import { UID } from "../types";
 
 /**
@@ -6,7 +6,7 @@ import { UID } from "../types";
  * @method create
  * @param value as string
  */
- export class ID<T = string> implements UID<T> {
+export class ID<T = string> implements UID<T> {
 	private _value: string;
 	private _isNew: boolean;
 	private _createdAt: Date;
@@ -15,13 +15,13 @@ import { UID } from "../types";
 	private constructor(id?: T) {
 		this._createdAt = new Date();
 		if (typeof id === 'undefined') {
-			const uuid = randomUUID();
+			const uuid = UUID();
 			this._value = uuid;
 			this._isNew = true;
 			return this;
 		}
 		const isString = typeof id === 'string';
-		this._value = isString ? id as unknown as string: String(id);
+		this._value = isString ? id as unknown as string : String(id);
 		this._isNew = false;
 		return this;
 	};
@@ -34,12 +34,12 @@ import { UID } from "../types";
 	 * @description Update id value to a short value one. 16bytes.
 	 * @returns instance of ID with short value. 16bytes
 	 */
-	toShort():UID<string> {
+	toShort(): UID<string> {
 		let short = '';
 		let longValue = this._value;
-		
+
 		if (longValue.length < this.MAX_SIZE) {
-			longValue = randomUUID() + longValue;
+			longValue = UUID() + longValue;
 		}
 
 		longValue = longValue.toUpperCase().replace(/-/g, '');
@@ -99,7 +99,7 @@ import { UID } from "../types";
 	equal(id: UID<any>): boolean {
 		return (typeof this._value === typeof id.value()) && (this._value as any === id.value());
 	}
-	
+
 	/**
 	 * @description Deep comparative. Compare value and serialized instances.
 	 * @param id instance of ID
