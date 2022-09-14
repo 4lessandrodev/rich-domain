@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+
+---
+### 1.12.0 - 2022-09-14
+
+### Fixed
+
+fix: implement support for native randomUUID
+
 ---
 ### 1.11.2 - 2022-09-03
 
