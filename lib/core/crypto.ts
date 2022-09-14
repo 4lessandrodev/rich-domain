@@ -35,21 +35,19 @@ const charsAsc = [
 	"a", "b", "c", "d", "e", "f"
 ];
 
-
-
-const Generate = (): string => {
+export const GenerateUUID = (): string => {
 	const GetRandom = (): string => chars[Math.trunc(Math.random() * chars.length)];
 	const GetRandomAsc = (): string => charsAsc[Math.trunc(Math.random() * charsAsc.length)];
 	const CurrentTime = (Date.now()).toString(16).padStart(4, GetRandom()) + GetRandomAsc();
 
-	let str = CurrentTime.slice(6);
-	while (str.length < 36) {
+	let str = GetRandomAsc();
+	while (str.length < 33) {
 		str = str + GetRandomAsc();
 	}
-
-	const result = `${str.slice(0, 7)}-${str.slice(8, 12)}-${str.slice(13, 17)}-${str.slice(18, 22)}-${str.slice(23)}`
+	str = str + CurrentTime.slice(9);
+	const result = `${str.slice(0, 8)}-${str.slice(9, 13)}-${str.slice(14, 18)}-${str.slice(19, 23)}-${str.slice(24)}`
 	return result.slice(0, 36);
 }
 
-export const UUID = randomUUID || Generate;
+export const UUID = randomUUID || GenerateUUID;
 export default UUID;
