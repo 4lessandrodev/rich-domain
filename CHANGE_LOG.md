@@ -5,12 +5,90 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.14.0 - 2022-09-27
+
+### Change
+
+- refactor: Fail
+- refactor: Ok
+- refactor: Result.Ok
+- refactor: Result.fail
+
+Change generic types order for `Result.fail` and `Result.Ok`
+
+Now each method has your own order
+Example: 
+
+```ts
+
+// for implementation: 
+IResult<Payload, Error, MetaData>;
+
+// before the generic order was the same for both method.
+// now for 
+Result.Ok
+
+// the generic order is 
+Result.Ok<Payload, MetaData, Error>(payload metaData);
+
+// for 
+Result.fail 
+
+//the generic order is 
+Result.fail<Error, MetaData, Payload>(error, metaData);
+
+```
+
+Changes made on Ok
+
+```ts
+
+import { Ok } from 'rich-domain';
+
+// simple use case for success. no arg required
+return Ok();
+
+// arg required 
+
+return Ok<string>('my payload');
+
+// arg and metaData required 
+
+interface MetaData {
+  arg: string;
+}
+
+return Ok<string, MetaData>('payload', { arg: 'sample' })
+```
+
+Changes made on Fail
+
+```ts
+
+import { Fail } from 'rich-domain';
+
+// simple use case for success. no arg required
+return Fail();
+
+// arg required 
+
+return Fail<string>('my payload');
+
+// arg and metaData required 
+
+interface MetaData {
+  arg: string;
+}
+
+return Fail<string, MetaData>('payload', { arg: 'sample' })
+```
+---
 ### 1.13.0 - 2022-09-26
 
 ### Added
 
-feat: implement function Fail
-feat: implement function Ok
+- feat: implement function Fail
+- feat: implement function Ok
 
 ---
 ### 1.12.0 - 2022-09-14

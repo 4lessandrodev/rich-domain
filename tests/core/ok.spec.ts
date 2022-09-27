@@ -1,12 +1,19 @@
 import Ok from "../../lib/core/ok";
+import Result from "../../lib/core/result";
 
 describe('ok', () => {
 
-	it('should create a simple success', () => {
+	it('should create a simple success with no args', () => {
+		const result = Ok();
+		expect(result.isOk()).toBeTruthy();
+		expect(result.isFail()).toBeFalsy();
+	});
+
+	it('should create a simple success with null value', () => {
 		const result = Ok(null);
 		expect(result.isOk()).toBeTruthy();
 		expect(result.isFail()).toBeFalsy();
-	})
+	});
 
 	it('should create a success result as void', () => {
 		const result = Ok<void>(null);
@@ -105,6 +112,54 @@ describe('ok', () => {
 			"isFail": false,
 			"isOk": true,
 			"metaData": { arg: 'my argument' },
+		});
+	});
+
+	describe('generic types', () => {
+
+		type Error = { message: string };
+		type Payload = { data: { status: number } };
+		type MetaData = { args: number };
+
+		it('should ok generate the same payload as result', () => {
+
+			const status: number = 200;
+			const payload: Payload = { data: { status } };
+			const metaData: MetaData = { args: status };
+
+			const resultInstance = Result.Ok<Payload, MetaData, Error>(payload, metaData);
+			const okInstance = Ok<Payload, MetaData, Error>(payload, metaData);
+
+			expect(resultInstance.toObject()).toEqual(okInstance.toObject());
+
+		});
+
+		it('should ok generate the same payload as result', () => {
+
+			const resultInstance = Result.Ok();
+			const okInstance = Ok();
+
+			expect(resultInstance.toObject()).toEqual(okInstance.toObject());
+
+		});
+
+
+		it('should ok generate the same payload as result', () => {
+
+			const resultInstance = Result.Ok('hey there');
+			const okInstance = Ok('hey there');
+
+			expect(resultInstance.toObject()).toEqual(okInstance.toObject());
+
+		});
+
+		it('should ok generate the same payload as result', () => {
+
+			const resultInstance = Result.Ok('hey there', { status: 200 });
+			const okInstance = Ok('hey there', { status: 200 });
+
+			expect(resultInstance.toObject()).toEqual(okInstance.toObject());
+
 		});
 	});
 });
