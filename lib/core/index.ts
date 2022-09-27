@@ -11,3 +11,5 @@ export * from './result';
 export * from './value-object';
 export * from './create-many-domain-instance';
 export * from './crypto';
+export * from './ok';
+export * from './fail';

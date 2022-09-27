@@ -20,7 +20,7 @@ export interface IResult<T, D = string, M = {}> {
 	isOk(): boolean;
 	metaData(): M;
 	toObject(): IResultObject<T, D, M>;
-	execute:<X, Y>(command: ICommand<X|void, Y>)=>IResultExecute<X, Y>;
+	execute: <X, Y>(command: ICommand<X | void, Y>) => IResultExecute<X, Y>;
 }
 
 /**
@@ -90,10 +90,10 @@ export interface ICommand<A, B> {
 export type IUseCase<T, D> = ICommand<T, Promise<D>>;
 
 export interface IProxy<T, D> {
-	canExecute:<A extends T>(data: A) => Promise<boolean> | boolean;
-	beforeExecute?:<A extends T, B extends T>(data: A) => Promise<B>;
+	canExecute: <A extends T>(data: A) => Promise<boolean> | boolean;
+	beforeExecute?: <A extends T, B extends T>(data: A) => Promise<B>;
 	execute: ICommand<T, D>;
-	afterExecute?:<A extends D, B extends D>(data: A) => Promise<B>;
+	afterExecute?: <A extends D, B extends D>(data: A) => Promise<B>;
 }
 
 export interface ISettings {
@@ -117,7 +117,7 @@ export interface IResultExecute<X, Y> extends IResultHook<Y> {
 	withData(data: X): IResultHook<Y>;
 }
 
-export type OBJ = { };
+export type OBJ = {};
 
 export type EntityProps = OBJ | { id?: string, createdAt?: Date, updatedAt?: Date };
 
@@ -204,11 +204,11 @@ export interface IEvent<G> {
 
 export type IReplaceOptions = 'REPLACE_DUPLICATED' | 'UPDATE' | 'KEEP';
 
-export interface IAdapter<F, T>{
+export interface IAdapter<F, T> {
 	build(target: F): IResult<T>;
 }
 
-export interface IEntity<Props>{
+export interface IEntity<Props> {
 	toObject<T>(adapter?: IAdapter<IEntity<Props>, any>): T extends {} ? T & EntityMapperPayload : { [key in keyof Props]: any } & EntityMapperPayload;
 	get id(): UID<string>;
 	hashCode(): UID<string>;
@@ -216,7 +216,7 @@ export interface IEntity<Props>{
 	clone(): IResult<IEntity<Props>>;
 }
 
-export interface IValueObject<Props>{
+export interface IValueObject<Props> {
 	clone(): IResult<IValueObject<Props>>;
 	toObject<T>(adapter?: IAdapter<this, T>): T;
 }
@@ -233,7 +233,7 @@ export interface IGettersAndSetters<Props> {
 	history(): IPublicHistory<Props>;
 }
 
-export interface IAggregate<Props>{
+export interface IAggregate<Props> {
 	toObject<T>(adapter?: IAdapter<this, T>): T extends {} ? T & EntityMapperPayload : { [key in keyof Props]: any } & EntityMapperPayload;
 	get id(): UID<string>;
 	hashCode(): UID<string>;
@@ -264,4 +264,3 @@ export interface ICreateManyResult {
 }
 
 export type IClass = {};
-

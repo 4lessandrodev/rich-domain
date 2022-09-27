@@ -117,6 +117,31 @@ IResult<A, B, C>;
 
 ```
 
+You can import like example below
+
+```ts
+
+import { Result, Ok, Fail } from "rich-domain";
+
+// Success use case
+
+return Result.Ok<void>();
+
+// OR
+
+return Ok<void>(null);
+
+// Failure use case
+
+return Result.fail('error message here');
+
+// OR
+
+return Fail('error message here');
+
+
+```
+
 Example how to use generic types.
 First let's create our interfaces to use as generic type.
 - The type of data to be retrieved can be any type you want.

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+---
+### 1.13.0 - 2022-09-26
+
+### Added
+
+feat: implement function Fail
+feat: implement function Ok
 
 ---
 ### 1.12.0 - 2022-09-14
