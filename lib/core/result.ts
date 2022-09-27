@@ -9,7 +9,7 @@ import Iterator from "./iterator";
  * @default D is string.
  * @default M is empty object {}.
  */
- export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
+export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 
 	private readonly _isSuccess: boolean;
 	private readonly _isFailure: boolean;
@@ -29,22 +29,23 @@ import Iterator from "./iterator";
 	 * @description Create an instance of Result as success state.
 	 * @returns instance of Result<void>.
 	 */
-	 public static Ok(): Result<void>;
+	public static Ok(): Result<void>;
 	/**
 	 * @description Create an instance of Result as success state with data and metadata to payload.
 	 * @param data as T to payload.
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	public static Ok<T, D, M>(data: T, metaData?: M): Result<T, D, M>;
+	public static Ok<T, M = {}, D = string>(data: T, metaData?: M): Result<T, D, M>;
 	/**
 	 * @description Create an instance of Result as success state with data and metadata to payload.
 	 * @param data as T to payload.
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	public static Ok<T, D, M>(data?: T, metaData?: M): Result<T, D, M> {
-		return new Result(true, data, null, metaData) as unknown as Result<T, D, M>;
+	public static Ok<T, M = {}, D = string>(data?: T, metaData?: M): Result<T, D, M> {
+		const _data = typeof data === 'undefined' ? null : data;
+		return new Result(true, _data, null, metaData) as unknown as Result<T, D, M>;
 	}
 
 	/**
@@ -53,8 +54,9 @@ import Iterator from "./iterator";
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	public static fail<T, D, M>( error: D, metaData?: M): Result<T, D, M> {
-		return new Result(false, null, error, metaData) as unknown as Result<T, D, M>;
+	public static fail<D = string, M = {}, T = void>(error?: D, metaData?: M): Result<T, D, M> {
+		const _error = typeof error !== 'undefined' && error !== null ? error : 'void error. no message!';
+		return new Result(false, null, _error, metaData) as unknown as Result<T, D, M>;
 	}
 	/**
 	 * @description Create an instance of Iterator with array of Results on state.
@@ -73,7 +75,7 @@ import Iterator from "./iterator";
 	 */
 	public static combine<A, B, M>(results: Array<Result<A, B, M>>): Result<A, B, M> {
 		const iterator = this.iterate(results);
-		if (iterator.isEmpty()) return Result.fail<A, B, M>('No results provided on combine param' as unknown as B);
+		if (iterator.isEmpty()) return Result.fail<B, M, A>('No results provided on combine param' as unknown as B);
 		while (iterator.hasNext()) {
 			const currentResult = iterator.next();
 			if (currentResult.isFail()) return currentResult;
@@ -86,7 +88,7 @@ import Iterator from "./iterator";
 	 * @param command instance of command that implements ICommand interface.
 	 * @returns Command result as payload.
 	 */
-	execute<X, Y>(command: ICommand<X|void, Y>): IResultExecute<X, Y> {
+	execute<X, Y>(command: ICommand<X | void, Y>): IResultExecute<X, Y> {
 		return {
 			/**
 			 * @description Use this option the command does not require arguments.
@@ -178,6 +180,6 @@ import Iterator from "./iterator";
 			metaData: this._metaData as M
 		}
 	}
- }
+}
 
 export default Result;

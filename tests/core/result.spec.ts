@@ -14,7 +14,7 @@ describe('result', () => {
 
 	describe('failure', () => {
 		it('should be fail', () => {
-			
+
 			const result = Result.fail('fail', { message: 'some metadata info' });
 
 			expect(result.error()).toBe('fail');
@@ -39,7 +39,7 @@ describe('result', () => {
 		const success3 = Result.Ok(3);
 
 		it('should return first if success', () => {
-			expect(Result.combine([ success1, success2, success3 ]).value()).toBe(1);
+			expect(Result.combine([success1, success2, success3]).value()).toBe(1);
 		});
 
 		it('should execute a command on success', () => {

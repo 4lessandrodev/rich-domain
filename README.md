@@ -107,13 +107,13 @@ What is Result:
 
 #### Interface and Generic Types
 
-- A = `Payload` optional default `void`
-- B = `Error` optional default `string`
-- C = `MetaData` optional default `{}`
+- P = `Payload` optional default `void`
+- E = `Error` optional default `string`
+- M = `MetaData` optional default `{}`
 
 ```ts
 
-IResult<A, B, C>;
+IResult<P, E, M>;
 
 ```
 
@@ -125,11 +125,11 @@ import { Result, Ok, Fail } from "rich-domain";
 
 // Success use case
 
-return Result.Ok<void>();
+return Result.Ok();
 
 // OR
 
-return Ok<void>(null);
+return Ok();
 
 // Failure use case
 
@@ -552,8 +552,8 @@ export class Name extends ValueObject<NameProps>{
 		super(props);
 	}
 
-	public static create(props: NameProps): IResult<Name> {
-		return Result.Ok(new Name(props));
+	public static create(value: string): IResult<Name> {
+		return Result.Ok(new Name({ value }));
 	}
 }
 
@@ -566,7 +566,7 @@ The `create` method returns an instance of Name encapsulated by the `Result`, so
 
 ```ts
 
-const result = Name.create({ value: 'Jane' });
+const result = Name.create('Jane');
 
 console.log(result.isOk());
 
@@ -647,7 +647,7 @@ A validator instance is available in the "Value Object" domain class.
 
 ```ts
 
-import { IResult, Result, ValueObject } from "rich-domain";
+import { IResult, Ok, Fail, ValueObject } from "rich-domain";
 
 export interface NameProps {
 	value: string;
@@ -663,12 +663,12 @@ export class Name extends ValueObject<NameProps>{
 		return string(value).hasLengthBetween(3, 30);
 	}
 
-	public static create(props: NameProps): IResult<Name> {
+	public static create(value: string): IResult<Name> {
 		const message = 'name must have length min 3 and max 30 char';
 
-		if (!this.isValidProps(props)) return Result.fail(message);
+		if (!this.isValidProps({ value })) return Fail(message);
 
-		return Result.Ok(new Name(props));
+		return Ok(new Name({ value }));
 	}
 }
 
@@ -682,7 +682,7 @@ Now when you try to instantiate a name, the value will be checked and if it does
 
 const empty = '';
 
-const result = Name.create({ value: empty });
+const result = Name.create(empty);
 
 console.log(result.isFail());
 
@@ -728,7 +728,7 @@ Let's see a complete example as below
 
 ```ts
 
-import { IResult, Result, ValueObject } from "rich-domain";
+import { IResult, Ok, Fail, ValueObject } from "rich-domain";
 
 export interface NameProps {
 	value: string;
@@ -748,12 +748,12 @@ export class Name extends ValueObject<NameProps>{
 		return string(value).hasLengthBetween(3, 30);
 	}
 
-	public static create(props: NameProps): IResult<Name> {
+	public static create(value: string): IResult<Name> {
 		const message = 'name must have length min 3 and max 30 char';
 
-		if (!this.isValidProps(props)) return Result.fail(message);
+		if (!this.isValidProps({ value })) return Fail(message);
 
-		return Result.Ok(new Name(props));
+		return Ok(new Name({ value }));
 	}
 }
 
@@ -766,7 +766,7 @@ Value is not modified if it does not pass validation.
 
 ```ts
 
-const result = Name.create({ value: 'Jane' });
+const result = Name.create('Jane');
 
 console.log(result.isOk());
 
@@ -800,9 +800,9 @@ This method is useful for cases where you have value objects inside other value 
 
 ```ts
 
-const street = Street.create({ value: 'Dom Juan' }).value();
+const street = Street.create('Dom Juan').value();
 
-const number = Number.create({ value: 42 }).value();
+const number = Number.create(42).value();
 
 const result = Address.create({ street, number });
 
@@ -823,7 +823,7 @@ This method creates a new instance with the same properties as the current value
 
 ```ts
 
-const result = Name.create({ value: 'Sammy' });
+const result = Name.create('Sammy');
 
 const originalName = result.value();
 
@@ -932,8 +932,8 @@ All attributes for an entity must be value object except id.
 
 ```ts
 
-const nameAttr = Name.create({ value: 'James' });
-const ageAttr = Name.create({ value: 21 });
+const nameAttr = Name.create('James');
+const ageAttr = Name.create(21);
 
 // always check if value objects are success
 const voResult = Result.combine([nameAttr, ageAttr])
@@ -1089,7 +1089,7 @@ in entities you can easily change an attribute with `change` or `set` method
 
 ```ts
 
-const result = Name.create({ value: 'Larry' });
+const result = Name.create('Larry');
 
 const newName = result.value();
 
@@ -1195,7 +1195,7 @@ const user = result.value();
 
  const newUser = clonedUser.value();
 
- const newNameResult = Name.create({ value: 'Luke' });
+ const newNameResult = Name.create('Luke');
 
  const newName = newNameResult.value();
 
