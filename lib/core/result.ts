@@ -1,7 +1,6 @@
 import { ICommand, IIterator, IResult, IResultExecute, IResultHook, IResultObject, IResultOptions } from "../types";
 import Iterator from "./iterator";
 
-
 /**
  * @summary The result is used to returns a operation result instead the own value.
  * @interface IResult<T, D, M>;
@@ -45,7 +44,8 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 */
 	public static Ok<T, M = {}, D = string>(data?: T, metaData?: M): Result<T, D, M> {
 		const _data = typeof data === 'undefined' ? null : data;
-		return new Result(true, _data, null, metaData) as unknown as Result<T, D, M>;
+		const ok = new Result(true, _data, null, metaData) as unknown as Result<T, D, M>;
+		return Object.freeze(ok) as Result<T, D, M>;
 	}
 
 	/**
@@ -56,7 +56,8 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 */
 	public static fail<D = string, M = {}, T = void>(error?: D, metaData?: M): Result<T, D, M> {
 		const _error = typeof error !== 'undefined' && error !== null ? error : 'void error. no message!';
-		return new Result(false, null, _error, metaData) as unknown as Result<T, D, M>;
+		const fail = new Result(false, null, _error, metaData) as unknown as Result<T, D, M>;
+		return Object.freeze(fail) as Result<T, D, M>;
 	}
 	/**
 	 * @description Create an instance of Iterator with array of Results on state.
@@ -156,7 +157,8 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns `metadata` M or `{}` result in case of empty object has no metadata value.
 	 */
 	metaData(): M {
-		return this._metaData;
+		const metaData = this._metaData;
+		return Object.freeze(metaData);
 	}
 
 	/**
@@ -172,13 +174,15 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * }
 	 */
 	toObject(): IResultObject<T, D, M> {
-		return {
+		const metaData = {
 			isOk: this._isSuccess,
 			isFail: this._isFailure,
 			data: this._data as T | null,
 			error: this._error as D | null,
 			metaData: this._metaData as M
 		}
+
+		return Object.freeze(metaData);
 	}
 }
 
