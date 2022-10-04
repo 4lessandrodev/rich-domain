@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.14.1 - 2022-09-27
+
+### Updated
+
+- result: ensure result props to be read only
+
+---
 ### 1.14.0 - 2022-09-27
 
 ### Change
