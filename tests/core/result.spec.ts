@@ -111,4 +111,20 @@ describe('result', () => {
 
 		});
 	});
+
+	describe('read-only', () => {
+		it('result must be read-only', () => {
+			const fail = Result.fail('error message');
+
+			const errObj = fail.toObject();
+
+			expect(errObj.error).toBe('error message');
+
+			const error = () => errObj.error = 'new changed message';
+
+			expect(error).toThrowError("Cannot assign to read only property 'error' of object '#<Object>'")
+
+			expect(errObj.error).toBe('error message');
+		})
+	})
 });
