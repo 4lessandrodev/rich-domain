@@ -95,7 +95,16 @@ export class Validator {
 				Validator.instance.isNull(target)) ||
 				(Validator.instance.isString(target) &&
 					target.trim() === ''),
-			match:(regex: RegExp): boolean => regex.test(target)
+			match:(regex: RegExp): boolean => regex.test(target),
+			hasOnlyNumbers: (): boolean => Validator.instance.isString(target) && 
+			target.split('')
+			.map((n) => n.charCodeAt(0) >= 48 && n.charCodeAt(0) <= 57)
+			.every((v) => v === true),
+			hasOnlyLetters: (): boolean => Validator.instance.isString(target) && 
+			target.toUpperCase()
+			.split('')
+			.map((n) => n.charCodeAt(0) >= 65 && n.charCodeAt(0) <= 90)
+			.every((v) => v === true)
 		}
 	}
 	date(target: Date) {

@@ -1233,6 +1233,22 @@ describe('check-types', () => {
 			it('should abcd includes a', () => {
 				expect(checker.string('abcd').includes('a')).toBeTruthy();
 			});
+
+			it('should returns true if all chars in string is number', () => {
+				expect(checker.string('0123456789').hasOnlyNumbers()).toBeTruthy();
+			});
+
+			it('should returns false if some char in string is not number', () => {
+				expect(checker.string('012345a6789').hasOnlyNumbers()).toBeFalsy();
+			});
+
+			it('should returns true if all chars in string is letter', () => {
+				expect(checker.string('abcdefghijklmnopqRSTUVXYZW').hasOnlyLetters()).toBeTruthy();
+			});
+
+			it('should returns false if some char in string is not letter', () => {
+				expect(checker.string('abcdefghijklmnopqRSTUVXYZW12$').hasOnlyLetters()).toBeFalsy();
+			});
 		});
 
 		describe('date', () => {

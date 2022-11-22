@@ -7,6 +7,13 @@ All notable changes to this project will be documented in this file.
 ---
 ### 1.14.1 - 2022-10-03
 
+### Added
+
+- validator: added method to validate if all chars in string is number
+
+---
+### 1.14.1 - 2022-10-03
+
 ### Updated
 
 - result: ensure result props to be read only
