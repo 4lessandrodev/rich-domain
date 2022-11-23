@@ -1,4 +1,4 @@
-import { Aggregate, Entity, ID, Result, ValueObject } from "../../lib/core";
+import { Aggregate, Entity, id, Id, ID, Result, ValueObject } from "../../lib/core";
 import { IResult } from "../../lib/types";
 import { Validator } from "../../lib/utils";
 
@@ -964,6 +964,16 @@ describe('check-types', () => {
 
 		it('should return true if is id', () => {
 			const result = checker.isID(ID.create());
+			expect(result).toBeTruthy();
+		});
+
+		it('should return true if is id', () => {
+			const result = checker.isID(Id());
+			expect(result).toBeTruthy();
+		});
+
+		it('should return true if is id', () => {
+			const result = checker.isID(id.create());
 			expect(result).toBeTruthy();
 		});
 

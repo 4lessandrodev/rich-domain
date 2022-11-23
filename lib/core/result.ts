@@ -29,23 +29,39 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns instance of Result<void>.
 	 */
 	public static Ok(): Result<void>;
+	
+	/**
+	 * @description Create an instance of Result as success state.
+	 * @returns instance of Result<void>.
+	 */
+	public static Ok(): IResult<void>;
+
 	/**
 	 * @description Create an instance of Result as success state with data and metadata to payload.
 	 * @param data as T to payload.
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	public static Ok<T, M = {}, D = string>(data: T, metaData?: M): Result<T, D, M>;
+	 public static Ok<T, M = {}, D = string>(data: T, metaData?: M): Result<T, D, M>;
+
 	/**
 	 * @description Create an instance of Result as success state with data and metadata to payload.
 	 * @param data as T to payload.
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	public static Ok<T, M = {}, D = string>(data?: T, metaData?: M): Result<T, D, M> {
+	public static Ok<T, M = {}, D = string>(data: T, metaData?: M): IResult<T, D, M>;
+	
+	/**
+	 * @description Create an instance of Result as success state with data and metadata to payload.
+	 * @param data as T to payload.
+	 * @param metaData as M to state.
+	 * @returns instance of Result.
+	 */
+	public static Ok<T, M = {}, D = string>(data?: T, metaData?: M): IResult<T, D, M> {
 		const _data = typeof data === 'undefined' ? null : data;
-		const ok = new Result(true, _data, null, metaData) as unknown as Result<T, D, M>;
-		return Object.freeze(ok) as Result<T, D, M>;
+		const ok = new Result(true, _data, null, metaData) as unknown as IResult<T, D, M>;
+		return Object.freeze(ok) as IResult<T, D, M>;
 	}
 
 	/**
@@ -54,18 +70,26 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	public static fail<D = string, M = {}, T = void>(error?: D, metaData?: M): Result<T, D, M> {
+	 public static fail<D = string, M = {}, T = void>(error?: D, metaData?: M): Result<T, D, M>;
+
+	/**
+	 * @description Create an instance of Result as failure state with error and metadata to payload.
+	 * @param error as D to payload.
+	 * @param metaData as M to state.
+	 * @returns instance of Result.
+	 */
+	public static fail<D = string, M = {}, T = void>(error?: D, metaData?: M): IResult<T, D, M> {
 		const _error = typeof error !== 'undefined' && error !== null ? error : 'void error. no message!';
-		const fail = new Result(false, null, _error, metaData) as unknown as Result<T, D, M>;
-		return Object.freeze(fail) as Result<T, D, M>;
+		const fail = new Result(false, null, _error, metaData) as unknown as IResult<T, D, M>;
+		return Object.freeze(fail) as IResult<T, D, M>;
 	}
 	/**
 	 * @description Create an instance of Iterator with array of Results on state.
 	 * @param results as array of Results
 	 * @returns instance of Iterator.
 	 */
-	public static iterate<A, B, M>(results?: Array<Result<A, B, M>>): IIterator<Result<A, B, M>> {
-		return Iterator.create<Result<A, B, M>>({ initialData: results, returnCurrentOnReversion: true });
+	public static iterate<A, B, M>(results?: Array<IResult<A, B, M>>): IIterator<IResult<A, B, M>> {
+		return Iterator.create<IResult<A, B, M>>({ initialData: results, returnCurrentOnReversion: true });
 	}
 
 	/**
@@ -74,14 +98,14 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns instance of result.
 	 * @default returns failure if provide a empty array.
 	 */
-	public static combine<A, B, M>(results: Array<Result<any, any, any>>): Result<A, B, M> {
+	public static combine<A = any, B = any, M = any>(results: Array<IResult<any, any, any>>): IResult<A, B, M> {
 		const iterator = this.iterate(results);
-		if (iterator.isEmpty()) return Result.fail('No results provided on combine param' as B);
+		if (iterator.isEmpty()) return Result.fail('No results provided on combine param' as B) as IResult<A, B, M>;
 		while (iterator.hasNext()) {
 			const currentResult = iterator.next();
-			if (currentResult.isFail()) return currentResult;
+			if (currentResult.isFail()) return currentResult as IResult<A, B, M>;;
 		}
-		return iterator.first();
+		return iterator.first() as IResult<A, B, M>;
 	}
 
 	/**

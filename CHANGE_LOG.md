@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.14.4 - 2022-11-22
+
+### Changed
+
+- Types: update types for Result
+
+---
 ### 1.14.3 - 2022-11-22
 
 ### Changed
