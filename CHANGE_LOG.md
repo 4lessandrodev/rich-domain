@@ -5,7 +5,18 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
-### 1.14.1 - 2022-10-03
+### 1.14.3 - 2022-11-22
+
+### Changed
+
+- Result: change to type any result arg on combine function
+### Added
+
+- Result: added Combine function as single import
+- Types: added Payload type as Result type
+
+---
+### 1.14.2 - 2022-11-22
 
 ### Added
 
