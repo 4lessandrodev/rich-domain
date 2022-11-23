@@ -1,4 +1,4 @@
-import { ID } from "../../lib/core"
+import { ID, Id, id } from "../../lib/core"
 
 describe('ID', () => {
 	describe('UUID', () => {
@@ -73,5 +73,35 @@ describe('ID', () => {
 
 			expect(clone.deepEqual(a)).toBeFalsy();
 		});
-	})
+	});
+
+	describe('id', () => {
+
+		it('should create a new id', () => {
+			const vl = id.create();
+			expect(vl.value()).toBeDefined();
+		});
+
+
+		it('should create a new id with value', () => {
+			const vl = id.create('my-id-with-value');
+			expect(vl.value()).toBe('my-id-with-value');
+		});
+
+	});
+
+	describe('Id', () => {
+
+		it('should create a new id', () => {
+			const vl = Id();
+			expect(vl.value()).toBeDefined();
+		});
+
+
+		it('should create a new id with value', () => {
+			const vl = Id('my-id-with-value');
+			expect(vl.value()).toBe('my-id-with-value');
+		});
+
+	});
 })

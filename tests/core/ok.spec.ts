@@ -161,5 +161,12 @@ describe('ok', () => {
 			expect(resultInstance.toObject()).toEqual(okInstance.toObject());
 
 		});
+
+		it('should Result type to be valid if use IResult', () => {
+
+			const testingA = (): Result => Ok();
+			expect(testingA().isOk()).toBeTruthy();
+
+		});
 	});
 });

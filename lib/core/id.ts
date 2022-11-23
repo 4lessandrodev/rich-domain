@@ -151,3 +151,5 @@ export class ID<T = string> implements UID<T> {
 }
 
 export default ID;
+export const id = ID;
+export const Id = ID.create;

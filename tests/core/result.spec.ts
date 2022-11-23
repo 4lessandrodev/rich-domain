@@ -1,13 +1,13 @@
-import { Result } from "../../lib/core";
-import { ICommand } from "../../lib/types";
+import { Fail, Ok, Result } from "../../lib/core";
+import { ICommand, Payload } from "../../lib/types";
 
 describe('result', () => {
 
 	type Args = string | void;
-	type Payload = string;
+	type CustomPayload = string;
 
-	class Command implements ICommand<Args, Payload> {
-		execute(args?: Args): Payload {
+	class Command implements ICommand<Args, CustomPayload> {
+		execute(args?: Args): CustomPayload {
 			return args ?? 'no args provided';
 		}
 	}
@@ -126,5 +126,37 @@ describe('result', () => {
 
 			expect(errObj.error).toBe('error message');
 		})
-	})
+	});
+
+	describe('Payload type', () => {
+
+		it('should payload to be a valid type for Result', () => {
+
+			const IsOK = (): Payload<any> => Result.Ok();
+			expect(IsOK().isOk()).toBeTruthy();
+
+		});
+
+		it('should payload to be a valid type for Result', () => {
+
+			const IsOK = (): Payload<any> => Result.fail();
+			expect(IsOK().isOk()).toBeFalsy();
+
+		});
+
+		it('should payload to be a valid type for Result', () => {
+
+			const IsOK = (): Payload<any> => Ok();
+			expect(IsOK().isOk()).toBeTruthy();
+
+		});
+
+		it('should payload to be a valid type for Result', () => {
+
+			const IsOK = (): Payload<any> => Fail();
+			expect(IsOK().isOk()).toBeFalsy();
+
+		});
+
+	});
 });

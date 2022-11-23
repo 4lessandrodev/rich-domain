@@ -159,5 +159,13 @@ describe('fail', () => {
 			expect(resultInstance.toObject()).toEqual(okInstance.toObject());
 
 		});
+
+
+		it('should Result type to be valid if use IResult', () => {
+
+			const testingA = (): Result => Fail('should return string');
+			expect(testingA().isFail()).toBeTruthy();
+
+		});
 	});
 });
