@@ -74,9 +74,9 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns instance of result.
 	 * @default returns failure if provide a empty array.
 	 */
-	public static combine<A, B, M>(results: Array<Result<A, B, M>>): Result<A, B, M> {
+	public static combine<A, B, M>(results: Array<Result<any, any, any>>): Result<A, B, M> {
 		const iterator = this.iterate(results);
-		if (iterator.isEmpty()) return Result.fail<B, M, A>('No results provided on combine param' as unknown as B);
+		if (iterator.isEmpty()) return Result.fail('No results provided on combine param' as B);
 		while (iterator.hasNext()) {
 			const currentResult = iterator.next();
 			if (currentResult.isFail()) return currentResult;
@@ -187,3 +187,4 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 }
 
 export default Result;
+export const Combine = Result.combine;

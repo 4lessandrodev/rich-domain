@@ -24,6 +24,23 @@ export interface IResult<T, D = string, M = {}> {
 }
 
 /**
+ * @summary The result is used to returns a operation result instead the own value.
+ * @interface IResult<T, D, M>;
+ * @classdesc on `T` refer to type of the value and `D` type of the error and `M` metaData type.
+ * @default D is string.
+ * @default M is empty object {}.
+ * 
+ * @method `value()` get result value. return null if result is failure.
+ * @method `error()` get result error. returns null if result is success.
+ * @method `isFail()` check is result is failure
+ * @method `isOk()` check if result is success
+ * @method `metaData()` get result metadata
+ * @method `toObject()` get an object with result state
+ * @method `execute()` execute a hook as command on fail or on success
+ */
+export type Payload<T, D = string, M = {}> = IResult<T, D, M>;
+
+/**
  * 
  */
 export interface UID<T = string> {
