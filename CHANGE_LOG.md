@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.14.5 - 2022-11-25
+
+### Fixed
+
+- Domain Events: fix iteration to domain id
+- Combine: fix iterator not defined
+
+### Added
+
+- dispatchAll: added fn to dispatch all event by aggregate id
+
+---
 ### 1.14.4 - 2022-11-22
 
 ### Changed
