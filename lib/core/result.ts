@@ -99,7 +99,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @default returns failure if provide a empty array.
 	 */
 	public static combine<A = any, B = any, M = any>(results: Array<IResult<any, any, any>>): IResult<A, B, M> {
-		const iterator = this.iterate(results);
+		const iterator = Result.iterate(results);
 		if (iterator.isEmpty()) return Result.fail('No results provided on combine param' as B) as IResult<A, B, M>;
 		while (iterator.hasNext()) {
 			const currentResult = iterator.next();

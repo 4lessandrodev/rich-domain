@@ -52,4 +52,17 @@ describe('domain-events', () => {
 		expect(DomainEvents.events.total()).toBe(0);
 	});
 
+	it('should dispatch all by id', () => {
+
+		DomainEvents.addEvent({ event, replace: false });
+
+		DomainEvents.addEvent({ event, replace: false });
+
+		expect(DomainEvents.events.total()).toBe(2);
+
+		DomainEvents.dispatchAll(user.id);
+
+		expect(DomainEvents.events.total()).toBe(0);
+	});
+
 });

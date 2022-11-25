@@ -1,4 +1,4 @@
-import { IAggregate, IDispatchOptions, IDomainEvent, IEvent, IIterator } from "../types";
+import { IAggregate, IDispatchOptions, IDomainEvent, IEvent, IIterator, UID } from "../types";
 import Iterator from "./iterator";
 
 /**
@@ -26,33 +26,55 @@ import Iterator from "./iterator";
 	 */
 	public static async dispatch(options: IDispatchOptions): Promise<void> {
 		const eventsToDispatch: Array<IDomainEvent<IAggregate<any>>> = [];
-		DomainEvents.events.toFirst();
-		while (DomainEvents.events.hasNext()) {
-			const event = DomainEvents.events.next();
+		const events = DomainEvents.events.toArray();
+		let position = 0;
+		while (events[position]) {
+			const event = events[position];
 			if (event.aggregate.id.equal(options.id) && event.callback.eventName === options.eventName) {
-				DomainEvents.events.toFirst();
 				eventsToDispatch.push(event);
 				DomainEvents.events.removeItem(event);
 			}
+			position = position + 1;
 		}
 		eventsToDispatch.forEach((agg) => agg.callback.dispatch(agg));
 	}
+
+		/**
+	 * @description Dispatch event for a provided name and an aggregate id.
+	 * @param id aggregate id.
+	 * @returns promise void.
+	 */
+		 public static async dispatchAll(id: UID): Promise<void> {
+			const eventsToDispatch: Array<IDomainEvent<IAggregate<any>>> = [];
+			const events = DomainEvents.events.toArray();
+			let position = 0;
+			while (events[position]) {
+				const event = events[position];
+				if (event.aggregate.id.equal(id)) {
+					eventsToDispatch.push(event);
+					DomainEvents.events.removeItem(event);
+				}
+				position = position + 1;
+			}
+			eventsToDispatch.forEach((agg) => agg.callback.dispatch(agg));
+		}
 
 	/**
 	 * @description Delete an event from state.
 	 * @param options to find event to be deleted.
 	 */
 	public static deleteEvent(options: IDispatchOptions): void {
-		DomainEvents.events.toFirst();
-		while (DomainEvents.events.hasNext()) {
-			const event = DomainEvents.events.next();
+		const events = DomainEvents.events.toArray();
+		let position = 0;
+		while (events[position]) {
+			const event = events[position];
 			const target = Reflect.getPrototypeOf(event.callback);
 			const eventName = event.callback?.eventName ?? target?.constructor.name;
 			
 			if (event.aggregate.id.equal(options.id) && options.eventName === eventName) {
-				DomainEvents.events.toFirst();
 				DomainEvents.events.removeItem(event);
 			}
+			position = position + 1;
 		}
 	}
 }
