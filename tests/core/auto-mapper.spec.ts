@@ -1,5 +1,5 @@
-import { AutoMapper, Entity, ID, Iterator, ValueObject } from "../../lib/core";
-import { UID } from "../../lib/types";
+import { Aggregate, AutoMapper, Entity, Id, ID, Iterator, Ok, Result, ValueObject } from "../../lib/core";
+import { Payload, UID } from "../../lib/types";
 
 describe('auto-mapper', () => {
 
@@ -258,5 +258,169 @@ describe('auto-mapper', () => {
 		});
 
 	});
+
+	describe('complex entity', () => {
+
+		class Price extends ValueObject<{ value: number }> {
+			private constructor(props: { value: number }){
+				super(props)
+			}
+		}
+
+		class Name extends ValueObject<{ value: string }> {
+			private constructor(props: { value: string }){
+				super(props)
+			}
+		}
+
+		class Item extends ValueObject<{ name: string }> {
+			private constructor(props: { name: string }){
+				super(props)
+			}
+		}
+		interface Props {
+			id: UID;
+			price: Price;
+			name: Name;
+			item: Item;
+			detail: string;
+			amount: number;
+			options: string[];
+			lastSales: Item[];
+			createdAt: Date;
+			updatedAt: Date;
+		}
+
+		class Product extends Entity<Props>{
+			private constructor(props: Props){
+				super(props);
+			}
+
+			public static create(props: Props): Result<Product> {
+				return Ok(new Product(props));
+			}
+		}
+
+		interface AggProps {
+			id: UID;
+			product: Product;
+			price: Price;
+			name: Name;
+			item: Item;
+			detail: string;
+			amount: number;
+			options: string[];
+			lastSales: Item[];
+			createdAt: Date;
+			updatedAt: Date;
+		}
+
+		class Order extends Aggregate<AggProps>{
+			private constructor(props: AggProps){
+				super(props);
+			}
+
+			public static create(props: AggProps): Payload<Order> {
+				return Ok(new Order(props));
+			}
+		}
+
+		const price = Price.create({ value: 20 }).value();
+		const name = Name.create({ value: "jane" }).value();
+		const item = Item.create({ name: "some-item"}).value();
+
+		it('should convert an entity to simple object with success', () => {
+
+			const now = new Date('2022-11-27T22:39:58.897Z');
+			const id = Id('f25a30cb-294c-4269-8e8c-060403f3a971');
+			const itemObj = "some-item";
+
+			const expectedResult = {
+				id: id.value(),
+				name: "jane",
+				item: itemObj,
+				price: 20,
+				amount: 42,
+				detail: 'detail info',
+				lastSales: [itemObj,itemObj,itemObj],
+				options: ['a', 'b', 'c'],
+				createdAt: now,
+				updatedAt: now,
+			};
+
+			const props: Props = {
+				id,
+				name,
+				item,
+				price,
+				amount: 42,
+				detail: 'detail info',
+				lastSales: [item, item, item],
+				options: ['a', 'b', 'c'],
+				createdAt: now,
+				updatedAt: now,
+			}
+			const product = Product.create(props);
+			expect(product.isOk()).toBeTruthy();
+			const obj = product.value().toObject();
+			expect(obj).toEqual(expectedResult);
+			expect(obj).toMatchSnapshot();
+		});
+
+		it('should convert an aggregate to simple object with success', () => {
+			const now = new Date('2022-11-27T22:39:58.897Z');
+			const id = Id('f25a30cb-294c-4269-8e8c-060403f3a971');
+			const itemObj = "some-item";
+
+			const prop = {
+				id: id.value(),
+				name: "jane",
+				item: itemObj,
+				price: 20,
+				amount: 42,
+				detail: 'detail info',
+				lastSales: [itemObj,itemObj,itemObj],
+				options: ['a', 'b', 'c'],
+				createdAt: now,
+				updatedAt: now,
+			};
+
+			const expectedResult = {
+				id: id.value(),
+				product: prop,
+				name: "jane",
+				item: itemObj,
+				price: 20,
+				amount: 42,
+				detail: 'detail info',
+				lastSales: [itemObj,itemObj,itemObj],
+				options: ['a', 'b', 'c'],
+				createdAt: now,
+				updatedAt: now,
+			};
+
+			const props: Props = {
+				id,
+				name,
+				item,
+				price,
+				amount: 42,
+				detail: 'detail info',
+				lastSales: [item, item, item],
+				options: ['a', 'b', 'c'],
+				createdAt: now,
+				updatedAt: now,
+			}
+
+			const product = Product.create(props).value();
+			const order = Order.create({ ...props, product });
+
+			expect(order.isOk()).toBeTruthy();
+			const obj = order.value().toObject();
+			expect(obj).toEqual(expectedResult);
+			expect(obj).toMatchSnapshot();
+		});
+
+	})
 
 });

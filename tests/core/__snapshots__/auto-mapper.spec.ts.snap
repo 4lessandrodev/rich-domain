@@ -1,0 +1,67 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`auto-mapper complex entity should convert an aggregate to simple object with success 1`] = `
+Object {
+  "amount": 42,
+  "createdAt": 2022-11-27T22:39:58.897Z,
+  "detail": "detail info",
+  "id": "f25a30cb-294c-4269-8e8c-060403f3a971",
+  "item": "some-item",
+  "lastSales": Array [
+    "some-item",
+    "some-item",
+    "some-item",
+  ],
+  "name": "jane",
+  "options": Array [
+    "a",
+    "b",
+    "c",
+  ],
+  "price": 20,
+  "product": Object {
+    "amount": 42,
+    "createdAt": 2022-11-27T22:39:58.897Z,
+    "detail": "detail info",
+    "id": "f25a30cb-294c-4269-8e8c-060403f3a971",
+    "item": "some-item",
+    "lastSales": Array [
+      "some-item",
+      "some-item",
+      "some-item",
+    ],
+    "name": "jane",
+    "options": Array [
+      "a",
+      "b",
+      "c",
+    ],
+    "price": 20,
+    "updatedAt": 2022-11-27T22:39:58.897Z,
+  },
+  "updatedAt": 2022-11-27T22:39:58.897Z,
+}
+`;
+
+exports[`auto-mapper complex entity should convert an entity to simple object with success 1`] = `
+Object {
+  "amount": 42,
+  "createdAt": 2022-11-27T22:39:58.897Z,
+  "detail": "detail info",
+  "id": "f25a30cb-294c-4269-8e8c-060403f3a971",
+  "item": "some-item",
+  "lastSales": Array [
+    "some-item",
+    "some-item",
+    "some-item",
+  ],
+  "name": "jane",
+  "options": Array [
+    "a",
+    "b",
+    "c",
+  ],
+  "price": 20,
+  "updatedAt": 2022-11-27T22:39:58.897Z,
+}
+`;

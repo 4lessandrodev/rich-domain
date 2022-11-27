@@ -152,9 +152,15 @@ import ID from "./id";
 				this.validator.isNumber(props?.[key as any]) ||
 				this.validator.isString(props?.[key as any]) ||
 				this.validator.isDate(props?.[key as any]);
+				const isEntity = this.validator.isEntity(props?.[key as any]);
 
 				if (isSimple) {
 					const data = this.valueObjectToObj(props[key as any] as any);
+
+					result = Object.assign({}, { ...result }, { [key]: data });
+
+				} else if(isEntity) {
+					const data = this.entityToObj(props[key as any] as any);
 
 					result = Object.assign({}, { ...result }, { [key]: data });
 				}
