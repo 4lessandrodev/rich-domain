@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.14.6 - 2022-11-27
+
+### Fixed
+
+- AutoMapper: fix convertion for aggregate
+- Now its possible to convert entity on aggregate
+
+---
 ### 1.14.5 - 2022-11-25
 
 ### Fixed
