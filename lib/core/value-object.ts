@@ -35,6 +35,28 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 		return this.autoMapper.valueObjectToObj(this) as unknown as T;
 	}
 
+	/** 
+	 * @description use immutable value object.
+	 * @deprecated do not use `set` function to change `value-object` state. 
+	 * @access create a new instance instead
+	 * @method `set` function will be removed for `value-objects` in future version.
+	 */
+	set<Key extends keyof Props>(key: Key): { 
+		to: (value: Props[Key], validation?: ((value: Props[Key]) => boolean) | undefined) => GettersAndSetters<Props>; 
+	} {
+		return super.set(key);
+	}
+
+	/** 
+	 * @description use immutable value object.
+	 * @deprecated do not use change function to modify `value-object` state.
+	 * @access create a new instance instead
+	 * @method `change` function will be removed for `value-objects` in future version.
+	 */
+	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: ((value: Props[Key]) => boolean) | undefined): this {
+		return super.change(key, value, validation);
+	}
+
 	/**
 	 * @description Method to validate prop value.
 	 * @param props to validate

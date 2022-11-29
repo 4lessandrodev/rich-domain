@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.15.0 - 2022-11-29
+
+### Changed
+
+- value-object: mark set function as deprecated
+- value-object: mark change function as deprecated
+
+The function still works, but it is marked as deprecated. show warning if using.
+
+---
 ### 1.14.6 - 2022-11-27
 
 ### Fixed

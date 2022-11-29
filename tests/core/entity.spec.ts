@@ -128,6 +128,14 @@ describe("entity", () => {
 			expect(ent.value().id.value()).not.toBe('changed');
 		});
 
+		it('should set prototype', () => {
+			const ent = EntitySample.create({ foo: 'bar' });
+			expect(ent.isOk()).toBeTruthy();
+			expect(ent.value().get('foo')).toBe('bar');
+			ent.value().set('foo').to('changed');
+			expect(ent.value().get('foo')).toBe('changed');
+		});
+
 		it('should create many entities', () => {
 			const payload = EntitySample.createMany([]);
 			expect(payload.result.isFail()).toBeTruthy();
