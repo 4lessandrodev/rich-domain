@@ -5,12 +5,19 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
-### 1.15.0 - 2022-11-29
+### 1.15.0 - 2022-12-25
 
 ### Changed
 
 - value-object: mark set function as deprecated
 - value-object: mark change function as deprecated
+- validator: change methods for string (hasLengthBetween - now validate only interval)
+- validator: rename method isPair to isEven
+
+### Added
+
+- validator - string added method hasLengthBetweenOrEqual
+- validator - number isBetweenOrEqual
 
 The function still works, but it is marked as deprecated. show warning if using.
 
