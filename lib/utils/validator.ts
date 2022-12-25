@@ -76,9 +76,10 @@ export class Validator {
 				target <= Number.MAX_SAFE_INTEGER && target >= Number.MIN_SAFE_INTEGER,
 			isPositive: (): boolean => Validator.instance.isNumber(target) && target >= 0,
 			isNegative: (): boolean => Validator.instance.isNumber(target) && target < 0,
-			isPair: (): boolean => Validator.instance.isNumber(target) && target % 2 === 0,
+			isEven: (): boolean => Validator.instance.isNumber(target) && target % 2 === 0,
 			isInteger: (): boolean => Validator.instance.isNumber(target) && target - Math.trunc(target) === 0,
-			isBetween: (min: number, max: number): boolean => Validator.instance.isNumber(target) && target < max && target > min
+			isBetween: (min: number, max: number): boolean => Validator.instance.isNumber(target) && target < max && target > min,
+			isBetweenOrEqual: (min: number, max: number): boolean => Validator.instance.isNumber(target) && target <= max && target >= min
 		}
 	}
 	string(target: string) {
@@ -89,6 +90,8 @@ export class Validator {
 			hasLengthLessOrEqualTo: (length: number): boolean => Validator.instance.isString(target) && target.length <= length,
 			hasLengthEqualTo: (length: number): boolean => Validator.instance.isString(target) && target.length === length,
 			hasLengthBetween: (min: number, max: number): boolean => Validator.instance.isString(target) &&
+				target.length > min && target.length < max,
+			hasLengthBetweenOrEqual: (min: number, max: number): boolean => Validator.instance.isString(target) &&
 				target.length >= min && target.length <= max,
 			includes: (value: string): boolean => Validator.instance.isString(target) && target.includes(value) || value.split('').map((char) => target.includes(char)).includes(true),
 			isEmpty: (): boolean => (Validator.instance.isUndefined(target) ||

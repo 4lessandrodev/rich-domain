@@ -568,6 +568,46 @@ describe('check-types', () => {
 			const result = checker.isNumber(ent.value());
 			expect(result).toBeFalsy();
 		});
+
+		it('should 10 to be between 1 and 20', () => {
+			const result = checker.number(10).isBetween(1, 20);
+			expect(result).toBeTruthy();
+		});
+
+		it('should 0 not to be between 1 and 20', () => {
+			const result = checker.number(0).isBetween(1, 20);
+			expect(result).toBeFalsy();
+		});
+
+		it('should 10 not to be between 1 and 2', () => {
+			const result = checker.number(10).isBetween(1, 2);
+			expect(result).toBeFalsy();
+		});
+
+		it('should 10 to be between 1 and 20', () => {
+			const result = checker.number(10).isBetweenOrEqual(1, 20);
+			expect(result).toBeTruthy();
+		});
+
+		it('should 0 not to be between or equal 1 and 20', () => {
+			const result = checker.number(0).isBetweenOrEqual(1, 20);
+			expect(result).toBeFalsy();
+		});
+
+		it('should 21 not to be between or equal 1 and 20', () => {
+			const result = checker.number(21).isBetweenOrEqual(1, 20);
+			expect(result).toBeFalsy();
+		});
+
+		it('should 1 to be between or equal 1 and 2', () => {
+			const result = checker.number(1).isBetweenOrEqual(1, 2);
+			expect(result).toBeTruthy();
+		});
+
+		it('should 2 to be between or equal 1 and 2', () => {
+			const result = checker.number(2).isBetweenOrEqual(1, 2);
+			expect(result).toBeTruthy();
+		});
 	});
 
 	describe('date', () => {
@@ -1088,7 +1128,6 @@ describe('check-types', () => {
 				expect(checker.number(10).isGreaterThan(11)).toBeFalsy();
 			});
 
-
 			it('should 12 to be integer', () => {
 				expect(checker.number(12).isInteger()).toBeTruthy();
 			});
@@ -1098,11 +1137,11 @@ describe('check-types', () => {
 			});
 
 			it('should 12 to be pair', () => {
-				expect(checker.number(12).isPair()).toBeTruthy();
+				expect(checker.number(12).isEven()).toBeTruthy();
 			});
 
 			it('should 7 not to be pair', () => {
-				expect(checker.number(7).isPair()).toBeFalsy();
+				expect(checker.number(7).isEven()).toBeFalsy();
 			});
 
 			it('should -1 to be negative', () => {
@@ -1157,6 +1196,22 @@ describe('check-types', () => {
 
 			it('should lorem ipsum not to has length between 1 and 10', () => {
 				expect(checker.string('lorem ipsum').hasLengthBetween(1, 10)).toBeFalsy();
+			});
+
+			it('should lorem ipsu to has length between 1 and 10', () => {
+				expect(checker.string('lorem ipsu').hasLengthBetweenOrEqual(1, 10)).toBeTruthy();
+			});
+
+			it('should empty not to has length between 1 and 10', () => {
+				expect(checker.string('').hasLengthBetweenOrEqual(1, 10)).toBeFalsy();
+			});
+
+			it('should long value string not to has length between 1 and 10', () => {
+				expect(checker.string('long value string').hasLengthBetweenOrEqual(1, 10)).toBeFalsy();
+			});
+
+			it('should 1 to has length between 1 and 10', () => {
+				expect(checker.string('1').hasLengthBetweenOrEqual(1, 10)).toBeTruthy();
 			});
 
 			it('should to be empty', () => {
@@ -1230,7 +1285,6 @@ describe('check-types', () => {
 			it('should abcd to have length less than 5', () => {
 				expect(checker.string('abcd').hasLengthLessThan(5)).toBeTruthy();
 			});
-
 
 			it('should abcde not includes 7', () => {
 				expect(checker.string('abcde').includes('7')).toBeFalsy();
