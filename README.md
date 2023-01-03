@@ -183,7 +183,7 @@ So let's implement that on a simple function.
 
 ```ts
 
-const isOdd = (value: number): Result<IData, IError, IMeta> => {
+const isEven = (value: number): Result<IData, IError, IMeta> => {
 
 	const isOddValue = value % 2 === 0;
 	const metaData: IMeta = { arg: value };
@@ -191,14 +191,14 @@ const isOdd = (value: number): Result<IData, IError, IMeta> => {
 	if (isOddValue) {
 		
 		// success payload 
-		const payload: IData = { data: `${value} is odd` };
+		const payload: IData = { data: `${value} is even` };
 
 		// return success
 		return Ok(payload, metaData);
 	}
 
 	// failure payload 
-	const error: IError = { message: `${value} is not odd` };
+	const error: IError = { message: `${value} is not even` };
 
 	// return failure
 	return Fail(error, metaData);
@@ -212,7 +212,7 @@ Success Case
 
 ```ts
 
-const result = isOdd(42);
+const result = isEven(42);
 
 console.log(result.isOk());
 
@@ -220,7 +220,7 @@ console.log(result.isOk());
 
 console.log(result.value());
 
-> 'Object { data: "42 is odd" }'
+> 'Object { data: "42 is even" }'
 
 console.log(result.metaData());
 
@@ -235,7 +235,7 @@ Failure Case
 
 ```ts
 
-const result = isOdd(43);
+const result = isEven(43);
 
 console.log(result.isFail());
 
@@ -243,7 +243,7 @@ console.log(result.isFail());
 
 console.log(result.error());
 
-> 'Object { message: "43 is not odd" }'
+> 'Object { message: "43 is not even" }'
 
 console.log(result.metaData());
 
@@ -262,7 +262,7 @@ Let's see the same example using void.
 
 ```ts
 
-const checkOdd = (value: number): Result<void> => {
+const checkEven = (value: number): Result<void> => {
 
 	const isOdd = value % 2 === 0;
 
@@ -270,7 +270,7 @@ const checkOdd = (value: number): Result<void> => {
 	if(isOdd) return Ok(); 
 	
 	// failure case
-	return Fail('not odd');
+	return Fail('not even');
 }
 
 ```
@@ -278,7 +278,7 @@ Using the function as success example
 
 ```ts
 
-const result: Result<void> = checkOdd(42);
+const result: Result<void> = checkEven(42);
 
 console.log(result.isOk());
 
@@ -306,7 +306,7 @@ Fail example
 
 ```ts
 
-const result: IResult<void> = checkOdd(43);
+const result: IResult<void> = checkEven(43);
 
 console.log(result.isFail());
 
@@ -318,7 +318,7 @@ console.log(result.isOk());
 
 console.log(result.error());
 
-> "not odd"
+> "not even"
 
 console.log(result.value());
 
@@ -398,11 +398,27 @@ Success example
 
 ```ts
 
+import { Ok, Combine } from "rich-domain";
+
 const resultA = Ok();
 const resultB = Ok();
 const resultC = Ok();
 
 const result = Combine([ resultA, resultB, resultC ]);
+
+console.log(result.isOk());
+
+> true
+
+// OR 
+
+import { Result } from "rich-domain";
+
+const resultA = Result.Ok();
+const resultB = Result.Ok();
+const resultC = Result.Ok();
+
+const result = Result.combine([ resultA, resultB, resultC ]);
 
 console.log(result.isOk());
 
