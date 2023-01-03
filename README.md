@@ -340,7 +340,7 @@ console.log(result.toObject());
 > Object
 `{
 	"data": null, 
-	"error": "not odd", 
+	"error": "not even", 
 	"isFail": true, 
 	"isOk": false, 
 	"metaData": Object {}
