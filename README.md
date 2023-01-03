@@ -185,10 +185,10 @@ So let's implement that on a simple function.
 
 const isEven = (value: number): Result<IData, IError, IMeta> => {
 
-	const isOddValue = value % 2 === 0;
+	const isEvenValue = value % 2 === 0;
 	const metaData: IMeta = { arg: value };
 	
-	if (isOddValue) {
+	if (isEvenValue) {
 		
 		// success payload 
 		const payload: IData = { data: `${value} is even` };
@@ -264,10 +264,10 @@ Let's see the same example using void.
 
 const checkEven = (value: number): Result<void> => {
 
-	const isOdd = value % 2 === 0;
+	const isEven = value % 2 === 0;
 
 	// success case
-	if(isOdd) return Ok(); 
+	if(isEven) return Ok(); 
 	
 	// failure case
 	return Fail('not even');
