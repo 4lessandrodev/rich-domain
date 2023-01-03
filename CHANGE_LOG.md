@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.15.1 - 2022-01-03
+
+### Changed
+
+- node version: update requirements. node version required >=16 and < 19
+
+---
 ### 1.15.0 - 2022-12-25
 
 ### Changed
