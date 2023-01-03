@@ -131,6 +131,14 @@ return Result.Ok();
 
 return Ok();
 
+// OR
+
+return Ok(data);
+
+// OR
+
+return Ok<Payload>(data);
+
 // Failure use case
 
 return Result.fail('error message here');
@@ -138,6 +146,10 @@ return Result.fail('error message here');
 // OR
 
 return Fail('error message here');
+
+// OR
+
+return Fail<MyError>(myCustomError);
 
 
 ```
@@ -155,7 +167,7 @@ interface IData { data: string };
 // Error type
 interface IError { message: string };
 
-// MetaData type
+// MetaData type. Optional
 interface IMeta { arg: number };
 
 ```
@@ -171,25 +183,25 @@ So let's implement that on a simple function.
 
 ```ts
 
-const isPair = (value: number):IResult<IData, IError, IMeta> => {
+const isOdd = (value: number): Result<IData, IError, IMeta> => {
 
-	const isPairValue = value % 2 === 0;
+	const isOddValue = value % 2 === 0;
 	const metaData: IMeta = { arg: value };
 	
-	if (isPairValue) {
+	if (isOddValue) {
 		
 		// success payload 
-		const payload: IData = { data: `${value} is pair` };
+		const payload: IData = { data: `${value} is odd` };
 
 		// return success
-		return Result.Ok(payload, metaData);
+		return Ok(payload, metaData);
 	}
 
 	// failure payload 
-	const error: IError = { message: `${value} is not pair` };
+	const error: IError = { message: `${value} is not odd` };
 
 	// return failure
-	return Result.fail(error, metaData);
+	return Fail(error, metaData);
 };
 
 
@@ -200,7 +212,7 @@ Success Case
 
 ```ts
 
-const result = isPair(42);
+const result = isOdd(42);
 
 console.log(result.isOk());
 
@@ -208,7 +220,7 @@ console.log(result.isOk());
 
 console.log(result.value());
 
-> 'Object { data: "42 is pair" }'
+> 'Object { data: "42 is odd" }'
 
 console.log(result.metaData());
 
@@ -223,7 +235,7 @@ Failure Case
 
 ```ts
 
-const result = isPair(43);
+const result = isOdd(43);
 
 console.log(result.isFail());
 
@@ -231,7 +243,7 @@ console.log(result.isFail());
 
 console.log(result.error());
 
-> 'Object { message: "43 is not pair" }'
+> 'Object { message: "43 is not odd" }'
 
 console.log(result.metaData());
 
@@ -250,15 +262,15 @@ Let's see the same example using void.
 
 ```ts
 
-const checkPair = (value: number): Result<void> => {
+const checkOdd = (value: number): Result<void> => {
 
-	const isPair = value % 2 === 0;
+	const isOdd = value % 2 === 0;
 
 	// success case
-	if(isPair) return Result.Ok(); 
+	if(isOdd) return Ok(); 
 	
 	// failure case
-	return Result.fail('not pair');
+	return Fail('not odd');
 }
 
 ```
@@ -266,7 +278,7 @@ Using the function as success example
 
 ```ts
 
-const result: IResult<void> = checkPair(42);
+const result: Result<void> = checkOdd(42);
 
 console.log(result.isOk());
 
@@ -294,7 +306,7 @@ Fail example
 
 ```ts
 
-const result: IResult<void> = checkPair(43);
+const result: IResult<void> = checkOdd(43);
 
 console.log(result.isFail());
 
@@ -306,7 +318,7 @@ console.log(result.isOk());
 
 console.log(result.error());
 
-> "not pair"
+> "not odd"
 
 console.log(result.value());
 
@@ -328,7 +340,7 @@ console.log(result.toObject());
 > Object
 `{
 	"data": null, 
-	"error": "not pair", 
+	"error": "not odd", 
 	"isFail": true, 
 	"isOk": false, 
 	"metaData": Object {}
@@ -350,7 +362,7 @@ class Command implements ICommand<void, void> {
 
 const myCommand = new Command();
 
-const result = Result.Ok();
+const result = Ok();
 
 result.execute(myCommand).on('Ok');
 
@@ -370,7 +382,7 @@ class Command implements ICommand<string, void> {
 
 const myCommand = new Command();
 
-const result = Result.fail('something went wrong');
+const result = Fail('something went wrong');
 
 result.execute(myCommand).withData(result.error()).on('fail');
 
@@ -386,11 +398,11 @@ Success example
 
 ```ts
 
-const resultA = Result.Ok();
-const resultB = Result.Ok();
-const resultC = Result.Ok();
+const resultA = Ok();
+const resultB = Ok();
+const resultC = Ok();
 
-const result = Result.combine([resultA, resultB, resultC]);
+const result = Combine([ resultA, resultB, resultC ]);
 
 console.log(result.isOk());
 
@@ -401,11 +413,11 @@ Failure example
 
 ```ts
 
-const resultA = Result.Ok();
-const resultB = Result.fail('oops err');
-const resultC = Result.Ok();
+const resultA = Ok();
+const resultB = Fail('oops err');
+const resultC = Ok();
 
-const result = Result.combine([resultA, resultB, resultC]);
+const result = Combine([ resultA, resultB, resultC ]);
 
 console.log(result.isOk());
 
@@ -431,11 +443,17 @@ Create a new uuid.
 
 ```ts
 
+import { ID, Id } from "rich-domain";
+
 const id = ID.create();
 
 console.log(id.value());
 
 > "eb9c563c-719d-4872-b303-0a82921351f7"
+
+// OR as function
+
+const id = Id();
 
 ```
 
@@ -463,6 +481,10 @@ console.log(id.value());
 
 > "this-is-my-id-01"
 
+// OR 
+
+const id = Id('this-is-my-id-01');
+
 ```
 
 #### Compare ids
@@ -470,8 +492,8 @@ The id instance has a method to compare two ids.
 
 ```ts
 
-const idA = ID.short('this-is-my-id-01');
-const idB = ID.short('this-is-my-id-02');
+const idA = ID.short('id-01');
+const idB = ID.short('id-02');
 
 console.log(idA.equal(idB));
 
@@ -499,6 +521,20 @@ console.log(idB.isNew());
 
 > true
 
+// OR
+
+const idA = Id('my-custom-id-01');
+
+console.log(idA.isNew());
+
+> false
+
+const idB = Id();
+
+console.log(idB.isNew());
+
+> true
+
 ```
 
 #### Type for ID
@@ -506,7 +542,7 @@ Define type for ID
 
 ```ts
 
-import { UID, ID } from 'rich-domain';
+import { UID, ID, Id } from 'rich-domain';
 
 // UID type
 let id: UID;
@@ -514,6 +550,9 @@ let id: UID;
 // ID value
 id = ID.create();
 
+// OR
+
+id = Id();
 
 ```
 
@@ -541,7 +580,7 @@ the value object below is a base example without any kind of validation
 
 ```ts
 
-import { IResult, Result, ValueObject } from "rich-domain";
+import { Result, ValueObject } from "rich-domain";
 
 export interface NameProps {
 	value: string;
@@ -552,7 +591,7 @@ export class Name extends ValueObject<NameProps>{
 		super(props);
 	}
 
-	public static create(value: string): IResult<Name> {
+	public static create(value: string): Result<Name> {
 		return Result.Ok(new Name({ value }));
 	}
 }
@@ -586,6 +625,8 @@ By default setters are enabled
 
 ```ts
 
+// do not use set to change value object value. create a new instance instead.
+
 name.set('value').to('John');
 
 console.log(name.get('value'));
@@ -611,7 +652,7 @@ console.log(name.get('value'));
 
 ```
 
-> **I don't advise you to use state change of a value object. Create a new one instead of changing its state. However the library will leave that up to you to decide.**
+> **We don't advise you to use state change of a value object. Create a new one instead of changing its state. However the library will leave that up to you to decide.**
 
 To disable the setters of a value object use the parameters below in the super.<br>
 This property disables the set function of the value object.
@@ -728,7 +769,7 @@ Let's see a complete example as below
 
 ```ts
 
-import { IResult, Ok, Fail, ValueObject } from "rich-domain";
+import { Result, Ok, Fail, ValueObject } from "rich-domain";
 
 export interface NameProps {
 	value: string;
@@ -748,10 +789,10 @@ export class Name extends ValueObject<NameProps>{
 		return string(value).hasLengthBetween(3, 30);
 	}
 
-	public static create(value: string): IResult<Name> {
+	public static create(value: string): Result<Name> {
 		const message = 'name must have length min 3 and max 30 char';
-
-		if (!this.isValidProps({ value })) return Fail(message);
+		const isValidProps = this.isValidProps({ value });
+		if (!isValidProps) return Fail(message);
 
 		return Ok(new Name({ value }));
 	}
@@ -936,9 +977,9 @@ const nameAttr = Name.create('James');
 const ageAttr = Name.create(21);
 
 // always check if value objects are success
-const voResult = Result.combine([nameAttr, ageAttr])
+const results = Combine([ nameAttr, ageAttr ]);
 
-console.log(voResult.isOk());
+console.log(results.isOk());
 
 > true
 
@@ -985,7 +1026,7 @@ you can create an instance by entering an id
 
 const name = nameAttr.value();
 
-const id = ID.create('my-id-value-01');
+const id = Id('my-id-value-01');
 
 const result = User.create({ id, age, name });
 
@@ -1010,7 +1051,7 @@ console.log(user.toObject());
 
 #### isNew
 
-Check if instance is a new entity.<br> if you provide do not provide an id the entity will be considered as a new created entity instance.
+Check if instance is a new entity.<br> if you do not provide an id the entity will be considered as a new created entity instance.
 
 ```ts
 

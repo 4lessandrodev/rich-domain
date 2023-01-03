@@ -15,7 +15,7 @@
 	"homepage": "https://github.com/4lessandrodev/rich-domain",
 	"license": "MIT",
 	"engines": {
-		"node": ">=14.x"
+		"node": ">=18.x"
 	},
 	"devDependencies": {
 		"@types/jest": "^28.1.8",
