@@ -114,7 +114,6 @@ import ID from "./id";
 		const isSimpleValue = this.validator.isBoolean(entity) ||
 			this.validator.isNumber(entity) ||
 			this.validator.isString(entity) ||
-			this.validator.isObject(entity) ||
 			this.validator.isDate(entity);
 		
 		if (isSimpleValue) return entity as any;
@@ -151,16 +150,17 @@ import ID from "./id";
 				this.validator.isBoolean(props?.[key as any]) ||
 				this.validator.isNumber(props?.[key as any]) ||
 				this.validator.isString(props?.[key as any]) ||
+				this.validator.isObject(props?.[key as any]) ||
 				this.validator.isDate(props?.[key as any]);
+
 				const isEntity = this.validator.isEntity(props?.[key as any]);
 
-				if (isSimple) {
-					const data = this.valueObjectToObj(props[key as any] as any);
+				if (isEntity) {
+					const data = this.entityToObj(props[key as any] as any);
 
 					result = Object.assign({}, { ...result }, { [key]: data });
-
-				} else if(isEntity) {
-					const data = this.entityToObj(props[key as any] as any);
+				} else if(isSimple) {
+					const data = this.valueObjectToObj(props[key as any] as any);
 
 					result = Object.assign({}, { ...result }, { [key]: data });
 				}

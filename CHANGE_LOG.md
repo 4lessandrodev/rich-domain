@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### 1.15.2 - 2022-01-05
+
+### Fixed
+
+- toObject method on entity: fix error on process simple object on entity [issue #25](https://github.com/4lessandrodev/rich-domain/issues/25)
+
+---
 ### 1.15.1 - 2022-01-03
 
 ### Changed
