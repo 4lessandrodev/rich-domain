@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+
+### 1.16.0 - 2022-01-12
+
+### Added
+
+- Entity: added method `isEqual` to compare current instance with another one.
+- ValueObject: added method `isEqual` to compare current instance with another one. [Issue 27](https://github.com/4lessandrodev/rich-domain/issues/27)
+
+---
 ### 1.15.2 - 2022-01-05
 
 ### Fixed
