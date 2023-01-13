@@ -1,5 +1,5 @@
-import {  Entity, Result } from "../../lib/core";
-import { IResult } from "../../lib/types";
+import {  Entity, Id, Ok, Result } from "../../lib/core";
+import { IResult, UID } from "../../lib/types";
 
 describe("entity", () => {
 
@@ -139,6 +139,86 @@ describe("entity", () => {
 		it('should create many entities', () => {
 			const payload = EntitySample.createMany([]);
 			expect(payload.result.isFail()).toBeTruthy();
+		});
+	});
+
+	describe('compare', () => {
+
+		interface Val {
+			name: string;
+		}
+
+		interface Props {
+			id?: UID;
+			key: number;
+			values: Array<Val>;
+		}
+
+		class EntityExample extends Entity<Props>{
+			private constructor(props: Props) {
+				super(props)
+			}
+
+			public static create(props: Props): Result<EntityExample> {
+				return Ok(new EntityExample(props));
+			}
+		}
+
+		it("should to be equal", () => {
+
+			const props = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
+			const id = Id();
+
+			const a = EntityExample.create({...props, id }).value();
+			const b = EntityExample.create({...props, id}).value();
+			
+			expect(a.isEqual(b)).toBeTruthy();
+		});
+
+		it("should to be equal", () => {
+
+			const id = Id();
+			const props = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
+
+			const a = EntityExample.create({...props, id}).value();
+			const b = a.clone().value();
+			
+			expect(a.isEqual(b)).toBeTruthy();
+		});
+
+		it("should not to be equal if change state", () => {
+
+			const id = Id();
+			const props = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
+
+			const a = EntityExample.create({...props, id}).value();
+			const b = a.clone().value();
+			b.set('key').to(201);
+			
+			expect(a.isEqual(b)).toBeFalsy();
+		});
+
+		it("should not to be equal if state is different", () => {
+
+			const id = Id();
+			const propsA = { id, key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
+			const propsB = { id, key: 200, values:[ {name: 'abc'},{name: 'dif'}] } satisfies Props;
+
+			const a = EntityExample.create(propsA).value();
+			const b = EntityExample.create(propsB).value();
+
+			expect(a.isEqual(b)).toBeFalsy();
+		});
+
+		it("should not to be equal if id is different", () => {
+
+			const propsA = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
+			const propsB = { key: 200, values:[ {name: 'abc'},{name: 'dif'}] } satisfies Props;
+
+			const a = EntityExample.create(propsA).value();
+			const b = EntityExample.create(propsB).value();
+
+			expect(a.isEqual(b)).toBeFalsy();
 		});
 	})
 });
