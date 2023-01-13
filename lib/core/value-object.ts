@@ -13,6 +13,22 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 		this.autoMapper = new AutoMapper();
 	}
 
+	/** 
+	 * @description Check if value object instance props is equal another provided instance props.
+	 * @param createdAt is not considered on comparation
+	 * @param updatedAt is not considered on comparation
+	 * @returns true if props is equal and false if not.
+	*/
+	isEqual(other: ValueObject<Props>): boolean {
+		const currentProps = Object.assign({}, {}, { ...this.props});
+		const providedProps = Object.assign({}, {}, { ...other.props});
+		delete currentProps?.['createdAt'];
+		delete currentProps?.['updatedAt'];
+		delete providedProps?.['createdAt'];
+		delete providedProps?.['updatedAt'];
+		return JSON.stringify(currentProps) === JSON.stringify(providedProps);
+	}
+
 	/**
 	 * @description Get an instance copy.
 	 * @returns a new instance of value object.

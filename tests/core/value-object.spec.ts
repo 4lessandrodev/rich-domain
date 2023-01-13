@@ -1,4 +1,4 @@
-import { Class, ID, Result, ValueObject } from "../../lib/core";
+import { Class, ID, Ok, Result, ValueObject } from "../../lib/core";
 import { ICommand, IPropsValidation, IResult } from "../../lib/types";
 
 describe('value-object', () => {
@@ -531,5 +531,42 @@ describe('value-object', () => {
 	
 			expect(result.value().get('value')).toBe('change_value');
 		})
+	});
+
+	describe('compare', () => {
+
+		interface Props {
+			value: string;
+		}
+		class Exam extends ValueObject<Props> {
+			private constructor(props: Props){
+				super(props)
+			}
+
+			public static create(props: Props): Result<Exam> {
+				return Ok(new Exam(props));
+			}
+		};
+
+		it('should to be equal another instance', () => {
+			const a = Exam.create({ value : "hello there" }).value();
+			const b = Exam.create({ value : "hello there" }).value();
+
+			expect(a.isEqual(b)).toBeTruthy();
+		});
+
+		it('should to be equal another instance', () => {
+			const a = Exam.create({ value : "hello there" }).value();
+			const b = a.clone().value();
+
+			expect(a.isEqual(b)).toBeTruthy();
+		});
+
+		it('should not to be equal another instance', () => {
+			const a = Exam.create({ value : "hello there 1" }).value();
+			const b = Exam.create({ value : "hello there 2" }).value();
+
+			expect(a.isEqual(b)).toBeFalsy();
+		});
 	})
 });
