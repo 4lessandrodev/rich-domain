@@ -11,8 +11,18 @@ export class Validator {
 		return Validator.instance;
 	}
 
+	private static isSpecialChar(char: string, index: number): boolean {
+		const asciiCode = char.charCodeAt(index);
+		return (
+			asciiCode >= 33 && asciiCode <= 47 ||
+			asciiCode >= 58 && asciiCode <= 64 ||
+			asciiCode >= 91 && asciiCode <= 96 || 
+			asciiCode >= 123 && asciiCode <= 126
+		);
+	}
+
 	isArray(props: any): boolean {
-		return Array.isArray(props);
+			return Array.isArray(props);
 	}
 	isString(props: any): boolean {
 		return typeof props === 'string';
@@ -84,6 +94,8 @@ export class Validator {
 	}
 	string(target: string) {
 		return {
+			isSpecialChar: (index = 0): boolean =>  Validator.instance.isString(target[index]) && Validator.isSpecialChar(target, index),
+			hasSpecialChar: (): boolean => Validator.instance.isString(target) && target.split('').map((char) => Validator.isSpecialChar(char, 0)).includes(true),
 			hasLengthGreaterThan: (length: number): boolean => Validator.instance.isString(target) && target.length > length,
 			hasLengthGreaterOrEqualTo: (length: number): boolean => Validator.instance.isString(target) && target.length >= length,
 			hasLengthLessThan: (length: number): boolean => Validator.instance.isString(target) && target.length < length,
