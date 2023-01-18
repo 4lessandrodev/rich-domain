@@ -258,6 +258,63 @@ describe('aggregate', () => {
 			expect(DomainEvents.events.total()).toBe(0);
 		});
 
+
+		it('should dispatch domain event from aggregate', async () => {
+			expect(DomainEvents.events.total()).toBe(0);
+			class Handler implements IHandle<UserAgg> {
+				public eventName?: string | undefined;
+				constructor(){
+					this.eventName = "hello"
+				}
+				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
+					console.log(event.aggregate.toObject());
+				}
+			}
+
+			const agg = UserAgg.create({ name: 'Jane' }).value();
+
+			agg.addEvent(new Handler());
+
+			expect(DomainEvents.events.total()).toBe(1);
+
+			await agg.dispatchEvent("hello");
+
+			expect(DomainEvents.events.total()).toBe(0);
+		});
+
+		it('should dispatch all domain events from aggregate', async () => {
+			expect(DomainEvents.events.total()).toBe(0);
+			class HandlerA implements IHandle<UserAgg> {
+				public eventName?: string | undefined;
+				constructor(){
+					this.eventName = "helloA"
+				}
+				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
+					console.log(event.aggregate.toObject());
+				}
+			}
+			class HandlerB implements IHandle<UserAgg> {
+				public eventName?: string | undefined;
+				constructor(){
+					this.eventName = "helloB"
+				}
+				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
+					console.log(event.aggregate.toObject());
+				}
+			}
+
+			const agg = UserAgg.create({ name: 'Jane' }).value();
+
+			agg.addEvent(new HandlerA());
+			agg.addEvent(new HandlerB());
+
+			expect(DomainEvents.events.total()).toBe(2);
+
+			await agg.dispatchEvent();
+
+			expect(DomainEvents.events.total()).toBe(0);
+		});
+
 		it('should add domain event', async () => {
 
 			class Handler implements IHandle<UserAgg> {
