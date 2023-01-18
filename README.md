@@ -1272,21 +1272,16 @@ const user = result.value();
 
 You can compare two entities.
 
-`compare` just check props values and id value. `deepEqual` check props values, id, types and history.
+`isEqual` just check props values and id value for both instances.
 
 ```ts
 
-const isEqual = user1.equal(user2);
+const isEqual = user1.isEqual(user2);
 
 console.log(isEqual);
 
 > false
 
-const isDeepEqual = user1.deepEqual(user2);
-
-console.log(isDeepEqual);
-
-> false
 
 ```
 
@@ -1441,6 +1436,14 @@ Now we can dispatch the event whenever we want.
 DomainEvents.dispatch({ id: product.id, eventName: "ProductCreated" });
 
 > "EVENT DISPATCH: [Aggregate@Product]:6039756f-d3bc-452e-932a-ec89ff536dda"
+
+// OR you can dispatch all events in aggregate instance
+
+product.dispatchEvent();
+
+// OR
+
+product.dispatchEvent("ProductCreated");
 
 ```
 ---
