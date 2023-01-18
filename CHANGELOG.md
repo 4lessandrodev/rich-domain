@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### 1.16.1 - 2022-01-18
+
+### Added
+
+- Aggregate: added method `dispatchEvent` to handle domain events from aggregate instance.
+- Validator: added method `isSpecialChar` and `hasSpecialChar` to check special character.
+
+---
+
 ### 1.16.0 - 2022-01-12
 
 ### Added

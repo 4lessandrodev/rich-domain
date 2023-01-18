@@ -11,14 +11,14 @@ export const Class = <Props extends OBJ = {}>(domainClass: IClass, props: Props)
 }
 
 export const createManyDomainInstances = (data: ICreateManyDomain): ICreateManyResult => {
-	
+
 	const results: Array<IResult<any, any, any>> = [];
 
 	if (validator.isArray(data)) {
 		for (let index = 0; index < data.length; index++) {
 
 			const existsCreateMethod = typeof data[index]?.class?.create === 'function';
-		
+
 			if (!existsCreateMethod) {
 				results.push(Result.fail(`there is no static method create in ${data[index].class?.name} class`));
 				continue;
@@ -28,7 +28,7 @@ export const createManyDomainInstances = (data: ICreateManyDomain): ICreateManyR
 			results.push(result);
 		}
 	}
-	
+
 	const iterator = Iterator.create({ initialData: results, returnCurrentOnReversion: true });
 	const result = Result.combine(results);
 

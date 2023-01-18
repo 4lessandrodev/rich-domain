@@ -1313,6 +1313,52 @@ describe('check-types', () => {
 			it('should returns false if some char in string is not letter', () => {
 				expect(checker.string('abcdefghijklmnopqRSTUVXYZW12$').hasOnlyLetters()).toBeFalsy();
 			});
+
+			it("should all chars in string to be special char", () => {
+				const specialChars = '!"#$%&()*+,_./:=;><?@-[]\\^`{}|~' + "'";
+				const isAllSpecialChars = specialChars.split('').map((char) => checker.string(char).isSpecialChar()).every((v) => v === true);
+				expect(isAllSpecialChars).toBeTruthy();
+			});
+
+			it('should "a" not to be special char', () => {
+				const isSpecialChar = checker.string("a").isSpecialChar();
+				expect(isSpecialChar).toBeFalsy();
+			});
+
+			it('should "z" not to be special char', () => {
+				const isSpecialChar = checker.string("z").isSpecialChar();
+				expect(isSpecialChar).toBeFalsy();
+			});
+
+			it('should "A" not to be special char', () => {
+				const isSpecialChar = checker.string("A").isSpecialChar();
+				expect(isSpecialChar).toBeFalsy();
+			});
+
+			it('should "Z" not to be special char', () => {
+				const isSpecialChar = checker.string("Z").isSpecialChar();
+				expect(isSpecialChar).toBeFalsy();
+			});
+
+			it('should "1" not to be special char', () => {
+				const isSpecialChar = checker.string("1").isSpecialChar();
+				expect(isSpecialChar).toBeFalsy();
+			});
+
+			it('should "9" not to be special char', () => {
+				const isSpecialChar = checker.string("9").isSpecialChar();
+				expect(isSpecialChar).toBeFalsy();
+			});
+
+			it('should "hello-there" to have special char', () => {
+				const hasSpecialChar = checker.string("hello-there").hasSpecialChar();
+				expect(hasSpecialChar).toBeTruthy();
+			});
+
+			it('should "hello123" not to have special char', () => {
+				const hasSpecialChar = checker.string("hello123").hasSpecialChar();
+				expect(hasSpecialChar).toBeFalsy();
+			});
 		});
 
 		describe('date', () => {

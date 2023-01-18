@@ -28,14 +28,29 @@ import Result from "./result";
 	}
 
 	/**
+	 * @description Dispatch event added to aggregate instance
+	 * @param eventName optional event name as string. If provided only event match name is called.
+	 * @returns Promise void as executed event
+	 */
+	dispatchEvent(eventName?: string): Promise<void> {
+		if(eventName) return DomainEvents.dispatch({ id: this.id, eventName });
+		return DomainEvents.dispatchAll(this.id);
+	}
+
+	/**
 	 * @description Add event to aggregate
 	 * @param event Event to be dispatched
 	 * @param replace 'REPLACE_DUPLICATED' option to remove old event with the same name and id
 	 */
 	addEvent(event: IHandle<Aggregate<Props>>, replace?: IReplaceOptions): void {
-		DomainEvents.addEvent({ event: new DomainEvent(this, event), replace: replace === 'REPLACE_DUPLICATED' })
+		const doReplace = replace === 'REPLACE_DUPLICATED';
+		DomainEvents.addEvent({ event: new DomainEvent(this, event), replace: doReplace });
 	}
 
+	/**
+	 * @description Delete event match with provided name
+	 * @param eventName event name as string
+	 */
 	deleteEvent(eventName: string): void {
 		DomainEvents.deleteEvent({ eventName, id: this.id });
 	}
