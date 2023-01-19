@@ -220,5 +220,40 @@ describe("entity", () => {
 
 			expect(a.isEqual(b)).toBeFalsy();
 		});
-	})
+	});
+	describe("util", () => {
+
+		interface Props { id?: string, foo: string };
+		
+		class ValSamp extends Entity<Props> {
+			private constructor(props: Props) {
+				super(props);
+			}
+
+			public static isValidProps(value: string): boolean {		
+				return this.validator.string(value).hasLengthBetween(3, 50);
+			}
+
+			RemoveSpace(): string {
+				return this.util.string(this.props.foo).removeSpaces();
+			}
+
+			public static create(props: Props): IResult<ValSamp> {
+				const isValid = this.isValidProps(props.foo);
+				if(!isValid) return Result.fail('Erro');
+				return Result.Ok(new ValSamp(props))
+			}
+		}
+
+		it('should fiail if provide an invalid value', () => {
+			const ent = ValSamp.create({ foo: '' });
+			expect(ent.isFail()).toBeTruthy();
+		});
+
+		it('should remove space from value', () => {
+			const ent = ValSamp.create({ foo: ' Some Value With Spaces ' });
+			expect(ent.isOk()).toBeTruthy();
+			expect(ent.value().RemoveSpace()).toBe('SomeValueWithSpaces');
+		});
+	});
 });

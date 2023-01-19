@@ -568,5 +568,45 @@ describe('value-object', () => {
 
 			expect(a.isEqual(b)).toBeFalsy();
 		});
-	})
+	});
+
+	describe('utils', () => {
+
+		interface Props {
+			value: string;
+		}
+		class Exam extends ValueObject<Props> {
+			private constructor(props: Props){
+				super(props)
+			}
+
+			RemoveSpaces(fromValue?: string): string {
+				if(fromValue) return this.util.string(fromValue).removeSpaces();
+				return this.util.string(this.props.value).removeSpaces();
+			}
+
+			RemoveSpecialChars(): string {
+				return this.util.string(this.props.value).removeSpecialChars();
+			}
+
+			public static create(props: Props): Result<Exam> {
+				return Ok(new Exam(props));
+			}
+		};
+
+		it('should remove spaces', () => {
+			const a = Exam.create({ value : " Some Value With Many Space" }).value();
+			expect(a.RemoveSpaces()).toBe('SomeValueWithManySpace');
+		});
+
+		it('should remove special chars', () => {
+			const a = Exam.create({ value : "#Some@Value&With%Many*Special-Chars" }).value();
+			expect(a.RemoveSpecialChars()).toBe('SomeValueWithManySpecialChars');
+		});
+
+		it('should remove special chars and spaces', () => {
+			const a = Exam.create({ value : "#Some @Value &With %Many *Special-Chars" }).value();
+			expect(a.RemoveSpaces(a.RemoveSpecialChars())).toBe('SomeValueWithManySpecialChars');
+		});
+	});
 });
