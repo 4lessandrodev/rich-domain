@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### 1.16.3 - 2022-01-20
+
+### Added
+
+- Util: added method date.
+
+---
+
 ### 1.16.2 - 2022-01-19
 
 ### Added

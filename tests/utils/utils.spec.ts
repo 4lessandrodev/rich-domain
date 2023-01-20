@@ -107,4 +107,68 @@ describe('utils', () => {
             expect(result).toBe(77);
         });
     });
+
+    describe('date', () => {
+        const date = new Date('2001-09-09T01:46:39.999Z');
+
+        it('should add 5 minutes', () => {
+            const result = Utils.date(date).add(5).minutes();
+            expect(result.toISOString()).toBe('2001-09-09T01:51:39.999Z')
+        });
+
+        it('should add 5 hours', () => {
+            const result = Utils.date(date).add(5).hours();
+            expect(result.toISOString()).toBe('2001-09-09T06:46:39.999Z')
+        });
+
+        it('should add 5 days', () => {
+            const result = Utils.date(date).add(5).days();
+            expect(result.toISOString()).toBe('2001-09-14T01:46:39.999Z')
+        });
+
+        it('should add 5 weeks', () => {
+            const result = Utils.date(date).add(5).weeks();
+            expect(result.toISOString()).toBe('2001-10-14T01:46:39.999Z')
+        });
+
+        it('should add 5 months', () => {
+            const result = Utils.date(date).add(5).months();
+            expect(result.toISOString()).toBe('2002-02-06T01:46:39.999Z')
+        });
+
+        it('should add 5 years', () => {
+            const result = Utils.date(date).add(5).years();
+            expect(result.toISOString()).toBe('2006-09-08T01:46:39.999Z')
+        });
+
+        it('should remove 5 minutes', () => {
+            const result = Utils.date(date).remove(5).minutes();
+            expect(result.toISOString()).toBe('2001-09-09T01:41:39.999Z')
+        });
+
+        it('should remove 5 hours', () => {
+            const result = Utils.date(date).remove(5).hours();
+            expect(result.toISOString()).toBe('2001-09-08T20:46:39.999Z')
+        });
+
+        it('should remove 5 days', () => {
+            const result = Utils.date(date).remove(5).days();
+            expect(result.toISOString()).toBe('2001-09-04T01:46:39.999Z')
+        });
+
+        it('should remove 5 weeks', () => {
+            const result = Utils.date(date).remove(5).weeks();
+            expect(result.toISOString()).toBe('2001-08-05T01:46:39.999Z')
+        });
+
+        it('should remove 5 months', () => {
+            const result = Utils.date(date).remove(5).months();
+            expect(result.toISOString()).toBe('2001-04-12T01:46:39.999Z')
+        });
+
+        it('should remove 5 years', () => {
+            const result = Utils.date(date).remove(5).years();
+            expect(result.toISOString()).toBe('1996-09-10T01:46:39.999Z')
+        });
+    })
 });

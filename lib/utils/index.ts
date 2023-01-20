@@ -9,3 +9,5 @@ export * from './subtract-number.util';
 export * from './sum-number.util';
 export * from './to-decimal-number.util';
 export * from './to-long-number.util';
+export * from './increment-time.util';
+export * from './decrement-time.util';

@@ -11,3 +11,5 @@ export * from './utils/subtract-number.util';
 export * from './utils/sum-number.util';
 export * from './utils/to-decimal-number.util';
 export * from './utils/to-long-number.util';
+export * from './utils/increment-time.util';
+export * from './utils/decrement-time.util';
