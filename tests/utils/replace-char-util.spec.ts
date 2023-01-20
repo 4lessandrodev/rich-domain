@@ -64,4 +64,10 @@ describe('replace', () => {
         const result = Replace(target, char, value);
         expect(result).toBe(target);
     });
+
+    it('should replace word', () => {
+        const text = 'sometimes I code!';
+        const result = Replace(text, 'code', 'sleep');
+        expect(result).toBe('sometimes I sleep!');
+    });
 });

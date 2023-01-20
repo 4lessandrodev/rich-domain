@@ -6,12 +6,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### 1.16.3 - 2022-01-20
+
+### Added
+
+- Util: added method date. [pull request 32](https://github.com/4lessandrodev/rich-domain/pull/32)
+
+---
+
 ### 1.16.2 - 2022-01-19
 
 ### Added
 
 - Aggregate, Entity, ValueObject: added `util` method to instance.
-- Util: added class to domain with some utils functions.
+- Util: added class to domain with some utils functions. [pull request 31](https://github.com/4lessandrodev/rich-domain/pull/31)
 
 ---
 

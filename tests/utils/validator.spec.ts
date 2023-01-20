@@ -1359,6 +1359,34 @@ describe('check-types', () => {
 				const hasSpecialChar = checker.string("hello123").hasSpecialChar();
 				expect(hasSpecialChar).toBeFalsy();
 			});
+
+			it('should to be equal', () => {
+				const target = "some value";
+				const value = "some value";
+				const result = checker.string(target).isEqual(value);
+				expect(result).toBeTruthy();
+			})
+
+			it('should not to be equal', () => {
+				const target = "some value";
+				const value = "some-value";
+				const result = checker.string(target).isEqual(value);
+				expect(result).toBeFalsy();
+			})
+
+			it('should not to be equal', () => {
+				const target = 100;
+				const value = "100";
+				const result = checker.string(target as any).isEqual(value);
+				expect(result).toBeFalsy();
+			})
+
+			it('should not to be equal', () => {
+				const target = "100";
+				const value = 100;
+				const result = checker.string(target).isEqual(value as any);
+				expect(result).toBeFalsy();
+			})
 		});
 
 		describe('date', () => {

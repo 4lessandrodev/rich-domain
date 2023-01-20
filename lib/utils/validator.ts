@@ -112,14 +112,15 @@ export class Validator {
 					target.trim() === ''),
 			match:(regex: RegExp): boolean => regex.test(target),
 			hasOnlyNumbers: (): boolean => Validator.instance.isString(target) && 
-			target.split('')
-			.map((n) => n.charCodeAt(0) >= 48 && n.charCodeAt(0) <= 57)
-			.every((v) => v === true),
+				target.split('')
+				.map((n) => n.charCodeAt(0) >= 48 && n.charCodeAt(0) <= 57)
+				.every((v) => v === true),
 			hasOnlyLetters: (): boolean => Validator.instance.isString(target) && 
-			target.toUpperCase()
-			.split('')
-			.map((n) => n.charCodeAt(0) >= 65 && n.charCodeAt(0) <= 90)
-			.every((v) => v === true)
+				target.toUpperCase()
+				.split('')
+				.map((n) => n.charCodeAt(0) >= 65 && n.charCodeAt(0) <= 90)
+				.every((v) => v === true),
+			isEqual: (value: string) => Validator.instance.isString(target) && Validator.instance.isString(value) && target === value
 		}
 	}
 	date(target: Date) {
