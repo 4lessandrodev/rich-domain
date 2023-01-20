@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Util: added method date.
+- Util: added method date. [pull request 32](https://github.com/4lessandrodev/rich-domain/pull/32)
 
 ---
 
@@ -19,7 +19,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Aggregate, Entity, ValueObject: added `util` method to instance.
-- Util: added class to domain with some utils functions.
+- Util: added class to domain with some utils functions. [pull request 31](https://github.com/4lessandrodev/rich-domain/pull/31)
 
 ---
 
