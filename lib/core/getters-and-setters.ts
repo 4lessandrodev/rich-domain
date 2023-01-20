@@ -1,6 +1,7 @@
 import {  IParentName, IPublicHistory, ISettings, UID } from "../types";
 import { ICreateManyDomain, IGettersAndSetters, IHistory, IHistoryProps } from "../types";
-import { Validator } from "../utils";
+import  validator, { Validator } from "../utils/validator";
+import  util, { Utils } from "../utils/util";
 import createManyDomainInstances from "./create-many-domain-instance";
 import History from "./history";
 import ID from "./id";
@@ -10,13 +11,19 @@ import ID from "./id";
  */
 export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 	private readonly _MetaHistory: IHistory<Props>;
-	protected validator: Validator = Validator.create();
-	protected static validator: Validator = Validator.create();
+	protected validator: Validator = validator;
+	protected static validator: Validator = validator;
+	protected util: Utils = util;
+	protected static util: Utils = util;
 	private parentName: IParentName = 'ValueObject';
 
 	protected config: ISettings = { disableGetters: false, disableSetters: false };
 
 	constructor(protected props: Props, parentName: IParentName, config?: ISettings) {
+		GettersAndSetters.validator = validator;
+		GettersAndSetters.util = util;
+		this.validator = validator;
+		this.util = util;
 		this.config.disableGetters = !!config?.disableGetters;
 		this.config.disableSetters = !!config?.disableSetters;
 		this._MetaHistory = new History({
@@ -24,8 +31,6 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 			action: 'create',
 		});
 		this.parentName = parentName;
-		GettersAndSetters.validator = Validator.create();
-		this.validator = Validator.create();
 	}
 
 	/**

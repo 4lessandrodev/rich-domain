@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### 1.16.2 - 2022-01-19
+
+### Added
+
+- Aggregate, Entity, ValueObject: added `util` method to instance.
+- Util: added class to domain with some utils functions.
+
+---
+
 ### 1.16.1 - 2022-01-18
 
 ### Added
