@@ -42,31 +42,36 @@ describe('getters and setters', () => {
 
 	it('should change value with success', () => {
 		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject');
-		expect(gettersAndSetters.change('key', 'changed').get('key')).toBe('changed');
+		expect(gettersAndSetters.change('key', 'changed')).toBeTruthy();
+		expect(gettersAndSetters.get("key")).toBe('changed');
 	});
 
 	it('should set value with success', () => {
 		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject');
-		expect(gettersAndSetters.set('key').to('changed').get('key')).toBe('changed');
+		expect(gettersAndSetters.set('key').to('changed')).toBeTruthy();
+		expect(gettersAndSetters.get("key")).toBe('changed');
 	});
 
 	it('should do not set if do not pass on validation', () => {
 		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject');
 		const validation = (value: string) => value !== 'changed';
-		expect(gettersAndSetters.change('key', 'changed', validation).get('key')).toBe('value');
-		expect(gettersAndSetters.change('key', 'change', validation).get('key')).toBe('change');
+		expect(gettersAndSetters.change('key', 'changed', validation)).toBeFalsy();
+		expect(gettersAndSetters.change('key', 'change', validation)).toBeTruthy();
+		expect(gettersAndSetters.get("key")).toBe('change');
 	});
 
 	it('should do not change if is deactivate', () => {
 		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject', { disableSetters: true });
-		expect(gettersAndSetters.change('key', 'changed').get('key')).toBe('value');
+		expect(gettersAndSetters.change('key', 'changed')).toBeFalsy();
+		expect(gettersAndSetters.get("key")).toBe('value');
 	});
 
 	it('should do not set if do not pass on validation', () => {
 		const gettersAndSetters = new GettersAndSetters<{ key: string }>({ key: 'value' }, 'ValueObject');
 		const validation = (value: string) => value !== 'changed';
-		expect(gettersAndSetters.set('key').to('changed', validation).get('key')).toBe('value');
-		expect(gettersAndSetters.set('key').to('change', validation).get('key')).toBe('change');
+		expect(gettersAndSetters.set('key').to('changed', validation)).toBeFalsy();
+		expect(gettersAndSetters.set('key').to('change', validation)).toBeTruthy();
+		expect(gettersAndSetters.get("key")).toBe('change');
 	});
 
 });

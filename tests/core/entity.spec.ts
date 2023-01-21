@@ -63,8 +63,8 @@ describe("entity", () => {
 
 		it('should clone entity with success and keep the same id', () => {
 			const clone = entity.value().clone();
-			expect(clone.value().id.value()).toBe(id);
-			expect(clone.value().get('key')).toBe('value');
+			expect(clone.id.value()).toBe(id);
+			expect(clone.get('key')).toBe('value');
 		});
 
 		it('should snapshot entity', () => {
@@ -181,7 +181,7 @@ describe("entity", () => {
 			const props = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
 
 			const a = EntityExample.create({...props, id}).value();
-			const b = a.clone().value();
+			const b = a.clone();
 			
 			expect(a.isEqual(b)).toBeTruthy();
 		});
@@ -192,7 +192,7 @@ describe("entity", () => {
 			const props = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
 
 			const a = EntityExample.create({...props, id}).value();
-			const b = a.clone().value();
+			const b = a.clone();
 			b.set('key').to(201);
 			
 			expect(a.isEqual(b)).toBeFalsy();

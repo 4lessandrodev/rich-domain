@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### 1.17.0 - 2022-01-21
+
+### Changed
+
+- ValueObject, Entity, Aggregate: `clone` method now returns an instance of value object instead `Result`
+- ValueObject, Entity, Aggregate: `set` and `change` method now returns `true` if the value has changed and returns `false` if the value has not changed.
+
 ---
 
 ### 1.16.3 - 2022-01-20

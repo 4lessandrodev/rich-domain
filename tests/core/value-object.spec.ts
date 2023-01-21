@@ -225,7 +225,7 @@ describe('value-object', () => {
 
 			const result = sample.value().clone();
 
-			expect(sample.value().toObject()).toEqual(result.value().toObject())
+			expect(sample.value().toObject()).toEqual(result.toObject())
 		});
 
 		it('should navigate for history', () => {
@@ -557,7 +557,7 @@ describe('value-object', () => {
 
 		it('should to be equal another instance', () => {
 			const a = Exam.create({ value : "hello there" }).value();
-			const b = a.clone().value();
+			const b = a.clone();
 
 			expect(a.isEqual(b)).toBeTruthy();
 		});
