@@ -42,9 +42,9 @@ import Result from "./result";
 	 * @param event Event to be dispatched
 	 * @param replace 'REPLACE_DUPLICATED' option to remove old event with the same name and id
 	 */
-	addEvent(event: IHandle<Aggregate<Props>>, replace?: IReplaceOptions): void {
+	addEvent(event: IHandle<IAggregate<Props>>, replace?: IReplaceOptions): void {
 		const doReplace = replace === 'REPLACE_DUPLICATED';
-		DomainEvents.addEvent({ event: new DomainEvent(this, event), replace: doReplace });
+		DomainEvents.addEvent<Props>({ event: new DomainEvent(this, event), replace: doReplace });
 	}
 
 	/**
