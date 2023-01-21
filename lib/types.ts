@@ -230,23 +230,21 @@ export interface IEntity<Props> {
 	get id(): UID<string>;
 	hashCode(): UID<string>;
 	isNew(): boolean;
-	clone(): IResult<IEntity<Props>>;
+	clone(): IEntity<Props>;
 }
 
 export interface IValueObject<Props> {
-	clone(): IResult<IValueObject<Props>>;
+	clone(): IValueObject<Props>;
 	toObject<T>(adapter?: IAdapter<this, T>): T;
 }
-
-
 
 export interface IGettersAndSetters<Props> {
 	validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean;
 	get<Key extends keyof Props>(key: Key): Props[Key];
 	set<Key extends keyof Props>(key: Key): {
-		to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => IGettersAndSetters<Props>
+		to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => boolean;
 	};
-	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean): IGettersAndSetters<Props>;
+	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean): boolean;
 	history(): IPublicHistory<Props>;
 }
 
@@ -255,7 +253,7 @@ export interface IAggregate<Props> {
 	get id(): UID<string>;
 	hashCode(): UID<string>;
 	isNew(): boolean;
-	clone(): IResult<IEntity<Props>>;
+	clone(): IEntity<Props>;
 	addEvent(event: IHandle<IAggregate<Props>>, replace?: IReplaceOptions): void;
 	deleteEvent(eventName: string): void;
 }
