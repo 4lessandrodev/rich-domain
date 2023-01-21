@@ -22,7 +22,7 @@ export class Utils {
 
     date(target: Date) {
         return ({
-                add: (value: number) => ({
+            add: (value: number) => ({
                 /**
                  * @description add days to a date.
                  * @returns a new date with incremented days.
@@ -54,7 +54,7 @@ export class Utils {
                  */
                 years: () => new Date(IncrementTime(target, value, 'year'))
             }),
-                remove: (value: number) => ({
+            remove: (value: number) => ({
                 /**
                  * @description remove days from a date.
                  * @returns a new date with removed days.
@@ -93,30 +93,30 @@ export class Utils {
         return {
             /**
              * @description multiply a value for another one.
-             * @param value number or string
+             * @param value number or string (number)
              * @returns result as number
-             * @sumary If you provide a string with an NAN, 0 is considered as default value.
+             * @sumary If you provide a string NAN (not a number) 0 will be considered as value.
              */
             multiplyBy: (value: number): number => Multiply(target, value),
             /**
              * @description divide a value for another one.
              * @param value number or string
              * @returns result as number
-             * @sumary If you provide a string with an NAN, 0 is considered as default value.
+             * @sumary If you provide a string NAN (not a number) 0 will be considered as value.
              */
             divideBy: (value: number): number => Divide(target, value),
             /**
              * @description subtract a value for another one.
              * @param value number or string
              * @returns result as number
-             * @sumary If you provide a string with an NAN, 0 is considered as default value.
+             * @sumary If you provide a string NAN (not a number) 0 will be considered as value.
              */
             subtract: (value: number): number => Subtract(target, value),
             /**
              * @description sum a value with another one.
              * @param value number or string
              * @returns result as number
-             * @sumary If you provide a string with an NAN, 0 is considered as default value.
+             * @sumary If you provide a string NAN (not a number) 0 will be considered as value.
              */
             sum: (value: number): number => Sum(target, value)
         }

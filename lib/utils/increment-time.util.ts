@@ -1,15 +1,9 @@
-type Unit = 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
+import { ONE_DAY, ONE_HOUR, ONE_MINUTE, ONE_MONTH, ONE_WEEK, ONE_YEAR, Unit } from "../types";
 
 export const IncrementTime = (date: Date, value: number, unit: Unit): number => {
 
     if(!(date instanceof Date)) return new Date().getTime();
 
-    const ONE_MINUTE = 60000;
-    const ONE_HOUR = ONE_MINUTE * 60;
-    const ONE_DAY = ONE_HOUR * 24;
-    const ONE_WEEK = ONE_DAY * 7;
-    const ONE_MONTH = ONE_DAY * 30;
-    const ONE_YEAR = ONE_DAY * 365;
     const time = date.getTime();
 
     if(typeof value !== 'number') return time;
