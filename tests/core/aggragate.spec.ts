@@ -85,11 +85,17 @@ describe('aggregate', () => {
 			expect(agg.value().get('name')).toBe('Jane Doe');
 			expect(agg.value().get('age')).toBe(23);
 
-			agg.value().set('age').to(18).set('name').to('Anne');
+			const setAge = agg.value().set('age').to(18);
+			const setName = agg.value().set('name').to('Anne');
+			expect(setAge).toBeTruthy();
+			expect(setName).toBeTruthy();
 			expect(agg.value().get('age')).toBe(18);
 			expect(agg.value().get('name')).toBe('Anne');
 
-			agg.value().change('age', 21).change('name', 'Louse');
+			const changedAge = agg.value().change('age', 21);
+			const changedName = agg.value().change('name', 'Louse');
+			expect(changedName).toBeTruthy();
+			expect(changedAge).toBeTruthy();
 			expect(agg.value().get('age')).toBe(21);
 			expect(agg.value().get('name')).toBe('Louse');
 		});
@@ -178,17 +184,19 @@ describe('aggregate', () => {
 				.set('age')
 				.to(age18);
 
-			expect(result.get('age').get('value')).toBe(18);
+			expect(result).toBeTruthy();
+
+			expect(user.get('age').get('value')).toBe(18);
 
 			expect(user.history().count()).toBe(2);
 
 			user.history().back();
 
-			expect(result.get('age').get('value')).toBe(21);
+			expect(user.get('age').get('value')).toBe(21);
 
 			user.history().forward();
 
-			expect(result.get('age').get('value')).toBe(18);
+			expect(user.get('age').get('value')).toBe(18);
 		});
 
 	});

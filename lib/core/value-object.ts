@@ -33,13 +33,11 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 	 * @description Get an instance copy.
 	 * @returns a new instance of value object.
 	 */
-	clone(): IResult<ValueObject<Props>> {
+	clone(): ValueObject<Props> {
 		const instance = Reflect.getPrototypeOf(this);
-		if (!instance) return Result.fail('Could not get value object instance');
 		const args = [this.props, this.config];
-		const obj = Reflect.construct(instance.constructor, args);
-		if (obj instanceof ValueObject) return Result.Ok(obj);
-		return Result.fail('Could not create instance of value object');
+		const obj = Reflect.construct(instance!.constructor, args);
+		return obj;
 	}
 
 	/**
@@ -56,9 +54,10 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 	 * @deprecated do not use `set` function to change `value-object` state. 
 	 * @access create a new instance instead
 	 * @method `set` function will be removed for `value-objects` in future version.
+	 * returns "true" if the value has changed and returns "false" if the value has not changed.
 	 */
 	set<Key extends keyof Props>(key: Key): { 
-		to: (value: Props[Key], validation?: ((value: Props[Key]) => boolean) | undefined) => GettersAndSetters<Props>; 
+		to: (value: Props[Key], validation?: ((value: Props[Key]) => boolean) | undefined) => boolean; 
 	} {
 		return super.set(key);
 	}
@@ -69,7 +68,7 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 	 * @access create a new instance instead
 	 * @method `change` function will be removed for `value-objects` in future version.
 	 */
-	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: ((value: Props[Key]) => boolean) | undefined): this {
+	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: ((value: Props[Key]) => boolean) | undefined): boolean {
 		return super.change(key, value, validation);
 	}
 

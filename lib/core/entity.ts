@@ -82,13 +82,11 @@ import Result from "./result";
 	 * @summary if not provide an id a new one will be generated.
 	 * @returns new Entity instance.
 	 */
-	clone(): IResult<Entity<Props>> {
+	clone(): Entity<Props> {
 		const instance = Reflect.getPrototypeOf(this);
-		if (!instance) return Result.fail('Could not get entity instance');
 		const args = [this.props, this.config];
-		const entity = Reflect.construct(instance.constructor, args);
-		if (entity instanceof Entity) return Result.Ok(entity);
-		return Result.fail('Could not create instance of entity');
+		const entity = Reflect.construct(instance!.constructor, args);
+		return entity
 	}
 
 

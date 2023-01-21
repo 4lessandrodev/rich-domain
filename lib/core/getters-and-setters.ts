@@ -204,25 +204,25 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 			 * @param validation function to validate the value before apply. The value will be applied only if to pass on validation.
 			 * @example 
 			 * (value: PropValue) => boolean;
-			 * @returns instance of this.
+			 * @returns returns "true" if the value has changed and returns "false" if the value has not changed.
 			 */
-			to: (value: Props[Key], validation?: (value: Props[Key]) => boolean): GettersAndSetters<Props> => {
+			to: (value: Props[Key], validation?: (value: Props[Key]) => boolean): boolean => {
 				const instance = Reflect.getPrototypeOf(this);
 				if (this.config.disableSetters) {
 					console.log(`Trying to set value: "${value}" for key: "${String(key)}" but, %c the setters are deactivated on ${instance?.constructor.name}`);
-					return this
+					return false;
 				};
 				if (typeof validation === 'function') {
 					if (!validation(value)) {
 						console.log(`Trying to set value: "${value}" for key: "${String(key)}" but failed validation on ${instance?.constructor.name}`);
-						return this
+						return false;
 					};
 				}
 
 				const canUpdate = this.validation(value, key);
 				if (!canUpdate) {
 					console.log(`Trying to set value: "${value}" for key: "${String(key)}" but failed validation on ${instance?.constructor.name}`);
-					return this;
+					return false;
 				}
 				
 				if (key === 'id' && this.parentName === 'Entity') {
@@ -233,7 +233,7 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 							this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 						}
 						this.snapshotSet();
-						return this;
+						return true;
 					}
 					if (this.validator.isID(value)) {
 						this['_id'] = value as unknown as ID<string>;
@@ -242,7 +242,7 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 							this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 						}
 						this.snapshotSet();
-						return this;
+						return true;
 					}
 				}
 				this.props[key] = value;
@@ -250,7 +250,7 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 					this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 				}
 				this.snapshotSet();
-				return this;
+				return true;
 			}
 		}
 	}
@@ -259,25 +259,25 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 	 * @param key the property you want to set.
 	 * @param value the value to apply to the key.
 	 * @param validation function to validate the value before apply. The value will be applied only if to pass.
-	 * @returns instance of own class.
+	 * @returns returns "true" if the value has changed and returns "false" if the value has not changed.
 	 */
-	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean) {
+	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean): boolean {
 		const instance = Reflect.getPrototypeOf(this);
 		if (this.config.disableSetters) {
 			console.log(`Trying to set value: "${value}" for key: "${String(key)}" but the setters are deactivated on ${instance?.constructor.name}`);
-			return this
+			return false;
 		};
 
 		if (typeof validation === 'function') {
 			if (!validation(value)) {
 				console.log(`Trying to set value: "${value}" for key: "${String(key)}" but failed validation on ${instance?.constructor.name}`);
-				return this
+				return false;
 			};
 		}
 		const canUpdate = this.validation(value, key);
 		if (!canUpdate) {
 			console.log(`Trying to set value: "${value}" for key: "${String(key)}" but failed validation on ${instance?.constructor.name}`);
-			return this;
+			return false;
 		}
 		if (key === 'id' && this.parentName === 'Entity') {
 			if (this.validator.isString(value) || this.validator.isNumber(value)) {
@@ -287,7 +287,7 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 					this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 				}
 				this.snapshotSet();
-				return this;
+				return true;
 			}
 			if (this.validator.isID(value)) {
 				this['_id'] = value as unknown as ID<string>;
@@ -296,7 +296,7 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 					this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 				}
 				this.snapshotSet();
-				return this;
+				return true;
 			}
 		}
 		this.props[key] = value;
@@ -304,7 +304,7 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 			this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 		}
 		this.snapshotSet();
-		return this;
+		return true;
 	}
 
 	/**

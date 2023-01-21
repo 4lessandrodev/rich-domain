@@ -11,7 +11,7 @@ import Iterator from "./iterator";
 	 * @description Add event to state.
 	 * @param param event to be added.
 	 */
-	public static addEvent({ event, replace }: IEvent<IAggregate<any>>) {
+	public static addEvent<T = any>({ event, replace }: IEvent<IAggregate<T>>) {
 		const target = Reflect.getPrototypeOf(event.callback);
 		const eventName = event.callback?.eventName ?? target?.constructor.name as string;
 		if (!!replace) DomainEvents.deleteEvent({ eventName, id: event.aggregate.id });
