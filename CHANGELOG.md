@@ -17,9 +17,9 @@ All notable changes to this project will be documented in this file.
 // Example using fractionDigits
 // Default fractionDigits is 5
 
-util.number(0.02).divideBy(0.04, { fractionDigits: 4 });
+util.number(0.03).divideBy(0.09, { fractionDigits: 4 });
 
-> 0.7777
+> 0.3333
 
 ```
 

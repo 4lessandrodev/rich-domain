@@ -158,6 +158,7 @@ describe('utils', () => {
             const result = Utils.number('70' as any).sum('7' as any, { fractionDigits: 3 });
             expect(result).toBe(77);
         });
+
     });
 
     describe('date', () => {
