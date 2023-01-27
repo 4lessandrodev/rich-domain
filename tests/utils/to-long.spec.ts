@@ -7,9 +7,9 @@ describe('to-long', () => {
         expect(result).toBe(value);
     });
 
-    it('should multiply by 10', () => {
+    it('should multiply by 100', () => {
         const value = 7;
         const result = ToLong(value);
-        expect(result).toBe(70);
+        expect(result).toBe(700);
     });
 });

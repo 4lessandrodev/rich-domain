@@ -4,16 +4,75 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-### 1.17.0 - 2022-01-21
+---
 
-### Changed
+### [1.17.1] - 2022-01-27
 
-- ValueObject, Entity, Aggregate: `clone` method now returns an instance instead `Result`
-- ValueObject, Entity, Aggregate: `set` and `change` method now returns `true` if the value has changed and returns `false` if the value has not changed.
+### Fix
+
+- utils.numer: fix precision on calculation and infinity case
+
+```ts
+
+// Example using fractionDigits
+// Default fractionDigits is 5
+
+util.number(0.02).divideBy(0.04, { fractionDigits: 4 });
+
+> 0.7777
+
+```
+
+```ts
+
+// Example Infinity case now returns 0
+// 0 / 1 = Infinity
+
+util.number(0).divideBy(1);
+
+> 0
+
+```
 
 ---
 
-### 1.16.3 - 2022-01-20
+### [1.17.0] - 2022-01-21
+
+### Changed
+- Rename methods
+- Change payload
+
+### Breaking Change
+- ValueObject, Entity, Aggregate: `clone` method now returns an instance instead `Result`
+- ValueObject, Entity, Aggregate: `set` and `change` method now returns `true` if the value has changed and returns `false` if the value has not changed.
+
+```ts
+
+// Example using set now
+
+const changed = user.set("name").to(age);
+
+console.log(changed);
+
+> true
+
+```
+
+```ts
+
+// Example using clone now
+
+const copy = user.clone();
+
+console.log(copy.get("name").get("value"))
+
+> "Jane Doe"
+
+```
+
+---
+
+### [1.16.3] - 2022-01-20
 
 ### Added
 
@@ -21,7 +80,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### 1.16.2 - 2022-01-19
+### [1.16.2] - 2022-01-19
 
 ### Added
 
@@ -30,7 +89,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### 1.16.1 - 2022-01-18
+### [1.16.1] - 2022-01-18
 
 ### Added
 
@@ -39,7 +98,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### 1.16.0 - 2022-01-12
+### [1.16.0] - 2022-01-12
 
 ### Added
 
@@ -47,21 +106,21 @@ All notable changes to this project will be documented in this file.
 - ValueObject: added method `isEqual` to compare current instance with another one. [Issue 27](https://github.com/4lessandrodev/rich-domain/issues/27)
 
 ---
-### 1.15.2 - 2022-01-05
+### [1.15.2] - 2022-01-05
 
 ### Fixed
 
 - toObject method on entity: fix error on process simple object on entity [issue #25](https://github.com/4lessandrodev/rich-domain/issues/25)
 
 ---
-### 1.15.1 - 2022-01-03
+### [1.15.1] - 2022-01-03
 
 ### Changed
 
 - node version: update requirements. node version required >=16 and < 19
 
 ---
-### 1.15.0 - 2022-12-25
+### [1.15.0] - 2022-12-25
 
 ### Changed
 
@@ -78,7 +137,7 @@ All notable changes to this project will be documented in this file.
 The function still works, but it is marked as deprecated. show warning if using.
 
 ---
-### 1.14.6 - 2022-11-27
+### [1.14.6] - 2022-11-27
 
 ### Fixed
 
@@ -86,7 +145,7 @@ The function still works, but it is marked as deprecated. show warning if using.
 - Now its possible to convert entity on aggregate
 
 ---
-### 1.14.5 - 2022-11-25
+### [1.14.5] - 2022-11-25
 
 ### Fixed
 
@@ -98,14 +157,14 @@ The function still works, but it is marked as deprecated. show warning if using.
 - dispatchAll: added fn to dispatch all event by aggregate id
 
 ---
-### 1.14.4 - 2022-11-22
+### [1.14.4] - 2022-11-22
 
 ### Changed
 
 - Types: update types for Result
 
 ---
-### 1.14.3 - 2022-11-22
+### [1.14.3] - 2022-11-22
 
 ### Changed
 
@@ -116,21 +175,21 @@ The function still works, but it is marked as deprecated. show warning if using.
 - Types: added Payload type as Result type
 
 ---
-### 1.14.2 - 2022-11-22
+### [1.14.2] - 2022-11-22
 
 ### Added
 
 - validator: added method to validate if all chars in string is number
 
 ---
-### 1.14.1 - 2022-10-03
+### [1.14.1] - 2022-10-03
 
 ### Updated
 
 - result: ensure result props to be read only
 
 ---
-### 1.14.0 - 2022-09-27
+### [1.14.0] - 2022-09-27
 
 ### Change
 
@@ -208,7 +267,7 @@ interface MetaData {
 return Fail<string, MetaData>('payload', { arg: 'sample' })
 ```
 ---
-### 1.13.0 - 2022-09-26
+### [1.13.0] - 2022-09-26
 
 ### Added
 
@@ -216,14 +275,14 @@ return Fail<string, MetaData>('payload', { arg: 'sample' })
 - feat: implement function Ok
 
 ---
-### 1.12.0 - 2022-09-14
+### [1.12.0] - 2022-09-14
 
 ### Fixed
 
 fix: implement support for native randomUUID
 
 ---
-### 1.11.2 - 2022-09-03
+### [1.11.2] - 2022-09-03
 
 ### Changed
 
@@ -235,7 +294,7 @@ chore: updated dependencies
 fix: update some types error on update typescript
 
 ---
-### 1.11.1 - 2022-08-14
+### [1.11.1] - 2022-08-14
 
 ### Added
 
@@ -246,7 +305,7 @@ docs: added full documentation to readme
 
 ---
 
-### 1.11.0 - 2022-08-10
+### [1.11.0] - 2022-08-10
 
 ### Changed
 
@@ -265,7 +324,7 @@ Now second arg is optional. The key is not required
 ```
 
 ---
-### 1.10.0 - 2022-08-07
+### [1.10.0] - 2022-08-07
 
 ### Added
 
@@ -299,7 +358,7 @@ age.value().get('value') // 21
 
 ---
 
-### 1.9.0-beta - 2022-08-06
+### [1.9.0]-beta - 2022-08-06
 
 ### Change
 

@@ -8,6 +8,7 @@ import Subtract from "./subtract-number.util";
 import Sum from "./sum-number.util";
 import IncrementTime from "./increment-time.util";
 import DecrementTime from "./decrement-time.util";
+import { CalcOpt } from "../types";
 
 export class Utils {
     private static instance: Utils;
@@ -94,31 +95,39 @@ export class Utils {
             /**
              * @description multiply a value for another one.
              * @param value number or string (number)
+             * @param options as object with fractionDigits option
+             * @default fractionDigits 5
              * @returns result as number
              * @sumary If you provide a string NAN (not a number) 0 will be considered as value.
              */
-            multiplyBy: (value: number): number => Multiply(target, value),
+            multiplyBy: (value: number, opt?: CalcOpt): number => Multiply(target, value, opt?.fractionDigits),
             /**
              * @description divide a value for another one.
              * @param value number or string
+             * @param options as object with fractionDigits option
+             * @default fractionDigits 5
              * @returns result as number
              * @sumary If you provide a string NAN (not a number) 0 will be considered as value.
              */
-            divideBy: (value: number): number => Divide(target, value),
+            divideBy: (value: number, opt?: CalcOpt): number => Divide(target, value, opt?.fractionDigits),
             /**
              * @description subtract a value for another one.
              * @param value number or string
+             * @param options as object with fractionDigits option
+             * @default fractionDigits 5
              * @returns result as number
              * @sumary If you provide a string NAN (not a number) 0 will be considered as value.
              */
-            subtract: (value: number): number => Subtract(target, value),
+            subtract: (value: number, opt?: CalcOpt): number => Subtract(target, value, opt?.fractionDigits),
             /**
              * @description sum a value with another one.
              * @param value number or string
+             * @param options as object with fractionDigits option
+             * @default fractionDigits 5
              * @returns result as number
              * @sumary If you provide a string NAN (not a number) 0 will be considered as value.
              */
-            sum: (value: number): number => Sum(target, value)
+            sum: (value: number, opt?: CalcOpt): number => Sum(target, value, opt?.fractionDigits)
         }
     }
 

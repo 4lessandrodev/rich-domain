@@ -45,4 +45,47 @@ describe('divide-number', () => {
         const result = Divide(40, '10' as unknown as number);
         expect(result).toBe(4);
     });
+
+    it('should return 10a / 2 = 5', () => {
+        const result = Divide('10a' as any, 2);
+        expect(result).toBe(5);
+    });
+
+    it('should return 20 / 2a = 10', () => {
+        const result = Divide(20, '2a' as any);
+        expect(result).toBe(10);
+    });
+
+    it('should return 15a / 3a = 10', () => {
+        const result = Divide('15a' as any, '3a' as any);
+        expect(result).toBe(5);
+    });
+
+    it('should implement calc with success', () => {
+        expect.assertions(11);
+        const table: string[] = [];
+        let i = 10;
+        while(i >= 1){
+            const result = Divide(100, i, 9);
+            const expected = Number(String(100 / i).slice(0, 12));
+            table.push(`${100} / ${i} = ${result}`);
+            expect(result).toBe(expected);
+            i--;
+        }
+
+        expect(table).toMatchInlineSnapshot(`
+Array [
+  "100 / 10 = 10",
+  "100 / 9 = 11.111111111",
+  "100 / 8 = 12.5",
+  "100 / 7 = 14.285714285",
+  "100 / 6 = 16.666666666",
+  "100 / 5 = 20",
+  "100 / 4 = 25",
+  "100 / 3 = 33.333333333",
+  "100 / 2 = 50",
+  "100 / 1 = 100",
+]
+`);
+    })
 });

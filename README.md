@@ -890,13 +890,7 @@ console.log(originalName.value());
 
 const clone = originalName.clone();
 
-console.log(clone.isOk());
-
-> true
-
-const clonedName = clone.value();
-
-console.log(clonedName.value());
+console.log(clone);
 
 > "Sammy"
 
@@ -1150,11 +1144,15 @@ const result = Name.create('Larry');
 
 const newName = result.value();
 
-user.change("name", newName);
+const changed = user.change("name", newName);
 
 console.log(user.get("name").value());
 
 > "Larry"
+
+console.log(changed);
+
+> true
 
 ```
 
@@ -1250,17 +1248,19 @@ const user = result.value();
 
  const clonedUser = user.clone();
 
- const newUser = clonedUser.value();
-
  const newNameResult = Name.create('Luke');
 
  const newName = newNameResult.value();
 
- clonedUser.set('name').to(newName);
+ const changed = clonedUser.set('name').to(newName);
 
  console.log(user.get('name').value());
 
  > "James"
+
+ console.log(changed);
+
+ > true
 
  console.log(clonedUser.get('name').value());
 

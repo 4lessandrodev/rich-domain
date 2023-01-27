@@ -13,3 +13,6 @@ export * from './utils/to-decimal-number.util';
 export * from './utils/to-long-number.util';
 export * from './utils/increment-time.util';
 export * from './utils/decrement-time.util';
+export * from './utils/to-precision.util';
+export * from './utils/is-nan.util';
+export * from './utils/ensure-number';
