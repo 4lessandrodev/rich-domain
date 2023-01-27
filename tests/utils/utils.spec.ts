@@ -106,6 +106,58 @@ describe('utils', () => {
             const result = Utils.number('70' as any).sum('7' as any);
             expect(result).toBe(77);
         });
+
+
+
+        it('should multiply 70 x 7 = 490 as number', () => {  
+            const result = Utils.number(70).multiplyBy(7, { fractionDigits: 3 });
+            expect(result).toBe(490);
+        });
+
+        it('should multiply 70 x 7 = 490 as string', () => {  
+            const result = Utils.number('70' as any).multiplyBy('7' as any, { fractionDigits: 3 });
+            expect(result).toBe(490);
+        });
+
+        it('should divide 70 / 7 = 10 as number', () => {  
+            const result = Utils.number(70).divideBy(7);
+            expect(result).toBe(10);
+        });
+
+        it('should divide 0.02 / 0.03 = 10 as number', () => {  
+            const result = Utils.number(0.02).divideBy(0.03, { fractionDigits: 2 });
+            expect(result).toBe(0.66);
+        });
+
+        it('should divide 0,02 / 0.03 = 10 as string', () => {  
+            const result = Utils.number('0.02' as any).divideBy('0.03' as any, { fractionDigits: 3 });
+            expect(result).toBe(0.666);
+        });
+
+        it('should divide 0,02 / 0.03 = 10 as string', () => {  
+            const result = Utils.number('0.02' as any).divideBy('0.03' as any);
+            expect(result).toBe(0.66666);
+        });
+
+        it('should subtract 70 - 7 = 63 as number', () => {  
+            const result = Utils.number(70).subtract(7, { fractionDigits: 3 });
+            expect(result).toBe(63);
+        });
+
+        it('should divide 70 - 7 = 63 as string', () => {  
+            const result = Utils.number('70' as any).subtract('7' as any, { fractionDigits: 3 });
+            expect(result).toBe(63);
+        });
+
+        it('should sum 70 + 7 = 77 as number', () => {  
+            const result = Utils.number(70).sum(7, { fractionDigits: 3 });
+            expect(result).toBe(77);
+        });
+
+        it('should sum 70 + 7 = 77 as string', () => {  
+            const result = Utils.number('70' as any).sum('7' as any, { fractionDigits: 3 });
+            expect(result).toBe(77);
+        });
     });
 
     describe('date', () => {

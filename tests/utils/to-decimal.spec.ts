@@ -7,9 +7,9 @@ describe('to-decimal', () => {
         expect(result).toBe(value);
     });
 
-    it('should divide by 10', () => {
+    it('should divide by 100', () => {
         const value = 70;
         const result = ToDecimal(value);
-        expect(result).toBe(7);
+        expect(result).toBe(0.7);
     });
 });

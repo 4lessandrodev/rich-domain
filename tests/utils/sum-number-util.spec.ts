@@ -65,4 +65,47 @@ describe('sum-number', () => {
         const result = Sum(42, '10' as unknown as number);
         expect(result).toBe(52);
     });
+
+    it('should return 10a + 2 = 12', () => {
+        const result = Sum('10a' as any, 2);
+        expect(result).toBe(12);
+    });
+
+    it('should return 20 + 2a = 22', () => {
+        const result = Sum(20, '2a' as any);
+        expect(result).toBe(22);
+    });
+
+    it('should return 15a + 3a = 18', () => {
+        const result = Sum('15a' as any, '3a' as any);
+        expect(result).toBe(18);
+    });
+
+    it('should implement calc with success', () => {
+        expect.assertions(11);
+        const table: string[] = [];
+        let i = 10;
+        while(i >= 1){
+            const result = Sum(100, i, 9);
+            const expected = Number(String(100 + i).slice(0, 12));
+            table.push(`${100} + ${i} = ${result}`);
+            expect(result).toBe(expected);
+            i--;
+        }
+
+        expect(table).toMatchInlineSnapshot(`
+Array [
+  "100 + 10 = 110",
+  "100 + 9 = 109",
+  "100 + 8 = 108",
+  "100 + 7 = 107",
+  "100 + 6 = 106",
+  "100 + 5 = 105",
+  "100 + 4 = 104",
+  "100 + 3 = 103",
+  "100 + 2 = 102",
+  "100 + 1 = 101",
+]
+`);
+    })
 });
