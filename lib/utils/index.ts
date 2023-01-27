@@ -11,3 +11,6 @@ export * from './to-decimal-number.util';
 export * from './to-long-number.util';
 export * from './increment-time.util';
 export * from './decrement-time.util';
+export * from './to-precision.util';
+export * from './is-nan.util';
+export * from './ensure-number';
