@@ -46,6 +46,16 @@ describe('divide-number', () => {
         expect(result).toBe(4);
     });
 
+    it('should return 0.02 / 0.05 = ', () => {
+        const result = Divide(0.02, 0.05);
+        expect(result).toBe(0.4);
+    });
+
+    it('should return 0.03 / 0.09 = ', () => {
+        const result = Divide(0.03, 0.09);
+        expect(result).toBe(0.33333);
+    });
+
     it('should return 10a / 2 = 5', () => {
         const result = Divide('10a' as any, 2);
         expect(result).toBe(5);
