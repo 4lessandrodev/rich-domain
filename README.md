@@ -41,6 +41,13 @@ Build great app using domain driven design
  alt="issues" 
  style="max-width: 100%;">
 </a>
+<a href="https://github.com/4lessandrodev/rich-domain?branch=main" rel="nofollow" class="keychainify-checked">
+ <img src="https://img.shields.io/codecov/c/github/dwyl/hapi-auth-jwt2.svg?maxAge=2592000" 
+ alt="issues" 
+ style="max-width: 100%;">
+</a>
+
+---
 
 ## About the lib
 
