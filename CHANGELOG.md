@@ -6,11 +6,25 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.17.2] - 2022-03-12
+
+### Added
+
+- added: event handler callback
+
+```ts
+
+user.dispatchEvent('EventName', handler);
+
+```
+
+---
+
 ### [1.17.1] - 2022-01-27
 
 ### Fix
 
-- utils.numer: fix precision on calculation and infinity case
+- utils.number: fix precision on calculation and infinity case
 
 ```ts
 

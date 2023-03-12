@@ -1,4 +1,4 @@
-import { EntityProps, IAggregate, IHandle, IReplaceOptions, IResult, ISettings, UID } from "../types";
+import { EntityProps, EventHandler, IAggregate, IHandle, IReplaceOptions, IResult, ISettings, UID } from "../types";
 import DomainEvent from "./domain-event";
 import Entity from "./entity";
 import DomainEvents from "./events";
@@ -32,9 +32,9 @@ import Result from "./result";
 	 * @param eventName optional event name as string. If provided only event match name is called.
 	 * @returns Promise void as executed event
 	 */
-	dispatchEvent(eventName?: string): Promise<void> {
-		if(eventName) return DomainEvents.dispatch({ id: this.id, eventName });
-		return DomainEvents.dispatchAll(this.id);
+	dispatchEvent(eventName?: string, handler?: EventHandler<IAggregate<any>, void>): Promise<void> {
+		if(eventName) return DomainEvents.dispatch({ id: this.id, eventName }, handler);
+		return DomainEvents.dispatchAll(this.id, handler);
 	}
 
 	/**
