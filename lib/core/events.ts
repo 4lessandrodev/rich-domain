@@ -1,4 +1,4 @@
-import { IAggregate, IDispatchOptions, IDomainEvent, IEvent, IIterator, UID } from "../types";
+import { EventHandler, IAggregate, IDispatchOptions, IDomainEvent, IEvent, IIterator, UID } from "../types";
 import Iterator from "./iterator";
 
 /**
@@ -24,7 +24,9 @@ import Iterator from "./iterator";
 	 * @param options params to find event to dispatch it.
 	 * @returns promise void.
 	 */
-	public static async dispatch(options: IDispatchOptions): Promise<void> {
+	public static async dispatch(options: IDispatchOptions, handler?: EventHandler<IAggregate<any>, void>): Promise<void> {
+		const log = (): void => console.log('None handler provided');
+		const callback: EventHandler<IAggregate<any>, void> = handler ? handler : ({ execute: (): void => { log(); } });
 		const eventsToDispatch: Array<IDomainEvent<IAggregate<any>>> = [];
 		const events = DomainEvents.events.toArray();
 		let position = 0;
@@ -36,28 +38,30 @@ import Iterator from "./iterator";
 			}
 			position = position + 1;
 		}
-		eventsToDispatch.forEach((agg) => agg.callback.dispatch(agg));
+		eventsToDispatch.forEach((agg): void | Promise<void> => agg.callback.dispatch(agg, callback));
 	}
 
-		/**
+	/**
 	 * @description Dispatch event for a provided name and an aggregate id.
 	 * @param id aggregate id.
 	 * @returns promise void.
 	 */
-		 public static async dispatchAll(id: UID): Promise<void> {
-			const eventsToDispatch: Array<IDomainEvent<IAggregate<any>>> = [];
-			const events = DomainEvents.events.toArray();
-			let position = 0;
-			while (events[position]) {
-				const event = events[position];
-				if (event.aggregate.id.equal(id)) {
-					eventsToDispatch.push(event);
-					DomainEvents.events.removeItem(event);
-				}
-				position = position + 1;
+	public static async dispatchAll(id: UID, handler?: EventHandler<IAggregate<any>, void>): Promise<void> {
+		const log = (): void => console.log('None handler provided');
+		const callback: EventHandler<IAggregate<any>, void> = handler ? handler : ({ execute: (): void => { log(); } });
+		const eventsToDispatch: Array<IDomainEvent<IAggregate<any>>> = [];
+		const events = DomainEvents.events.toArray();
+		let position = 0;
+		while (events[position]) {
+			const event = events[position];
+			if (event.aggregate.id.equal(id)) {
+				eventsToDispatch.push(event);
+				DomainEvents.events.removeItem(event);
 			}
-			eventsToDispatch.forEach((agg) => agg.callback.dispatch(agg));
+			position = position + 1;
 		}
+		eventsToDispatch.forEach((agg): void | Promise<void> => agg.callback.dispatch(agg, callback));
+	}
 
 	/**
 	 * @description Delete an event from state.

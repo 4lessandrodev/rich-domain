@@ -1,5 +1,5 @@
 import { Aggregate, DomainEvent, DomainEvents } from '../../lib/core'
-import { IDomainEvent, IHandle } from '../../lib/types';
+import { EventHandler, IDomainEvent, IHandle } from '../../lib/types';
 
 describe('domain-events', () => {
 
@@ -16,15 +16,17 @@ describe('domain-events', () => {
 
 	class Handle implements IHandle<User> {
 		eventName: string = 'Handler';
-		dispatch(event: IDomainEvent<User>): void | Promise<void> {
+		dispatch(event: IDomainEvent<User>, handler: EventHandler<User, void>): void | Promise<void> {
 			console.log(event.aggregate.hashCode().value());
-		}
-		
+			const { aggregate } = event;
+			const eventName = this.eventName;
+			handler.execute({ aggregate, eventName });
+		}	
 	}
 
 	const user = User.create({ name: 'Jane' }).value();
 
-	const event = new DomainEvent<User>(user, new Handle())
+	const event = new DomainEvent<User>(user, new Handle());
 
 	it('should add domain event with success', () => {
 
@@ -65,4 +67,13 @@ describe('domain-events', () => {
 		expect(DomainEvents.events.total()).toBe(0);
 	});
 
+	it('should dispatch event from aggregate', () => {
+		const handler = { execute: () => { }};
+		const handlerEv = jest.spyOn(handler, 'execute');
+		DomainEvents.addEvent({ event, replace: true });
+		expect(DomainEvents.events.total()).toBe(1);
+		user.dispatchEvent('Handler', handler);
+		expect(handlerEv).toHaveBeenCalled();
+		expect(DomainEvents.events.total()).toBe(0);
+	});
 });

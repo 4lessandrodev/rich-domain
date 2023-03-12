@@ -39,6 +39,8 @@ export interface IResult<T, D = string, M = {}> {
  * @method `execute()` execute a hook as command on fail or on success
  */
 export type Payload<T, D = string, M = {}> = IResult<T, D, M>;
+export type HandlerPayload<T> = { aggregate: T, eventName: string };
+export type EventHandler<T, B> = ICommand<HandlerPayload<T>, Promise<B> | B>;
 
 /**
  * 
@@ -198,7 +200,7 @@ export interface IHandle<T> {
 	 * @description eventName is optional value. Default is className
 	 */
 	eventName?: string;
-	dispatch(event: IDomainEvent<T>): Promise<void> | void;
+	dispatch(event: IDomainEvent<T>, handler: EventHandler<T, void>): Promise<void> | void;
 }
 
 /**
