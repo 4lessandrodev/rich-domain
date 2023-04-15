@@ -1,16 +1,17 @@
-import { EntityProps, EventHandler, IAggregate, IHandle, IReplaceOptions, IResult, ISettings, UID } from "../types";
+import { EntityProps, EventHandler, IAggregate, IDomainEvent, IHandle, IReplaceOptions, IResult, ISettings, UID } from "../types";
 import DomainEvent from "./domain-event";
 import Entity from "./entity";
-import DomainEvents from "./events";
 import ID from "./id";
 import Result from "./result";
 
 /**
  * @description Aggregate identified by an id
  */
- export class Aggregate<Props extends EntityProps> extends Entity<Props> implements IAggregate<Props> {
+export class Aggregate<Props extends EntityProps> extends Entity<Props> implements IAggregate<Props> {
+	private _domainEvents = new Array<IDomainEvent<IAggregate<Props>>>()
+	private _dispatchEventsAmount: number = 0
 
-	constructor(props: Props, config?: ISettings) { 
+	constructor(props: Props, config?: ISettings) {
 		super(props, config);
 	}
 
@@ -27,32 +28,70 @@ import Result from "./result";
 		return ID.create(`[Aggregate@${name?.constructor.name}]:${this.id.value()}`);
 	}
 
+	get eventsMetrics() {
+		return {
+			current: this._domainEvents.length,
+			total: this._domainEvents.length + this._dispatchEventsAmount,
+			dispatch: this._dispatchEventsAmount
+		}
+	}
+
 	/**
 	 * @description Dispatch event added to aggregate instance
 	 * @param eventName optional event name as string. If provided only event match name is called.
 	 * @returns Promise void as executed event
 	 */
-	dispatchEvent(eventName?: string, handler?: EventHandler<IAggregate<any>, void>): Promise<void> {
-		if(eventName) return DomainEvents.dispatch({ id: this.id, eventName }, handler);
-		return DomainEvents.dispatchAll(this.id, handler);
+	dispatchEvent(eventName?: string, handler?: EventHandler<IAggregate<any>, void>) {
+		if (!eventName) return this.dispatchAll(handler);
+
+		const callback = handler || ({ execute: (): void => { } });
+		for (const event of this._domainEvents) {
+			if (event.aggregate.id.equal(this.id) && event.callback.eventName === eventName) {
+				event.callback.dispatch(event, callback)
+				this._dispatchEventsAmount++
+				this.deleteEvent(eventName!)
+			}
+		}
 	}
+
+	dispatchAll(handler?: EventHandler<IAggregate<any>, void>) {
+		const callback = handler || ({ execute: (): void => { } });
+		for (const event of this._domainEvents) {
+			if (event.aggregate.id.equal(this.id)) {
+				event.callback.dispatch(event, callback)
+			}
+		}
+		this._domainEvents = [];
+	};
 
 	/**
 	 * @description Add event to aggregate
 	 * @param event Event to be dispatched
 	 * @param replace 'REPLACE_DUPLICATED' option to remove old event with the same name and id
 	 */
-	addEvent(event: IHandle<IAggregate<Props>>, replace?: IReplaceOptions): void {
+	addEvent(eventToAdd: IHandle<IAggregate<Props>>, replace?: IReplaceOptions): void {
 		const doReplace = replace === 'REPLACE_DUPLICATED';
-		DomainEvents.addEvent<Props>({ event: new DomainEvent(this, event), replace: doReplace });
+		const event = new DomainEvent(this, eventToAdd);
+		const target = Reflect.getPrototypeOf(event.callback);
+		const eventName = event.callback?.eventName ?? target?.constructor.name as string;
+		event.callback.eventName = eventName;
+		if (!!doReplace) this.deleteEvent(eventName);
+		this._domainEvents.push(event);
 	}
 
 	/**
 	 * @description Delete event match with provided name
 	 * @param eventName event name as string
+	 * @returns number of deleted events
 	 */
-	deleteEvent(eventName: string): void {
-		DomainEvents.deleteEvent({ eventName, id: this.id });
+	deleteEvent(eventName: string): number {
+		let deletedEventsAmount = this._domainEvents.length;
+
+		this._domainEvents = this._domainEvents.filter(
+			domainEvent => (domainEvent.callback.eventName !== eventName)
+		);
+
+		return deletedEventsAmount - this._domainEvents.length;
 	}
 
 	/**
@@ -63,7 +102,7 @@ import Result from "./result";
 	 * @summary result state will be `null` case failure.
 	 */
 	public static create(props: any): IResult<Aggregate<any>, any, any> {
-		if(!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
+		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.Ok(new this(props));
 	};
 }
