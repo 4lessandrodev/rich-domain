@@ -1,4 +1,4 @@
-import { EntityProps, EventHandler, IAggregate, IDomainEvent, IHandle, IReplaceOptions, IResult, ISettings, UID } from "../types";
+import { EntityProps, EventHandler, EventMetrics, IAggregate, IDomainEvent, IHandle, IReplaceOptions, IResult, ISettings, UID } from "../types";
 import DomainEvent from "./domain-event";
 import Entity from "./entity";
 import ID from "./id";
@@ -8,11 +8,13 @@ import Result from "./result";
  * @description Aggregate identified by an id
  */
 export class Aggregate<Props extends EntityProps> extends Entity<Props> implements IAggregate<Props> {
-	private _domainEvents = new Array<IDomainEvent<IAggregate<Props>>>()
-	private _dispatchEventsAmount: number = 0
+	private _domainEvents: Array<IDomainEvent<IAggregate<Props>>>;
+	private _dispatchEventsAmount: number;
 
 	constructor(props: Props, config?: ISettings) {
 		super(props, config);
+		this._dispatchEventsAmount = 0;
+		this._domainEvents = [];
 	}
 
 	/**
@@ -28,7 +30,13 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 		return ID.create(`[Aggregate@${name?.constructor.name}]:${this.id.value()}`);
 	}
 
-	get eventsMetrics() {
+	/**
+	 * @description Get aggregate metrics
+	 * @access current events as number representing total of events in state for aggregate
+	 * @access total as number representing total events for aggregate including dispatched
+	 * @access dispatch total of events already dispatched
+	 */
+	get eventsMetrics(): EventMetrics {
 		return {
 			current: this._domainEvents.length,
 			total: this._domainEvents.length + this._dispatchEventsAmount,
@@ -47,27 +55,33 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 		const callback = handler || ({ execute: (): void => { } });
 		for (const event of this._domainEvents) {
 			if (event.aggregate.id.equal(this.id) && event.callback.eventName === eventName) {
-				event.callback.dispatch(event, callback)
-				this._dispatchEventsAmount++
-				this.deleteEvent(eventName!)
+				event.callback.dispatch(event, callback);
+				this._dispatchEventsAmount++;
+				this.deleteEvent(eventName!);
 			}
 		}
 	}
 
+	/**
+	 * @description Dispatch all events for current aggregate.
+	 * @param handler as EventHandler.
+	 * @returns promise void.
+	 */
 	dispatchAll(handler?: EventHandler<IAggregate<any>, void>) {
 		const callback = handler || ({ execute: (): void => { } });
 		for (const event of this._domainEvents) {
 			if (event.aggregate.id.equal(this.id)) {
-				event.callback.dispatch(event, callback)
+				event.callback.dispatch(event, callback);
 			}
 		}
 		this._domainEvents = [];
 	};
 
 	/**
-	 * @description Add event to aggregate
-	 * @param event Event to be dispatched
-	 * @param replace 'REPLACE_DUPLICATED' option to remove old event with the same name and id
+	 * @description Add event to aggregate instance.
+	 * @param eventToAdd Event to be dispatched.
+	 * @param replace 'REPLACE_DUPLICATED' option to remove old event with the same name and id.
+	 * @emits dispatch to aggregate instance. Do not use event using global event manager as DomainEvent.dispatch
 	 */
 	addEvent(eventToAdd: IHandle<IAggregate<Props>>, replace?: IReplaceOptions): void {
 		const doReplace = replace === 'REPLACE_DUPLICATED';

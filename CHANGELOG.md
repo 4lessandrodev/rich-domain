@@ -5,7 +5,45 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### [1.17.4] - 2022-03-15
 
+### Changed
+
+- changed: move event manager to instance of aggregate #50
+The user will still have the option of using the global event handler using `DomainEvents` class, however when adding an event using an instance of an aggregate, the event can only handle from the instance of the aggregate
+
+```ts
+
+// add event to instance of aggregate - OK
+user.addEvent(event);
+
+// dispatch from aggregate instance - OK
+user.dispatchEvent('EventName', handler);
+
+/** 
+ * if you try dispatch the event globally It will not works, because the events was added to aggregate * instance specifically
+ * The Event does not exists globally.
+*/
+DomainEvents.dispatch({ eventName: 'EventName', id: user.id }); 
+
+// to dispatch global
+// add the event globally
+DomainEvents.addEvent({ /* ... */ });
+
+// so dispatch it globally. Works!
+DomainEvents.dispatch({ /* ... */});
+
+```
+
+---
+
+### [1.17.3] - 2022-03-12
+
+### Update
+
+- update build
+
+---
 ### [1.17.2] - 2022-03-12
 
 ### Added

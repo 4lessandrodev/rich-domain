@@ -292,3 +292,9 @@ export const ONE_MONTH = ONE_DAY * 30;
 export const ONE_YEAR = ONE_DAY * 365;
 
 export type CalcOpt = { fractionDigits: number };
+
+export interface EventMetrics {
+	current: number;
+	total: number;
+	dispatch: number;
+}

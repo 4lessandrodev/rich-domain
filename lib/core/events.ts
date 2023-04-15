@@ -2,7 +2,9 @@ import { EventHandler, IAggregate, IDispatchOptions, IDomainEvent, IEvent, IIter
 import Iterator from "./iterator";
 
 /**
- * @description Domain Events manager.
+ * @description Domain Events manager for global events.
+ * @global events for aggregates.
+ * @ignore events added in instance of aggregates directly.
  */
  export abstract class DomainEvents {
 	public static events: IIterator<IDomainEvent<IAggregate<any>>> = Iterator.create();
