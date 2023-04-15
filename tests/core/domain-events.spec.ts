@@ -1,4 +1,4 @@
-import { Aggregate, DomainEvent, DomainEvents } from '../../lib/core'
+import { Aggregate, DomainEvent, DomainEvents } from '../../lib/core';
 import { EventHandler, IDomainEvent, IHandle } from '../../lib/types';
 
 describe('domain-events', () => {
@@ -64,16 +64,6 @@ describe('domain-events', () => {
 
 		DomainEvents.dispatchAll(user.id);
 
-		expect(DomainEvents.events.total()).toBe(0);
-	});
-
-	it('should dispatch event from aggregate', () => {
-		const handler = { execute: () => { }};
-		const handlerEv = jest.spyOn(handler, 'execute');
-		DomainEvents.addEvent({ event, replace: true });
-		expect(DomainEvents.events.total()).toBe(1);
-		user.dispatchEvent('Handler', handler);
-		expect(handlerEv).toHaveBeenCalled();
 		expect(DomainEvents.events.total()).toBe(0);
 	});
 });

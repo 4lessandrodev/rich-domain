@@ -1,5 +1,5 @@
-import { Aggregate, DomainEvents, ID, Result, ValueObject } from "../../lib/core";
-import { ISettings, IResult, IHandle, IDomainEvent, UID } from "../../lib/types";
+import { Aggregate, ID, Result, ValueObject } from "../../lib/core";
+import { IDomainEvent, IHandle, IResult, ISettings, UID } from "../../lib/types";
 
 describe('aggregate', () => {
 
@@ -246,7 +246,7 @@ describe('aggregate', () => {
 			expect(agg.value().get('updatedAt')).not.toEqual(new Date('2022-01-01T03:00:00.000Z'));
 		});
 
-		it('should add domain event', async () => {
+		it('should add domain event [3]', async () => {
 
 			class Handler implements IHandle<UserAgg> {
 				eventName: string = 'Handler Event';
@@ -259,16 +259,14 @@ describe('aggregate', () => {
 
 			agg.addEvent(new Handler(), 'REPLACE_DUPLICATED');
 
-			expect(DomainEvents.events.total()).toBe(1);
-
+			expect(agg.eventsMetrics.current).toBe(1);
 			agg.deleteEvent('Handler Event');
-
-			expect(DomainEvents.events.total()).toBe(0);
+			expect(agg.eventsMetrics.current).toBe(0);
 		});
 
 
 		it('should dispatch domain event from aggregate', async () => {
-			expect(DomainEvents.events.total()).toBe(0);
+			
 			class Handler implements IHandle<UserAgg> {
 				public eventName?: string | undefined;
 				constructor(){
@@ -283,15 +281,15 @@ describe('aggregate', () => {
 
 			agg.addEvent(new Handler());
 
-			expect(DomainEvents.events.total()).toBe(1);
+			expect(agg.eventsMetrics.total).toBe(1);
 
 			await agg.dispatchEvent("hello");
 
-			expect(DomainEvents.events.total()).toBe(0);
+			expect(agg.eventsMetrics.current).toBe(0);
 		});
 
 		it('should dispatch all domain events from aggregate', async () => {
-			expect(DomainEvents.events.total()).toBe(0);
+			
 			class HandlerA implements IHandle<UserAgg> {
 				public eventName?: string | undefined;
 				constructor(){
@@ -316,14 +314,14 @@ describe('aggregate', () => {
 			agg.addEvent(new HandlerA());
 			agg.addEvent(new HandlerB());
 
-			expect(DomainEvents.events.total()).toBe(2);
+			expect(agg.eventsMetrics.current).toBe(2);
 
 			await agg.dispatchEvent();
 
-			expect(DomainEvents.events.total()).toBe(0);
+			expect(agg.eventsMetrics.current).toBe(0);
 		});
 
-		it('should add domain event', async () => {
+		it('should add domain event [2]', async () => {
 
 			class Handler implements IHandle<UserAgg> {
 				eventName: string = 'Handler Event';
@@ -336,14 +334,14 @@ describe('aggregate', () => {
 
 			agg.addEvent(new Handler(), 'REPLACE_DUPLICATED');
 
-			expect(DomainEvents.events.total()).toBe(1);
+			expect(agg.eventsMetrics.current).toBe(1);
 
-			DomainEvents.dispatch({ eventName: 'Handler Event', id: agg.id })
+			agg.dispatchEvent('Handler Event')
 
-			expect(DomainEvents.events.total()).toBe(0);
+			expect(agg.eventsMetrics.current).toBe(0);
 		});
 
-		it('should add domain event', async () => {
+		it('should add domain event [1]', async () => {
 
 			class Handler implements IHandle<UserAgg> {
 				eventName = undefined;
@@ -356,11 +354,11 @@ describe('aggregate', () => {
 
 			agg.addEvent(new Handler(), 'REPLACE_DUPLICATED');
 
-			expect(DomainEvents.events.total()).toBe(1);
+			expect(agg.eventsMetrics.current).toBe(1);
 
-			DomainEvents.dispatch({ eventName: Handler.name, id: agg.id })
+			agg.dispatchEvent( Handler.name)
 
-			expect(DomainEvents.events.total()).toBe(0);
+			expect(agg.eventsMetrics.current).toBe(0);
 		});
 
 		it('should change id', () => {
