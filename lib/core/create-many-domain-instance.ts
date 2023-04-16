@@ -24,8 +24,8 @@ export const createManyDomainInstances = (data: ICreateManyDomain): ICreateManyR
 				continue;
 			};
 
-			const result = data[index].class.create(data[index].props);
-			results.push(result);
+			const payload = data[index].class.create(data[index].props);
+			results.push(payload);
 		}
 	}
 
