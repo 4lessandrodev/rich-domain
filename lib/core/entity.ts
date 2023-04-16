@@ -7,10 +7,10 @@ import Result from "./result";
 /**
  * @description Entity identified by an id
  */
- export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> implements IEntity<Props> {
-	 protected _id: UID<string>;
-	 protected autoMapper: AutoMapper<Props>;
-	constructor(props: Props, config?: ISettings) { 
+export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> implements IEntity<Props> {
+	protected _id: UID<string>;
+	protected autoMapper: AutoMapper<Props>;
+	constructor(props: Props, config?: ISettings) {
 		super(Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props }), 'Entity', config);
 		const isID = this.validator.isID(props?.['id']);
 		const isStringOrNumber = this.validator.isString(props?.['id']) || this.validator.isNumber(props?.['id']);
@@ -25,15 +25,15 @@ import Result from "./result";
 	 * @returns true if props is equal and false if not.
 	*/
 	isEqual(other: Entity<Props>): boolean {
-		const currentProps = Object.assign({}, {}, { ...this.props});
-		const providedProps = Object.assign({}, {}, { ...other.props});
+		const currentProps = Object.assign({}, {}, { ...this.props });
+		const providedProps = Object.assign({}, {}, { ...other.props });
 		delete currentProps?.['createdAt'];
 		delete currentProps?.['updatedAt'];
 		delete providedProps?.['createdAt'];
 		delete providedProps?.['updatedAt'];
 		const equalId = this.id.equal(other.id);
 		const serializedA = JSON.stringify(currentProps);
-		const serializedB = JSON.stringify(providedProps);		
+		const serializedB = JSON.stringify(providedProps);
 		const equalSerialized = serializedA === serializedB;
 		return equalId && equalSerialized;
 	}
@@ -80,15 +80,16 @@ import Result from "./result";
 	/**
 	 * @description Get a new instanced based on current Entity.
 	 * @summary if not provide an id a new one will be generated.
+	 * @param props as optional Entity Props.
 	 * @returns new Entity instance.
 	 */
-	clone(): Entity<Props> {
+	clone(props?: Partial<Props>): this {
+		const _props = props ? { ...this.props, ...props } : this.props;
 		const instance = Reflect.getPrototypeOf(this);
-		const args = [this.props, this.config];
+		const args = [_props, this.config];
 		const entity = Reflect.construct(instance!.constructor, args);
 		return entity
 	}
-
 
 	/**
 	 * @description Method to validate props. This method is used to validate props on create a instance.
@@ -99,6 +100,7 @@ import Result from "./result";
 		return !this.validator.isUndefined(props) && !this.validator.isNull(props);
 	};
 
+	public static create(props: any): IResult<Entity<any>>;
 	/**
 	 * 
 	 * @param props params as Props
@@ -106,8 +108,8 @@ import Result from "./result";
 	 * @returns instance of result with a new Entity on state if success.
 	 * @summary result state will be `null` case failure.
 	 */
-	public static create(props: any): IResult<Entity<any>, any, any> {
-		if(!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
+	public static create(props: {}): Result<Entity<{}>> {
+		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.Ok(new this(props));
 	};
 }

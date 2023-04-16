@@ -11,10 +11,10 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	private _domainEvents: Array<IDomainEvent<IAggregate<Props>>>;
 	private _dispatchEventsAmount: number;
 
-	constructor(props: Props, config?: ISettings) {
+	constructor(props: Props, config?: ISettings, events?: Array<IDomainEvent<IAggregate<Props>>>) {
 		super(props, config);
 		this._dispatchEventsAmount = 0;
-		this._domainEvents = [];
+		this._domainEvents = Array.isArray(events) ? events : [];
 	}
 
 	/**
@@ -45,18 +45,34 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	}
 
 	/**
+	 * @description Get a new instanced based on current Aggregate.
+	 * @summary if not provide an id a new one will be generated.
+	 * @param props as optional Aggregate Props.
+	 * @param copyEvents as boolean. default: false.
+	 * @returns new Aggregate instance.
+	 */
+	clone(props?: Partial<Props> & { copyEvents?: boolean }): this {
+		const _props = props ? { ...this.props, ...props } : this.props;
+		const _events = (props && !!props.copyEvents) ? this._domainEvents : [];
+		const instance = Reflect.getPrototypeOf(this);
+		const args = [_props, this.config, _events];
+		const aggregate = Reflect.construct(instance!.constructor, args);
+		return aggregate;
+	}
+
+	/**
 	 * @description Dispatch event added to aggregate instance
 	 * @param eventName optional event name as string. If provided only event match name is called.
 	 * @returns Promise void as executed event
 	 */
-	dispatchEvent(eventName?: string, handler?: EventHandler<IAggregate<any>, void>) {
+	dispatchEvent(eventName?: string, handler?: EventHandler<IAggregate<any>, void>): void {
 		if (!eventName) return this.dispatchAll(handler);
 
 		const callback = handler || ({ execute: (): void => { } });
 		for (const event of this._domainEvents) {
 			if (event.aggregate.id.equal(this.id) && event.callback.eventName === eventName) {
-				event.callback.dispatch(event, callback);
 				this._dispatchEventsAmount++;
+				event.callback.dispatch(event, callback);
 				this.deleteEvent(eventName!);
 			}
 		}
@@ -67,13 +83,24 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 * @param handler as EventHandler.
 	 * @returns promise void.
 	 */
-	dispatchAll(handler?: EventHandler<IAggregate<any>, void>) {
+	dispatchAll(handler?: EventHandler<this, void>) {
 		const callback = handler || ({ execute: (): void => { } });
 		for (const event of this._domainEvents) {
 			if (event.aggregate.id.equal(this.id)) {
+				this._dispatchEventsAmount++;
 				event.callback.dispatch(event, callback);
 			}
 		}
+		this._domainEvents = [];
+	};
+
+	/**
+	 * @description Delete all events in current aggregate instance.
+	 * @param config.resetMetrics reset info about events dispatched.
+	 * @returns void.
+	 */
+	clearEvents(config = { resetMetrics: false }): void {
+		this._dispatchEventsAmount = config.resetMetrics ? 0 : this._dispatchEventsAmount;
 		this._domainEvents = [];
 	};
 
@@ -83,7 +110,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 * @param replace 'REPLACE_DUPLICATED' option to remove old event with the same name and id.
 	 * @emits dispatch to aggregate instance. Do not use event using global event manager as DomainEvent.dispatch
 	 */
-	addEvent(eventToAdd: IHandle<IAggregate<Props>>, replace?: IReplaceOptions): void {
+	addEvent(eventToAdd: IHandle<this>, replace?: IReplaceOptions): void {
 		const doReplace = replace === 'REPLACE_DUPLICATED';
 		const event = new DomainEvent(this, eventToAdd);
 		const target = Reflect.getPrototypeOf(event.callback);
@@ -108,6 +135,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 		return deletedEventsAmount - this._domainEvents.length;
 	}
 
+	public static create(props: any): IResult<Aggregate<any>>;
 	/**
 	 * 
 	 * @param props params as Props
@@ -115,7 +143,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 * @returns instance of result with a new Aggregate on state if success.
 	 * @summary result state will be `null` case failure.
 	 */
-	public static create(props: any): IResult<Aggregate<any>, any, any> {
+	public static create(props: {}): Result<Aggregate<{}>> {
 		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.Ok(new this(props));
 	};

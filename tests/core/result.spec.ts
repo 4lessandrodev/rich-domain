@@ -159,4 +159,16 @@ describe('result', () => {
 		});
 
 	});
+
+	describe('result serialized', () => {
+		it('should Ok do not have none public key', () => {
+			const result = Ok();
+			expect(JSON.stringify(result)).toMatchInlineSnapshot(`"{}"`);
+		});
+
+		it('should Fail do not have none public key', () => {
+			const result = Fail();
+			expect(JSON.stringify(result)).toMatchInlineSnapshot(`"{}"`);
+		});
+	});
 });

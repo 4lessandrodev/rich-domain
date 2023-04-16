@@ -10,18 +10,18 @@ import Iterator from "./iterator";
  */
 export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 
-	private readonly _isSuccess: boolean;
-	private readonly _isFailure: boolean;
-	private readonly _data: T | null;
-	private readonly _error: D | null;
-	private readonly _metaData: M;
+	#isOk: Readonly<boolean>;
+	#isFail: Readonly<boolean>;
+	#data: Readonly<T | null>;
+	#error: Readonly<D | null>;
+	#metaData: Readonly<M>;
 
 	private constructor(isSuccess: boolean, data?: T, error?: D, metaData?: M) {
-		this._isSuccess = isSuccess;
-		this._isFailure = !isSuccess;
-		this._data = data ?? null;
-		this._error = error ?? null;
-		this._metaData = metaData ?? {} as M;
+		this.#isOk = isSuccess;
+		this.#isFail = !isSuccess;
+		this.#data = data ?? null;
+		this.#error = error ?? null;
+		this.#metaData = metaData ?? {} as M;
 	}
 
 	/**
@@ -103,7 +103,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 		if (iterator.isEmpty()) return Result.fail('No results provided on combine param' as B) as IResult<A, B, M>;
 		while (iterator.hasNext()) {
 			const currentResult = iterator.next();
-			if (currentResult.isFail()) return currentResult as IResult<A, B, M>;;
+			if (currentResult.isFail()) return currentResult as IResult<A, B, M>;
 		}
 		return iterator.first() as IResult<A, B, M>;
 	}
@@ -150,14 +150,14 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns `data` T or `null` case result is failure.
 	 */
 	value(): T {
-		return this._data as T;
+		return this.#data as T;
 	}
 	/**
 	 * @description Get the instance error.
 	 * @returns `error` D or `null` case result is success.
 	 */
 	error(): D {
-		return this._error as D;
+		return this.#error as D;
 	}
 
 	/**
@@ -165,7 +165,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns `true` case result instance failure or `false` case is success one.
 	 */
 	isFail(): boolean {
-		return this._isFailure;
+		return this.#isFail;
 	}
 
 	/**
@@ -173,7 +173,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns `true` case result instance success or `false` case is failure one.
 	 */
 	isOk(): boolean {
-		return this._isSuccess;
+		return this.#isOk;
 	}
 
 	/**
@@ -181,7 +181,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns `metadata` M or `{}` result in case of empty object has no metadata value.
 	 */
 	metaData(): M {
-		const metaData = this._metaData;
+		const metaData = this.#metaData;
 		return Object.freeze(metaData);
 	}
 
@@ -199,11 +199,11 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 */
 	toObject(): IResultObject<T, D, M> {
 		const metaData = {
-			isOk: this._isSuccess,
-			isFail: this._isFailure,
-			data: this._data as T | null,
-			error: this._error as D | null,
-			metaData: this._metaData as M
+			isOk: this.#isOk,
+			isFail: this.#isFail,
+			data: this.#data as T | null,
+			error: this.#error as D | null,
+			metaData: this.#metaData as M
 		}
 
 		return Object.freeze(metaData);

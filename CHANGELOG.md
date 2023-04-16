@@ -5,11 +5,12 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
-### [1.17.4] - 2022-03-15
+### [1.18.0] - 2022-03-15
 
 ### Changed
 
-- changed: move event manager to instance of aggregate #50
+- changed: move event manager to instance of aggregate #50 by [Paulo Santana](https://github.com/hikinine)
+
 The user will still have the option of using the global event handler using `DomainEvents` class, however when adding an event using an instance of an aggregate, the event can only handle from the instance of the aggregate
 
 ```ts
@@ -32,6 +33,20 @@ DomainEvents.addEvent({ /* ... */ });
 
 // so dispatch it globally. Works!
 DomainEvents.dispatch({ /* ... */});
+
+```
+
+- changed: Result properties to private using # to do not serialize private keys
+- changed: Types for create method: Entity, Aggregate and ValueObject
+- changed: Clone method in Entity and Aggregate instance. Now It accepts optional props.
+
+```ts
+
+// create a copy of user instance and also copy domain events from original aggregate user.
+const userCopy = user.clone({ copyEvents: true });
+
+// create a copy and apply a new name value
+const userCopy = user.clone({ name });
 
 ```
 
