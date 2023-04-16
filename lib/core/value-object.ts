@@ -80,13 +80,14 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 		return !this.validator.isUndefined(props) && !this.validator.isNull(props);
 	};
 
+	public static create(props: any): IResult<ValueObject<any>>;
 	/**
 	 * 
 	 * @param props params as Props
 	 * @returns instance of result with a new Value Object on state if success.
 	 * @summary result state will be `null` case failure.
 	 */
-	public static create(props: any): IResult<ValueObject<any>, any, any> {
+	public static create(props: {}): Result<ValueObject<{}>> {
 		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.Ok(new this(props));
 	};
