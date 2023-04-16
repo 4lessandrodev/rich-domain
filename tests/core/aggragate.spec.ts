@@ -288,7 +288,7 @@ describe('aggregate', () => {
 			expect(agg.eventsMetrics.current).toBe(0);
 		});
 
-		it('should dispatch all domain events from aggregate', async () => {
+		it('should dispatch all domain events from aggregate', () => {
 			
 			class HandlerA implements IHandle<UserAgg> {
 				public eventName?: string | undefined;
@@ -316,7 +316,7 @@ describe('aggregate', () => {
 
 			expect(agg.eventsMetrics.current).toBe(2);
 
-			await agg.dispatchEvent();
+			agg.dispatchEvent();
 
 			expect(agg.eventsMetrics.current).toBe(0);
 		});
@@ -432,5 +432,111 @@ describe('aggregate', () => {
 			expect(result.value().id.value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
 			expect(result.value().get('id').value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
 		})
+	});
+
+	describe('aggregate events', () => {
+		it('should dispatch all events once', async () => {
+
+			class Agg extends Aggregate<{ key: string }> {};
+			class Event implements IHandle<Agg> {
+				dispatch(): Promise<void> {
+					return Promise.resolve();
+				}
+			}
+
+			const event = new Event();
+			const eventSpy = jest.spyOn(event, 'dispatch');
+
+			const agg = Agg.create({ key: 'some' }).value();
+			agg.addEvent(event);
+
+			expect(agg.eventsMetrics.current).toBe(1);
+			expect(agg.eventsMetrics.dispatch).toBe(0);
+
+			agg.dispatchAll();
+			expect(agg.eventsMetrics.current).toBe(0);
+			expect(agg.eventsMetrics.dispatch).toBe(1);
+
+			expect(eventSpy).toHaveBeenCalled();
+
+		});
+
+		it('should clear events and metrics', async () => {
+
+			class Agg extends Aggregate<{ key: string }> {};
+			class Event implements IHandle<Agg> {
+				dispatch(): Promise<void> {
+					return Promise.resolve();
+				}
+			}
+
+			const event = new Event();
+			const agg = Agg.create({ key: 'some' }).value();
+			agg.addEvent(event);
+
+			expect(agg.eventsMetrics.current).toBe(1);
+			expect(agg.eventsMetrics.dispatch).toBe(0);
+
+			agg.clearEvents({ resetMetrics: true });
+
+			expect(agg.eventsMetrics.current).toBe(0);
+			expect(agg.eventsMetrics.dispatch).toBe(0);
+
+			const aggB = Agg.create({ key: 'some' }).value();
+			aggB.addEvent(event);
+			aggB.dispatchEvent(Event.name);
+			expect(aggB.eventsMetrics.dispatch).toBe(1);
+			aggB.addEvent(event);
+			expect(aggB.eventsMetrics.current).toBe(1);
+			expect(aggB.eventsMetrics.dispatch).toBe(1);
+
+			aggB.clearEvents({ resetMetrics: false });
+			expect(aggB.eventsMetrics.current).toBe(0);
+			expect(aggB.eventsMetrics.dispatch).toBe(1);
+		});
+
+		it('should clone aggregate with events', async () => {
+
+
+			interface Props { key: string };
+			class Agg extends Aggregate<Props> {
+				public static create(props: Props): Result<Agg> {
+					return Result.Ok(new Agg(props))
+				}
+			};
+
+			class Event implements IHandle<Agg> {
+				eventName: string;
+				constructor(name: string){
+					this.eventName = name;
+				}
+				dispatch(): Promise<void> {
+					return Promise.resolve();
+				}
+			}
+
+			const eventA = new Event('eventA');
+			const eventB = new Event('eventA');
+			const agg = Agg.create({ key: 'some' }).value();
+			agg.addEvent(eventA);
+			agg.addEvent(eventB);
+
+			expect(agg.eventsMetrics.current).toBe(2);
+			expect(agg.eventsMetrics.dispatch).toBe(0);
+
+			const copy = agg.clone({ copyEvents: true, key: 'changed' });
+
+			expect(copy.eventsMetrics.current).toBe(2);
+			expect(copy.eventsMetrics.dispatch).toBe(0);
+			expect(copy.get('key')).toBe('changed');
+
+			const clean = copy.clone({ copyEvents: false });
+			expect(clean.eventsMetrics.current).toBe(0);
+			expect(clean.eventsMetrics.dispatch).toBe(0);
+
+			const none = copy.clone();
+			expect(none.eventsMetrics.current).toBe(0);
+			expect(none.eventsMetrics.dispatch).toBe(0);
+		});
 	});
 });
