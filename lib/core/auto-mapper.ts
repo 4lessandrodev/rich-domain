@@ -5,7 +5,7 @@ import ID from "./id";
 /**
  * @description Auto Mapper transform a domain resource into object.
  */
- export class AutoMapper<Props> implements IAutoMapper<Props> {
+export class AutoMapper<Props> implements IAutoMapper<Props> {
 	private validator: Validator = Validator.create();
 
 	/**
@@ -15,13 +15,15 @@ import ID from "./id";
 	 */
 	valueObjectToObj(valueObject: IValueObject<Props>): { [key in keyof Props]: any } {
 		// internal state
+		if (this.validator.isID(valueObject)) return (valueObject as any)?.value();
+
 		let props = {} as { [key in keyof Props]: any };
 
 		const isSimpleValue = this.validator.isBoolean(valueObject) ||
-		this.validator.isNumber(valueObject) ||
-		this.validator.isString(valueObject) ||
-		this.validator.isObject(valueObject) ||
-		this.validator.isDate(valueObject);
+			this.validator.isNumber(valueObject) ||
+			this.validator.isString(valueObject) ||
+			this.validator.isObject(valueObject) ||
+			this.validator.isDate(valueObject);
 
 		if (isSimpleValue) return valueObject as { [key in keyof Props]: any };
 
@@ -35,16 +37,16 @@ import ID from "./id";
 		const voProps = valueObject?.['props'];
 
 		const isSimp = this.validator.isBoolean(voProps) ||
-		this.validator.isNumber(voProps) ||
-		this.validator.isString(voProps) ||
-		this.validator.isDate(voProps);
+			this.validator.isNumber(voProps) ||
+			this.validator.isString(voProps) ||
+			this.validator.isDate(voProps);
 
 		if (isSimp) return voProps;
 
 		const keys: Array<keyof Props> = Object.keys(voProps) as Array<keyof Props>;
 
 		const values = keys.map((key) => {
-			
+
 			const isVo = this.validator.isValueObject(voProps?.[key]);
 
 			if (isVo) return this.valueObjectToObj(voProps?.[key] as any);
@@ -54,7 +56,7 @@ import ID from "./id";
 				this.validator.isString(voProps?.[key]) ||
 				this.validator.isObject(voProps?.[key]) ||
 				this.validator.isDate(voProps?.[key]);
-			
+
 			if (isSimpleValue) return voProps?.[key];
 
 			const isID = this.validator.isID(voProps?.[key]);
@@ -70,15 +72,13 @@ import ID from "./id";
 				const results: Array<any> = [];
 
 				arr.forEach((data) => {
-
 					const result = this.valueObjectToObj(data);
 					results.push(result);
-
 				});
 
 				return results;
 			}
-			
+
 		});
 
 		const hasUniqueValue = values.length === 1;
@@ -100,11 +100,13 @@ import ID from "./id";
 	 * @returns a simple object.
 	 */
 	entityToObj(entity: IEntity<Props>): { [key in keyof Props]: any } & EntityMapperPayload {
-		
+
+		if (this.validator.isID(entity)) return (entity as any)?.value();
+
 		let result = {} as { [key in keyof Props]: any };
 
 		const isEntity = this.validator.isEntity(entity);
-		
+
 		const isAggregate = this.validator.isAggregate(entity);
 
 		const props = entity?.['props'] ?? {};
@@ -115,7 +117,7 @@ import ID from "./id";
 			this.validator.isNumber(entity) ||
 			this.validator.isString(entity) ||
 			this.validator.isDate(entity);
-		
+
 		if (isSimpleValue) return entity as any;
 
 		if (isValueObject) return this.valueObjectToObj(entity as any) as any;
@@ -128,13 +130,17 @@ import ID from "./id";
 
 			const updatedAt = entity['props']['updatedAt'];
 
-			result = Object.assign({}, { ...result }, { id, createdAt, updatedAt  });
+			result = Object.assign({}, { ...result }, { id, createdAt, updatedAt });
 
 			const keys: Array<keyof Props> = Object.keys(props) as Array<keyof Props>;
-			
+
 			keys.forEach((key) => {
-				
+
 				const isArray = this.validator.isArray(props?.[key as any]);
+
+				if (this.validator.isID(props?.[key as any])) {
+					result = Object.assign({}, { ...result }, { [key]: props[key]?.value() });
+				}
 
 				if (isArray) {
 					const arr: Array<any> = props?.[key as any] as unknown as Array<any> ?? [];
@@ -147,11 +153,11 @@ import ID from "./id";
 				}
 
 				const isSimple = this.validator.isValueObject(props?.[key as any]) ||
-				this.validator.isBoolean(props?.[key as any]) ||
-				this.validator.isNumber(props?.[key as any]) ||
-				this.validator.isString(props?.[key as any]) ||
-				this.validator.isObject(props?.[key as any]) ||
-				this.validator.isDate(props?.[key as any]);
+					this.validator.isBoolean(props?.[key as any]) ||
+					this.validator.isNumber(props?.[key as any]) ||
+					this.validator.isString(props?.[key as any]) ||
+					this.validator.isObject(props?.[key as any]) ||
+					this.validator.isDate(props?.[key as any]);
 
 				const isEntity = this.validator.isEntity(props?.[key as any]);
 
@@ -159,7 +165,7 @@ import ID from "./id";
 					const data = this.entityToObj(props[key as any] as any);
 
 					result = Object.assign({}, { ...result }, { [key]: data });
-				} else if(isSimple) {
+				} else if (isSimple) {
 					const data = this.valueObjectToObj(props[key as any] as any);
 
 					result = Object.assign({}, { ...result }, { [key]: data });
