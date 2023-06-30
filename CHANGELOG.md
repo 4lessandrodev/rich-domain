@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+
+---
+### [1.18.1] - 2022-03-15
+
+### Changed
+
+- fixed: check if exists some id before transform to a simple value on execute toObject method.
+
 ---
 ### [1.18.0] - 2022-03-15
 
