@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 
 ---
-### [1.18.1] - 2022-03-15
+### [1.18.1] - 2022-06-30
 
 ### Changed
 
