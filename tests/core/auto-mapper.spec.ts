@@ -440,8 +440,8 @@ describe('auto-mapper', () => {
 			summary: string[];
 		}
 
-		class Name extends ValueObject<ValueA>{}
-		class Age extends ValueObject<ValueB>{}
+		class Name extends ValueObject<ValueA>{ }
+		class Age extends ValueObject<ValueB>{ }
 
 		interface PropsA {
 			id?: UID;
@@ -454,7 +454,7 @@ describe('auto-mapper', () => {
 			createdAt: Date;
 		}
 
-		class Profile extends Entity<PropsA>{}
+		class Profile extends Entity<PropsA>{ }
 		interface PropsB {
 			id?: UID;
 			profile: Profile;
@@ -464,17 +464,17 @@ describe('auto-mapper', () => {
 			createdAt: Date;
 		}
 
-		class Example extends Entity<PropsB>{}
+		class Example extends Entity<PropsB>{ }
 
 		const profile = {
 			age: Age.create({ value: 21 }).value(),
 			data: 'lorem ipsum',
-			name: Name.create({ value: 'Mille'}).value(),
-			notes: [10,20,30],
+			name: Name.create({ value: 'Mille' }).value(),
+			notes: [10, 20, 30],
 			value: 7,
 			id: Id('valid-uuid-2'),
 			createdAt: new Date('2023-01-05T18:20:41.916Z'),
-			detail:{
+			detail: {
 				likes: 200,
 				nick: 'Loader',
 				site: '4dev.com',
@@ -506,12 +506,12 @@ describe('auto-mapper', () => {
 					age: 21,
 					data: 'lorem ipsum',
 					name: 'Mille',
-					notes: [10,20,30],
+					notes: [10, 20, 30],
 					value: 7,
 					id: 'valid-uuid-2',
 					createdAt: new Date("2023-01-05T18:20:41.916Z"),
 					updatedAt: expect.any(Date),
-					detail:{
+					detail: {
 						likes: 200,
 						nick: 'Loader',
 						site: '4dev.com',
@@ -520,5 +520,83 @@ describe('auto-mapper', () => {
 				}
 			});
 		})
+	});
+
+	describe('uid', () => {
+		it('should get value from entity attribute if instance of ID', () => {
+
+			interface Props {
+				id: UID;
+				userId: UID;
+				some: string;
+				arr: UID[];
+				createdAt: Date;
+				updatedAt: Date;
+			}
+			class Sample extends Entity<Props> {
+				private constructor(props: Props) {
+					super(props)
+				}
+				public static create(props: Props): Result<Sample> {
+					return Ok(new Sample(props));
+				}
+			}
+
+			const t = {
+				createdAt: new Date('2020-01-01 00:00:00'),
+				updatedAt: new Date('2020-01-01 00:00:00'),
+				id: '80961b81-0d45-454a-b54a-b146c7700828',
+				userId: 'aa1d2188-cf30-4a57-abf1-ff28c1ee71db',
+				some: 'sample',
+				arr: [
+					'91861ce3-5e29-44d3-9a4c-850c585d87b5', 
+					'647ec7ca-98c7-4078-ae4a-7a62fe1a47f1'
+				]
+			};
+
+			const result = Sample.create({
+				arr: [Id(t.arr[0]), Id(t.arr[1])],
+				id: Id(t.id),
+				some: 'sample',
+				userId: Id(t.userId),
+				createdAt: t.createdAt,
+				updatedAt: t.updatedAt
+			}).value()
+			expect(result.toObject()).toEqual(t);
+		});
+
+		it('should get value from value object attribute if instance of ID', () => {
+
+			interface Props {
+				userId: UID;
+				some: string;
+				arr: UID[];
+			}
+			class Sample extends ValueObject<Props> {
+				private constructor(props: Props) {
+					super(props)
+				}
+				public static create(props: Props): Result<Sample> {
+					return Ok(new Sample(props));
+				}
+			}
+
+			const t = {
+				userId: 'aa1d2188-cf30-4a57-abf1-ff28c1ee71db',
+				some: 'sample',
+				arr: [
+					'91861ce3-5e29-44d3-9a4c-850c585d87b5', 
+					'647ec7ca-98c7-4078-ae4a-7a62fe1a47f1'
+				]
+			};
+
+			const result = Sample.create({
+				arr: [Id(t.arr[0]), Id(t.arr[1])],
+				some: 'sample',
+				userId: Id(t.userId)
+			}).value()
+
+			expect(result.toObject()).toEqual(t);
+		});
 	});
 });
