@@ -1,5 +1,5 @@
 import { Aggregate, AutoMapper, Entity, Id, ID, Iterator, Ok, Result, ValueObject } from "../../lib/core";
-import { Payload, UID } from "../../lib/types";
+import { UID } from "../../lib/types";
 
 describe('auto-mapper', () => {
 
@@ -320,7 +320,7 @@ describe('auto-mapper', () => {
 				super(props);
 			}
 
-			public static create(props: AggProps): Payload<Order> {
+			public static create(props: AggProps): Result<Order> {
 				return Ok(new Order(props));
 			}
 		}
@@ -466,7 +466,7 @@ describe('auto-mapper', () => {
 
 		class Example extends Entity<PropsB>{ }
 
-		const profile = {
+		const profile: PropsA = {
 			age: Age.create({ value: 21 }).value(),
 			data: 'lorem ipsum',
 			name: Name.create({ value: 'Mille' }).value(),
@@ -478,18 +478,18 @@ describe('auto-mapper', () => {
 				likes: 200,
 				nick: 'Loader',
 				site: '4dev.com',
-				summary: ['page1', 'page2']
-			}
-		} satisfies PropsA;
+				summary: ['page1', 'page2'],
+			},
+		};
 
-		const props = {
+		const props: PropsB = {
 			cite: 'Lorem',
 			isMarried: true,
 			profile: Profile.create(profile).value(),
 			value: 42,
 			id: Id('valid-uuid-1'),
 			createdAt: new Date('2023-01-05T18:20:41.916Z'),
-		} satisfies PropsB;
+		};
 
 		const entity = Example.create(props).value();
 
@@ -549,7 +549,7 @@ describe('auto-mapper', () => {
 				userId: 'aa1d2188-cf30-4a57-abf1-ff28c1ee71db',
 				some: 'sample',
 				arr: [
-					'91861ce3-5e29-44d3-9a4c-850c585d87b5', 
+					'91861ce3-5e29-44d3-9a4c-850c585d87b5',
 					'647ec7ca-98c7-4078-ae4a-7a62fe1a47f1'
 				]
 			};
@@ -585,7 +585,7 @@ describe('auto-mapper', () => {
 				userId: 'aa1d2188-cf30-4a57-abf1-ff28c1ee71db',
 				some: 'sample',
 				arr: [
-					'91861ce3-5e29-44d3-9a4c-850c585d87b5', 
+					'91861ce3-5e29-44d3-9a4c-850c585d87b5',
 					'647ec7ca-98c7-4078-ae4a-7a62fe1a47f1'
 				]
 			};
@@ -599,4 +599,93 @@ describe('auto-mapper', () => {
 			expect(result.toObject()).toEqual(t);
 		});
 	});
+
+	describe('value-object', () => {
+		interface Props1 { text: string };
+		class Vo1 extends ValueObject<Props1>{
+			private constructor(props: Props1) {
+				super(props)
+			}
+
+			public static create(text: string): Result<Vo1, { e: string }> {
+				return Ok(new Vo1({ text }));
+			}
+		};
+
+		interface Props2 { text: string; vo1: Vo1, nullable: number | null };
+		class Vo2 extends ValueObject<Props2>{
+			private constructor(props: Props2) {
+				super(props)
+			}
+
+			public static create(props: Props2): Result<Vo2, { e: string }> {
+				return Ok(new Vo2(props));
+			}
+		};
+
+		interface Props3 {
+			level3: Vo2;
+			level1: Vo1;
+			simple: string;
+			nullable: number | null;
+			id: UID;
+			createdAt: Date;
+			updatedAt: Date;
+		}
+		class Sample extends Entity<Props3>{
+			private constructor(props: Props3) {
+				super(props)
+			}
+
+			public static create(props: Props3): Result<Sample, { e: string }> {
+				return Ok(new Sample(props));
+			}
+		}
+
+		it('should transform in simple object when value object inside other', () => {
+			const vo1 = Vo1.create('sub-object').value();
+			const vo = Vo2.create({ text: 'example', vo1, nullable: 10 }).value();
+
+			expect(vo.toObject()).toMatchInlineSnapshot(`
+	Object {
+	  "nullable": 10,
+	  "text": "example",
+	  "vo1": "sub-object",
+	}
+	`);
+
+		})
+		it('should transform on entity', () => {
+			const vo1 = Vo1.create('sub-object').value();
+			const vo2 = Vo2.create({ text: 'example', vo1, nullable: null }).value();
+			const date = new Date();
+
+			const sample = Sample.create({
+				level1: vo1,
+				level3: vo2,
+				nullable: null,
+				simple: 'hey there',
+				id: Id('8280c69f-be52-4918-ada9-f43d4703dbfe'),
+				createdAt: date,
+				 updatedAt: date
+			}).value();
+
+			expect(sample.toObject()).toMatchInlineSnapshot(`
+Object {
+  "createdAt": ${date.toISOString()},
+  "id": "8280c69f-be52-4918-ada9-f43d4703dbfe",
+  "level1": "sub-object",
+  "level3": Object {
+    "nullable": null,
+    "text": "example",
+    "vo1": "sub-object",
+  },
+  "nullable": null,
+  "simple": "hey there",
+  "updatedAt": ${date.toISOString()},
+}
+`);
+		})
+	});
+
 });
