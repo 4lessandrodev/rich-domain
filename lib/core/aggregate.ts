@@ -135,7 +135,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 		return deletedEventsAmount - this._domainEvents.length;
 	}
 
-	public static create(props: any): IResult<Aggregate<any>>;
+	public static create(props: any): IResult<any, any, any>;
 	/**
 	 * 
 	 * @param props params as Props
@@ -143,7 +143,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 * @returns instance of result with a new Aggregate on state if success.
 	 * @summary result state will be `null` case failure.
 	 */
-	public static create(props: {}): Result<Aggregate<{}>> {
+	public static create(props: {}): Result<any, any, any> {
 		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.Ok(new this(props));
 	};

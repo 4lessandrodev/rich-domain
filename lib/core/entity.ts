@@ -100,7 +100,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		return !this.validator.isUndefined(props) && !this.validator.isNull(props);
 	};
 
-	public static create(props: any): IResult<Entity<any>>;
+	public static create(props: any): IResult<any, any, any>;
 	/**
 	 * 
 	 * @param props params as Props
@@ -108,7 +108,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @returns instance of result with a new Entity on state if success.
 	 * @summary result state will be `null` case failure.
 	 */
-	public static create(props: {}): Result<Entity<{}>> {
+	public static create(props: {}): Result<any, any, any> {
 		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.Ok(new this(props));
 	};

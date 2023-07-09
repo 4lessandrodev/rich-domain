@@ -14,7 +14,10 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 	 * @returns an object or a value object value.
 	 */
 	valueObjectToObj(valueObject: IValueObject<Props>): { [key in keyof Props]: any } {
+		
 		// internal state
+		if(valueObject === null) return null as any;
+
 		if (this.validator.isID(valueObject)) return (valueObject as any)?.value();
 
 		let props = {} as { [key in keyof Props]: any };
@@ -55,7 +58,8 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 				this.validator.isNumber(voProps?.[key]) ||
 				this.validator.isString(voProps?.[key]) ||
 				this.validator.isObject(voProps?.[key]) ||
-				this.validator.isDate(voProps?.[key]);
+				this.validator.isDate(voProps?.[key]) ||
+				voProps?.[key] === null;
 
 			if (isSimpleValue) return voProps?.[key];
 
@@ -116,7 +120,8 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 		const isSimpleValue = this.validator.isBoolean(entity) ||
 			this.validator.isNumber(entity) ||
 			this.validator.isString(entity) ||
-			this.validator.isDate(entity);
+			this.validator.isDate(entity) ||
+			entity === null;
 
 		if (isSimpleValue) return entity as any;
 
@@ -157,7 +162,8 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 					this.validator.isNumber(props?.[key as any]) ||
 					this.validator.isString(props?.[key as any]) ||
 					this.validator.isObject(props?.[key as any]) ||
-					this.validator.isDate(props?.[key as any]);
+					this.validator.isDate(props?.[key as any]) ||
+					props?.[key] === null;
 
 				const isEntity = this.validator.isEntity(props?.[key as any]);
 
