@@ -1,4 +1,4 @@
-import { ValueObject, Entity, Result } from '../../lib/core';
+import { ValueObject, Entity, Result, Ok, Fail } from '../../lib/core';
 import { IAdapter, IResult } from '../../lib/types';
 
 describe('adpter', () => {
@@ -17,7 +17,7 @@ describe('adpter', () => {
 
 
 	interface UserProps { id: string; name: DomainName; createdAt?: Date; updatedAt?: Date };
-	
+
 	class DomainUser extends Entity<UserProps>{
 		private constructor(props: UserProps) {
 			super(props)
@@ -44,11 +44,11 @@ describe('adpter', () => {
 				updatedAt: target.updatedAt
 			});
 		}
-}
+	}
 
-	class DataUserAdapter implements IAdapter<DomainUser,Model>{
+	class DataUserAdapter implements IAdapter<DomainUser, Model>{
 		build(target: DomainUser): IResult<Model> {
-			
+
 			return Result.Ok({
 				id: target.id.value(),
 				createdAt: target.get('createdAt') as Date,
@@ -57,21 +57,21 @@ describe('adpter', () => {
 			})
 		}
 	}
-	
+
 	const userModel: Model = {
 		id: 'valid_id',
 		name: 'John Stuart',
 		createdAt: new Date('2020-01-01T04:00:23.000Z'),
 		updatedAt: new Date('2020-01-01T05:00:23.000Z')
 	}
-	
+
 	const name = DomainName.create({ value: userModel.name }).value();
 	const domainUser = DomainUser.create({ ...userModel, name }).value();
-	
+
 	describe('from data layer to domain', () => {
 		it('should a domain entity from data layer with success', () => {
-			const adpter = new DomainUserAdapter();
-			const domainUser = adpter.build(userModel);
+			const adapter = new DomainUserAdapter();
+			const domainUser = adapter.build(userModel);
 
 			expect(domainUser.isOk()).toBeTruthy();
 			expect(domainUser.value().get('name').get('value')).toBe('John Stuart');
@@ -83,17 +83,45 @@ describe('adpter', () => {
 
 	describe('from domain to data layer', () => {
 		it('should create a model from domain with success', () => {
-			const adpter = new DataUserAdapter();
+			const adapter = new DataUserAdapter();
 
-			const model = adpter.build(domainUser);
+			const model = adapter.build(domainUser);
 
 			expect(model.value()).toEqual(userModel);
 		});
 
-		it('should toObject method use adpter', () => {
-			const adpter = new DataUserAdapter();
-			const model = domainUser.toObject(adpter);
+		it('should toObject method use adapter', () => {
+			const adapter = new DataUserAdapter();
+			const model = domainUser.toObject(adapter);
 			expect(model).toEqual(userModel);
 		})
+	});
+
+	describe('adapter with custom error', () => {
+
+		type In = { a: number };
+		type Out = { b: string };
+		type Err = { err: string; stack?: string };
+
+		class CustomAdapter implements IAdapter<In, Out, Err>{
+			build(target: In): IResult<Out, Err> {
+				if (typeof target.a !== 'number') return Fail({ err: 'target.a is not a number' });
+				return Ok({ b: target.a.toString() });
+			}
+		}
+
+		const adapter = new CustomAdapter();
+
+		it('should return a success payload', () => {
+			const result = adapter.build({ a: 200 });
+			expect(result.isOk()).toBeTruthy();
+			expect(result.value()).toEqual({ b: '200' });
+		});
+
+		it('should return a custom error', () => {
+			const result = adapter.build({ a: null as any });
+			expect(result.isFail()).toBeTruthy();
+			expect(result.error()).toEqual({ err: 'target.a is not a number' });
+		});
 	});
 });

@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.18.3] - 2022-07-30
+
+### Fixed
+
+- fixed: ensure custom payload error to adapter
+
+---
+
 ### [1.18.2] - 2022-07-09
 
 ### Fixed
