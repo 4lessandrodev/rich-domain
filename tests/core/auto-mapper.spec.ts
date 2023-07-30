@@ -1,5 +1,5 @@
 import { Aggregate, AutoMapper, Entity, Id, ID, Iterator, Ok, Result, ValueObject } from "../../lib/core";
-import { Payload, UID } from "../../lib/types";
+import { UID } from "../../lib/types";
 
 describe('auto-mapper', () => {
 
@@ -320,7 +320,7 @@ describe('auto-mapper', () => {
 				super(props);
 			}
 
-			public static create(props: AggProps): Payload<Order> {
+			public static create(props: AggProps): Result<Order> {
 				return Ok(new Order(props));
 			}
 		}
@@ -440,8 +440,8 @@ describe('auto-mapper', () => {
 			summary: string[];
 		}
 
-		class Name extends ValueObject<ValueA>{}
-		class Age extends ValueObject<ValueB>{}
+		class Name extends ValueObject<ValueA>{ }
+		class Age extends ValueObject<ValueB>{ }
 
 		interface PropsA {
 			id?: UID;
@@ -454,7 +454,7 @@ describe('auto-mapper', () => {
 			createdAt: Date;
 		}
 
-		class Profile extends Entity<PropsA>{}
+		class Profile extends Entity<PropsA>{ }
 		interface PropsB {
 			id?: UID;
 			profile: Profile;
@@ -464,32 +464,32 @@ describe('auto-mapper', () => {
 			createdAt: Date;
 		}
 
-		class Example extends Entity<PropsB>{}
+		class Example extends Entity<PropsB>{ }
 
-		const profile = {
+		const profile: PropsA = {
 			age: Age.create({ value: 21 }).value(),
 			data: 'lorem ipsum',
-			name: Name.create({ value: 'Mille'}).value(),
-			notes: [10,20,30],
+			name: Name.create({ value: 'Mille' }).value(),
+			notes: [10, 20, 30],
 			value: 7,
 			id: Id('valid-uuid-2'),
 			createdAt: new Date('2023-01-05T18:20:41.916Z'),
-			detail:{
+			detail: {
 				likes: 200,
 				nick: 'Loader',
 				site: '4dev.com',
-				summary: ['page1', 'page2']
-			}
-		} satisfies PropsA;
+				summary: ['page1', 'page2'],
+			},
+		};
 
-		const props = {
+		const props: PropsB = {
 			cite: 'Lorem',
 			isMarried: true,
 			profile: Profile.create(profile).value(),
 			value: 42,
 			id: Id('valid-uuid-1'),
 			createdAt: new Date('2023-01-05T18:20:41.916Z'),
-		} satisfies PropsB;
+		};
 
 		const entity = Example.create(props).value();
 
@@ -506,12 +506,12 @@ describe('auto-mapper', () => {
 					age: 21,
 					data: 'lorem ipsum',
 					name: 'Mille',
-					notes: [10,20,30],
+					notes: [10, 20, 30],
 					value: 7,
 					id: 'valid-uuid-2',
 					createdAt: new Date("2023-01-05T18:20:41.916Z"),
 					updatedAt: expect.any(Date),
-					detail:{
+					detail: {
 						likes: 200,
 						nick: 'Loader',
 						site: '4dev.com',
@@ -521,4 +521,171 @@ describe('auto-mapper', () => {
 			});
 		})
 	});
+
+	describe('uid', () => {
+		it('should get value from entity attribute if instance of ID', () => {
+
+			interface Props {
+				id: UID;
+				userId: UID;
+				some: string;
+				arr: UID[];
+				createdAt: Date;
+				updatedAt: Date;
+			}
+			class Sample extends Entity<Props> {
+				private constructor(props: Props) {
+					super(props)
+				}
+				public static create(props: Props): Result<Sample> {
+					return Ok(new Sample(props));
+				}
+			}
+
+			const t = {
+				createdAt: new Date('2020-01-01 00:00:00'),
+				updatedAt: new Date('2020-01-01 00:00:00'),
+				id: '80961b81-0d45-454a-b54a-b146c7700828',
+				userId: 'aa1d2188-cf30-4a57-abf1-ff28c1ee71db',
+				some: 'sample',
+				arr: [
+					'91861ce3-5e29-44d3-9a4c-850c585d87b5',
+					'647ec7ca-98c7-4078-ae4a-7a62fe1a47f1'
+				]
+			};
+
+			const result = Sample.create({
+				arr: [Id(t.arr[0]), Id(t.arr[1])],
+				id: Id(t.id),
+				some: 'sample',
+				userId: Id(t.userId),
+				createdAt: t.createdAt,
+				updatedAt: t.updatedAt
+			}).value()
+			expect(result.toObject()).toEqual(t);
+		});
+
+		it('should get value from value object attribute if instance of ID', () => {
+
+			interface Props {
+				userId: UID;
+				some: string;
+				arr: UID[];
+			}
+			class Sample extends ValueObject<Props> {
+				private constructor(props: Props) {
+					super(props)
+				}
+				public static create(props: Props): Result<Sample> {
+					return Ok(new Sample(props));
+				}
+			}
+
+			const t = {
+				userId: 'aa1d2188-cf30-4a57-abf1-ff28c1ee71db',
+				some: 'sample',
+				arr: [
+					'91861ce3-5e29-44d3-9a4c-850c585d87b5',
+					'647ec7ca-98c7-4078-ae4a-7a62fe1a47f1'
+				]
+			};
+
+			const result = Sample.create({
+				arr: [Id(t.arr[0]), Id(t.arr[1])],
+				some: 'sample',
+				userId: Id(t.userId)
+			}).value()
+
+			expect(result.toObject()).toEqual(t);
+		});
+	});
+
+	describe('value-object', () => {
+		interface Props1 { text: string };
+		class Vo1 extends ValueObject<Props1>{
+			private constructor(props: Props1) {
+				super(props)
+			}
+
+			public static create(text: string): Result<Vo1, { e: string }> {
+				return Ok(new Vo1({ text }));
+			}
+		};
+
+		interface Props2 { text: string; vo1: Vo1, nullable: number | null };
+		class Vo2 extends ValueObject<Props2>{
+			private constructor(props: Props2) {
+				super(props)
+			}
+
+			public static create(props: Props2): Result<Vo2, { e: string }> {
+				return Ok(new Vo2(props));
+			}
+		};
+
+		interface Props3 {
+			level3: Vo2;
+			level1: Vo1;
+			simple: string;
+			nullable: number | null;
+			id: UID;
+			createdAt: Date;
+			updatedAt: Date;
+		}
+		class Sample extends Entity<Props3>{
+			private constructor(props: Props3) {
+				super(props)
+			}
+
+			public static create(props: Props3): Result<Sample, { e: string }> {
+				return Ok(new Sample(props));
+			}
+		}
+
+		it('should transform in simple object when value object inside other', () => {
+			const vo1 = Vo1.create('sub-object').value();
+			const vo = Vo2.create({ text: 'example', vo1, nullable: 10 }).value();
+
+			expect(vo.toObject()).toMatchInlineSnapshot(`
+	Object {
+	  "nullable": 10,
+	  "text": "example",
+	  "vo1": "sub-object",
+	}
+	`);
+
+		})
+		it('should transform on entity', () => {
+			const vo1 = Vo1.create('sub-object').value();
+			const vo2 = Vo2.create({ text: 'example', vo1, nullable: null }).value();
+			const date = new Date();
+
+			const sample = Sample.create({
+				level1: vo1,
+				level3: vo2,
+				nullable: null,
+				simple: 'hey there',
+				id: Id('8280c69f-be52-4918-ada9-f43d4703dbfe'),
+				createdAt: date,
+				 updatedAt: date
+			}).value();
+
+			expect(sample.toObject()).toMatchInlineSnapshot(`
+Object {
+  "createdAt": ${date.toISOString()},
+  "id": "8280c69f-be52-4918-ada9-f43d4703dbfe",
+  "level1": "sub-object",
+  "level3": Object {
+    "nullable": null,
+    "text": "example",
+    "vo1": "sub-object",
+  },
+  "nullable": null,
+  "simple": "hey there",
+  "updatedAt": ${date.toISOString()},
+}
+`);
+		})
+	});
+
 });

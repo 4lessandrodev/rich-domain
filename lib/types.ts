@@ -223,8 +223,8 @@ export interface IEvent<G> {
 
 export type IReplaceOptions = 'REPLACE_DUPLICATED' | 'UPDATE' | 'KEEP';
 
-export interface IAdapter<F, T> {
-	build(target: F): IResult<T>;
+export interface IAdapter<F, T, E = any, M = any> {
+	build(target: F): IResult<T, E, M>;
 }
 
 export interface IEntity<Props> {

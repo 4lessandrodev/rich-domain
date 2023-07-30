@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+
+---
+
+### [1.18.3] - 2022-07-30
+
+### Fixed
+
+- fixed: ensure custom payload error to adapter
+
+---
+
+### [1.18.2] - 2022-07-09
+
+### Fixed
+
+- fixed: ensure provide null value when call toObject function on entity, aggregate and value objects
+- fixed: ensure custom payload type on create method
+
+---
+### [1.18.1] - 2022-06-30
+
+### Fixed
+
+- fixed: check if exists some id before transform to a simple value on execute toObject method.
+
 ---
 ### [1.18.0] - 2022-03-15
 
