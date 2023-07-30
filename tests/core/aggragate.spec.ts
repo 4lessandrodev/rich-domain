@@ -1,4 +1,4 @@
-import { Aggregate, ID, Result, ValueObject } from "../../lib/core";
+import { Aggregate, ID, Ok, Result, ValueObject } from "../../lib/core";
 import { IDomainEvent, IHandle, IResult, ISettings, UID } from "../../lib/types";
 
 describe('aggregate', () => {
@@ -266,10 +266,10 @@ describe('aggregate', () => {
 
 
 		it('should dispatch domain event from aggregate', async () => {
-			
+
 			class Handler implements IHandle<UserAgg> {
 				public eventName?: string | undefined;
-				constructor(){
+				constructor() {
 					this.eventName = "hello"
 				}
 				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
@@ -289,10 +289,10 @@ describe('aggregate', () => {
 		});
 
 		it('should dispatch all domain events from aggregate', () => {
-			
+
 			class HandlerA implements IHandle<UserAgg> {
 				public eventName?: string | undefined;
-				constructor(){
+				constructor() {
 					this.eventName = "helloA"
 				}
 				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
@@ -301,7 +301,7 @@ describe('aggregate', () => {
 			}
 			class HandlerB implements IHandle<UserAgg> {
 				public eventName?: string | undefined;
-				constructor(){
+				constructor() {
 					this.eventName = "helloB"
 				}
 				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
@@ -356,7 +356,7 @@ describe('aggregate', () => {
 
 			expect(agg.eventsMetrics.current).toBe(1);
 
-			agg.dispatchEvent( Handler.name)
+			agg.dispatchEvent(Handler.name)
 
 			expect(agg.eventsMetrics.current).toBe(0);
 		});
@@ -425,9 +425,9 @@ describe('aggregate', () => {
 				createdAt: new Date(),
 				updatedAt: new Date()
 			});
-			
+
 			const id = result.value().toObject().id;
-			
+
 			expect(id).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
 			expect(result.value().id.value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
 			expect(result.value().get('id').value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
@@ -437,7 +437,7 @@ describe('aggregate', () => {
 	describe('aggregate events', () => {
 		it('should dispatch all events once', async () => {
 
-			class Agg extends Aggregate<{ key: string }> {};
+			class Agg extends Aggregate<{ key: string }> { };
 			class Event implements IHandle<Agg> {
 				dispatch(): Promise<void> {
 					return Promise.resolve();
@@ -463,7 +463,7 @@ describe('aggregate', () => {
 
 		it('should clear events and metrics', async () => {
 
-			class Agg extends Aggregate<{ key: string }> {};
+			class Agg extends Aggregate<{ key: string }> { };
 			class Event implements IHandle<Agg> {
 				dispatch(): Promise<void> {
 					return Promise.resolve();
@@ -507,7 +507,7 @@ describe('aggregate', () => {
 
 			class Event implements IHandle<Agg> {
 				eventName: string;
-				constructor(name: string){
+				constructor(name: string) {
 					this.eventName = name;
 				}
 				dispatch(): Promise<void> {
@@ -537,6 +537,48 @@ describe('aggregate', () => {
 			const none = copy.clone();
 			expect(none.eventsMetrics.current).toBe(0);
 			expect(none.eventsMetrics.dispatch).toBe(0);
+		});
+	});
+
+	describe('toObject', () => {
+		it('should infer types to aggregate on toObject method', () => {
+
+			class Name extends ValueObject<{ value: string }>{
+				private constructor(props: { value: string }) {
+					super(props)
+				}
+
+				public static create(value: string): Result<Name> {
+					return Ok(new Name({ value }));
+				}
+			}
+
+			interface Props {
+				id?: UID;
+				price: number;
+				name: Name;
+				additionalInfo: string[];
+				createdAt?: Date;
+				updatedAt?: Date;
+			};
+
+			class Product extends Aggregate<Props>{
+				private constructor(props: Props) {
+					super(props)
+				}
+				public static create(props: Props): Result<Product> {
+					return Ok(new Product(props));
+				}
+			}
+
+			const name = Name.create('orange').value();
+			const props: Props = { name, additionalInfo: ['from brazil'], price: 10 };
+			const orange = Product.create(props).value();
+
+			const object = orange.toObject();
+			expect(object.additionalInfo).toEqual(['from brazil']);
+			expect(object.name).toBe('orange');
+			expect(object.price).toBe(10);
 		});
 	});
 });
