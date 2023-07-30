@@ -1,4 +1,4 @@
-import {  Entity, Id, Ok, Result } from "../../lib/core";
+import {  Entity, Id, Ok, Result, ValueObject } from "../../lib/core";
 import { IResult, UID } from "../../lib/types";
 
 describe("entity", () => {
@@ -245,7 +245,7 @@ describe("entity", () => {
 			}
 		}
 
-		it('should fiail if provide an invalid value', () => {
+		it('should fail if provide an invalid value', () => {
 			const ent = ValSamp.create({ foo: '' });
 			expect(ent.isFail()).toBeTruthy();
 		});
@@ -254,6 +254,48 @@ describe("entity", () => {
 			const ent = ValSamp.create({ foo: ' Some Value With Spaces ' });
 			expect(ent.isOk()).toBeTruthy();
 			expect(ent.value().RemoveSpace()).toBe('SomeValueWithSpaces');
+		});
+	});
+
+	describe('toObject', () => {
+		it('should infer types to aggregate on toObject method', () => {
+
+			class Name extends ValueObject<{ value: string }>{
+				private constructor(props: { value: string }) {
+					super(props)
+				}
+
+				public static create(value: string): Result<Name> {
+					return Ok(new Name({ value }));
+				}
+			}
+
+			interface Props {
+				id?: UID;
+				price: number;
+				name: Name;
+				additionalInfo: string[];
+				createdAt?: Date;
+				updatedAt?: Date;
+			};
+
+			class Product extends Entity<Props>{
+				private constructor(props: Props) {
+					super(props)
+				}
+				public static create(props: Props): Result<Product> {
+					return Ok(new Product(props));
+				}
+			}
+
+			const name = Name.create('orange').value();
+			const props: Props = { name, additionalInfo: ['from brazil'], price: 10 };
+			const orange = Product.create(props).value();
+
+			const object = orange.toObject();
+			expect(object.additionalInfo).toEqual(['from brazil']);
+			expect(object.name).toBe('orange');
+			expect(object.price).toBe(10);
 		});
 	});
 });
