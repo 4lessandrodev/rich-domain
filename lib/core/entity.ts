@@ -20,18 +20,18 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 
 	/** 
 	 * @description Check if entity instance props is equal another provided instance props.
-	 * @param createdAt is not considered on comparation
-	 * @param updatedAt is not considered on comparation
+	 * @param createdAt is not considered on compare
+	 * @param updatedAt is not considered on compare
 	 * @returns true if props is equal and false if not.
 	*/
-	isEqual(other: Entity<Props>): boolean {
-		const currentProps = Object.assign({}, {}, { ...this.props });
-		const providedProps = Object.assign({}, {}, { ...other.props });
+	isEqual(other: this): boolean {
+		const currentProps = Object.assign({}, {}, { ...this?.props });
+		const providedProps = Object.assign({}, {}, { ...other?.props });
 		delete currentProps?.['createdAt'];
 		delete currentProps?.['updatedAt'];
 		delete providedProps?.['createdAt'];
 		delete providedProps?.['updatedAt'];
-		const equalId = this.id.equal(other.id);
+		const equalId = this.id.equal(other?.id);
 		const serializedA = JSON.stringify(currentProps);
 		const serializedB = JSON.stringify(providedProps);
 		const equalSerialized = serializedA === serializedB;
@@ -84,7 +84,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @returns new Entity instance.
 	 */
 	clone(props?: Partial<Props>): this {
-		const _props = props ? { ...this.props, ...props } : this.props;
+		const _props = props ? { ...this.props, ...props } : { ...this.props };
 		const instance = Reflect.getPrototypeOf(this);
 		const args = [_props, this.config];
 		const entity = Reflect.construct(instance!.constructor, args);
