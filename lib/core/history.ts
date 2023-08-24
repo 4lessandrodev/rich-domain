@@ -3,6 +3,7 @@ import ID from "./id";
 import Iterator from "./iterator";
 
 /**
+ * @deprecated this method will be removed on next version
  * @description Manage state props as history.
  */
  export class History<Props> implements IHistory<Props> {
