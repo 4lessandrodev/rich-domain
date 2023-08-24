@@ -15,13 +15,13 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 
 	/** 
 	 * @description Check if value object instance props is equal another provided instance props.
-	 * @param createdAt is not considered on comparation
-	 * @param updatedAt is not considered on comparation
+	 * @param createdAt is not considered on compare
+	 * @param updatedAt is not considered on compare
 	 * @returns true if props is equal and false if not.
 	*/
-	isEqual(other: ValueObject<Props>): boolean {
-		const currentProps = Object.assign({}, {}, { ...this.props});
-		const providedProps = Object.assign({}, {}, { ...other.props});
+	isEqual(other: this): boolean {
+		const currentProps = Object.assign({}, {}, { ...this?.props});
+		const providedProps = Object.assign({}, {}, { ...other?.props});
 		delete currentProps?.['createdAt'];
 		delete currentProps?.['updatedAt'];
 		delete providedProps?.['createdAt'];
@@ -33,9 +33,10 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 	 * @description Get an instance copy.
 	 * @returns a new instance of value object.
 	 */
-	clone(): ValueObject<Props> {
+	clone(props?: Partial<Props>): ValueObject<Props> {
+		const _props = props ? { ...this.props, ...props } : { ...this.props };
 		const instance = Reflect.getPrototypeOf(this);
-		const args = [this.props, this.config];
+		const args = [_props, this.config];
 		const obj = Reflect.construct(instance!.constructor, args);
 		return obj;
 	}

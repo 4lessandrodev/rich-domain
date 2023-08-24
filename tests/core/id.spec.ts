@@ -54,12 +54,14 @@ describe('ID', () => {
 		it('null must not be equal', () => {
 			expect(typeof ID.create(null).value() === 'string').toBeTruthy();
 			expect(ID.create(null).equal(ID.create())).toBeFalsy();
+			expect(ID.create(null).isEqual(ID.create())).toBeFalsy();
 		});
 
 		it('must be equal', () => {
 			const a = ID.create(null);
 			const b = ID.create(null);
 			expect(a.deepEqual(b)).toBeTruthy();
+			expect(a.isEqual(b)).toBeTruthy();
 		});
 
 		it('must clone id as a new one', () => {
@@ -68,6 +70,7 @@ describe('ID', () => {
 
 			const clone = a.cloneAsNew();
 			expect(clone.equal(a)).toBeTruthy();
+			expect(clone.isEqual(a)).toBeTruthy();
 
 			expect(clone.isNew()).toBeTruthy();
 

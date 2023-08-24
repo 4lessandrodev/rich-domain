@@ -7,6 +7,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.18.4] - 2022-07-23
+
+### Fixed
+
+- fixed: ensure compare null or undefined using `isEqual` method on value-object, entity and aggregate instance.
+- fixed: ensure create props copy on clone domain entities.
+- added: create a shortcut to `isEqual` method on id instance to compare values.
+- changed: mark history (`snapshot`) method as deprecated. Will be removed on next version to improve performance.
+- change: update deps
+
+---
+
 ### [1.18.3] - 2022-07-30
 
 ### Fixed
@@ -14,7 +26,6 @@ All notable changes to this project will be documented in this file.
 - fixed: ensure custom payload error to adapter
 
 ---
-
 ### [1.18.2] - 2022-07-09
 
 ### Fixed
