@@ -1,4 +1,4 @@
-import { Class, ID, Ok, Result, ValueObject } from "../../lib/core";
+import { Class, Ok, Result, ValueObject } from "../../lib/core";
 import { ICommand, IPropsValidation, IResult } from "../../lib/types";
 
 describe('value-object', () => {
@@ -248,88 +248,6 @@ describe('value-object', () => {
 			expect(result.toObject()).toEqual({ foo: 'other', value: 'Sample' });
 		});
 
-		it('should navigate for history', () => {
-
-			interface Props { value: string, foo: string };
-
-			class Sample extends ValueObject<Props>{
-				private constructor(props: Props) {
-					super(props);
-				}
-
-				public static create(props: Props): IResult<Sample> {
-					return Result.Ok(new Sample(props));
-				}
-			};
-
-			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
-
-			expect(sample.value().history().count()).toBe(1);
-
-			sample.value().set('foo').to('changed'); // set
-
-			expect(sample.value().history().count()).toBe(2);
-			expect(sample.value().get('value')).toBe('Sample');
-			expect(sample.value().get('foo')).toBe('changed'); // changed
-
-			sample.value().set('value').to('changed2'); // set changed
-			expect(sample.value().get('value')).toBe('changed2');
-
-			sample.value().history().back();
-			expect(sample.value().get('value')).toBe('Sample');
-			expect(sample.value().get('foo')).toBe('changed');
-
-			sample.value().history().back();
-			expect(sample.value().get('value')).toBe('Sample');
-			expect(sample.value().get('foo')).toBe('bar');
-
-			sample.value().history().forward();
-			expect(sample.value().get('value')).toBe('Sample');
-
-			expect(sample.value().history().list()).toHaveLength(3);
-			sample.value().history().snapshot();
-			expect(sample.value().history().list()).toHaveLength(4);
-		});
-
-		it('should back to a token', () => {
-			interface Props { value: string, foo: string };
-
-			class Sample extends ValueObject<Props>{
-				private constructor(props: Props) {
-					super(props);
-				}
-
-				public static create(props: Props): IResult<Sample> {
-					return Result.Ok(new Sample(props));
-				}
-			};
-
-			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
-
-			const step2 = ID.short();
-			const step3 = ID.short();
-			const step4 = ID.short();
-
-			sample.value().change('foo', 'bar0');
-			sample.value().change('foo', 'bar1');
-			sample.value().history().snapshot(step2);
-
-			sample.value().change('foo', 'bar2');
-			sample.value().change('foo', 'bar3');
-			sample.value().history().snapshot(step3);
-
-			sample.value().change('foo', 'bar4');
-			sample.value().change('foo', 'bar5');
-			sample.value().history().snapshot(step4);
-
-			expect(sample.value().get('foo')).toBe('bar5');
-			sample.value().history().back(step2);
-
-			expect(sample.value().get('foo')).toBe('bar1');
-
-			sample.value().history().forward(step4);
-			expect(sample.value().get('foo')).toBe('bar5');
-		});
 	});
 
 	describe('disable set', () => {

@@ -1,19 +1,14 @@
-import {  IParentName, IPublicHistory, ISettings, UID } from "../types";
-import { ICreateManyDomain, IGettersAndSetters, IHistory, IHistoryProps } from "../types";
+import {  IParentName, ISettings } from "../types";
+import { ICreateManyDomain, IGettersAndSetters } from "../types";
 import  validator, { Validator } from "../utils/validator";
 import  util, { Utils } from "../utils/util";
 import createManyDomainInstances from "./create-many-domain-instance";
-import History from "./history";
 import ID from "./id";
 
 /**
  * @description defines getter and setter to all domain instances.
  */
 export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
-	/**
-	 * @deprecated this method will be removed on next version
-	 */
-	private readonly _MetaHistory: IHistory<Props>;
 	protected validator: Validator = validator;
 	protected static validator: Validator = validator;
 	protected util: Utils = util;
@@ -29,10 +24,6 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 		this.util = util;
 		this.config.disableGetters = !!config?.disableGetters;
 		this.config.disableSetters = !!config?.disableSetters;
-		this._MetaHistory = new History({
-			props: Object.assign({}, { ...this.props }),
-			action: 'create',
-		});
 		this.parentName = parentName;
 	}
 
@@ -63,24 +54,6 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 	 */
 	public static createMany(data: ICreateManyDomain) { 
 		return createManyDomainInstances(data);
-	}
-
-	/**
-	 * @deprecated this method will be removed on next version
-	 * @description Create a snapshot as update action.
-	 * @returns void.
-	 * @see change
-	 * @see set
-	 */
-	private snapshotSet() {
-		if (typeof this._MetaHistory !== 'undefined') {
-			this._MetaHistory.snapshot({
-				action: 'update',
-				props: Object.assign({}, { ...this.props }),
-				ocurredAt: new Date(),
-				token: ID.short()
-			});
-		}
 	}
 
 	/**
@@ -236,7 +209,6 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 						if (this.parentName === 'Entity') {
 							this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 						}
-						this.snapshotSet();
 						return true;
 					}
 					if (this.validator.isID(value)) {
@@ -245,7 +217,6 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 						if (this.parentName === 'Entity') {
 							this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 						}
-						this.snapshotSet();
 						return true;
 					}
 				}
@@ -253,7 +224,6 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 				if (this.parentName === 'Entity') {
 					this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 				}
-				this.snapshotSet();
 				return true;
 			}
 		}
@@ -290,7 +260,6 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 				if (this.parentName === 'Entity') {
 					this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 				}
-				this.snapshotSet();
 				return true;
 			}
 			if (this.validator.isID(value)) {
@@ -299,7 +268,6 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 				if (this.parentName === 'Entity') {
 					this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 				}
-				this.snapshotSet();
 				return true;
 			}
 		}
@@ -307,75 +275,9 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 		if (this.parentName === 'Entity') {
 			this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 		}
-		this.snapshotSet();
 		return true;
 	}
 
-	/**
-	 * @description Manage props state as history.
-	 * @returns IPublicHistory<Props>
-	 * @deprecated this method will be removed on next version
-	 */
-	history(): IPublicHistory<Props> {
-		return {
-			/**
-			 * @description Get previous props state and apply to instance.
-			 * @param token a 16bytes value to identify the target state on history.
-			 * @returns previous state found.
-			 * @deprecated this method will be removed on next version
-			 */
-			back: (token?: UID<string>): IHistoryProps<Props> => {
-				const prevState = this._MetaHistory.back(token);
-				this.props = prevState ? prevState.props : this.props;
-				return prevState;
-			},
-
-			/**
-			 * @description Get next props state and apply to instance.
-			 * @param token a 16bytes value to identify the target state on history.
-			 * @returns next state found.
-			 * @deprecated this method will be removed on next version
-			 */
-			forward: (token?: UID<string>): IHistoryProps<Props> => {
-				const nextState = this._MetaHistory.forward(token);
-				this.props = nextState ? nextState.props : this.props;
-				return nextState;
-			},
-
-			/**
-			 * @description Create a new snapshot from current state.
-			 * @param token a 16bytes key to identify the state on history.
-			 * @returns
-			 * @deprecated this method will be removed on next version
-			 */
-			snapshot: (token?: UID<string>): IHistoryProps<Props> => {
-				return this._MetaHistory.snapshot({
-					action: 'update',
-					props: Object.assign({}, { ...this.props }),
-					ocurredAt: new Date(),
-					token,
-				});
-			},
-
-			/**
-			 * @description Get all props on state as history.
-			 * @returns a list of props on state.
-			 * @deprecated this method will be removed on next version
-			 */
-			list: (): IHistoryProps<Props>[] => {
-				return this._MetaHistory.list()
-			},
-
-			/**
-			 * @description Get total of props on state as history.
-			 * @returns total of props on state.
-			 * @deprecated this method will be removed on next version
-			 */
-			count: (): number => {
-				return this._MetaHistory.count()
-			},
-		}
-	}
 }
 
 export default GettersAndSetters;
