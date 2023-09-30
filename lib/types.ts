@@ -248,7 +248,6 @@ export interface IGettersAndSetters<Props> {
 		to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => boolean;
 	};
 	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean): boolean;
-	history(): IPublicHistory<Props>;
 }
 
 export interface IAggregate<Props> {
