@@ -7,15 +7,35 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### [1.18.3] - 2022-07-30
+### [1.19.0] - 2023-09-30
+
+### Changed
+
+- changed: remove history (`snapshot`) deprecated method. removed to improve performance and save memory usage.
+- change: update deps
+
+---
+
+### [1.18.4] - 2023-07-23
+
+### Fixed
+
+- fixed: ensure compare null or undefined using `isEqual` method on value-object, entity and aggregate instance.
+- fixed: ensure create props copy on clone domain entities.
+- added: create a shortcut to `isEqual` method on id instance to compare values.
+- changed: mark history (`snapshot`) method as deprecated. Will be removed on next version to improve performance.
+- change: update deps
+
+---
+
+### [1.18.3] - 2023-07-30
 
 ### Fixed
 
 - fixed: ensure custom payload error to adapter
 
 ---
-
-### [1.18.2] - 2022-07-09
+### [1.18.2] - 2023-07-09
 
 ### Fixed
 
@@ -23,14 +43,14 @@ All notable changes to this project will be documented in this file.
 - fixed: ensure custom payload type on create method
 
 ---
-### [1.18.1] - 2022-06-30
+### [1.18.1] - 2023-06-30
 
 ### Fixed
 
 - fixed: check if exists some id before transform to a simple value on execute toObject method.
 
 ---
-### [1.18.0] - 2022-03-15
+### [1.18.0] - 2023-03-15
 
 ### Changed
 
@@ -77,14 +97,14 @@ const userCopy = user.clone({ name });
 
 ---
 
-### [1.17.3] - 2022-03-12
+### [1.17.3] - 2023-03-12
 
 ### Update
 
 - update build
 
 ---
-### [1.17.2] - 2022-03-12
+### [1.17.2] - 2023-03-12
 
 ### Added
 
@@ -98,7 +118,7 @@ user.dispatchEvent('EventName', handler);
 
 ---
 
-### [1.17.1] - 2022-01-27
+### [1.17.1] - 2023-01-27
 
 ### Fix
 
@@ -128,7 +148,7 @@ util.number(0).divideBy(1);
 
 ---
 
-### [1.17.0] - 2022-01-21
+### [1.17.0] - 2023-01-21
 
 ### Changed
 - Rename methods
@@ -164,7 +184,7 @@ console.log(copy.get("name").get("value"))
 
 ---
 
-### [1.16.3] - 2022-01-20
+### [1.16.3] - 2023-01-20
 
 ### Added
 
@@ -172,7 +192,7 @@ console.log(copy.get("name").get("value"))
 
 ---
 
-### [1.16.2] - 2022-01-19
+### [1.16.2] - 2023-01-19
 
 ### Added
 
@@ -181,7 +201,7 @@ console.log(copy.get("name").get("value"))
 
 ---
 
-### [1.16.1] - 2022-01-18
+### [1.16.1] - 2023-01-18
 
 ### Added
 
@@ -190,7 +210,7 @@ console.log(copy.get("name").get("value"))
 
 ---
 
-### [1.16.0] - 2022-01-12
+### [1.16.0] - 2023-01-12
 
 ### Added
 
@@ -198,14 +218,14 @@ console.log(copy.get("name").get("value"))
 - ValueObject: added method `isEqual` to compare current instance with another one. [Issue 27](https://github.com/4lessandrodev/rich-domain/issues/27)
 
 ---
-### [1.15.2] - 2022-01-05
+### [1.15.2] - 2023-01-05
 
 ### Fixed
 
 - toObject method on entity: fix error on process simple object on entity [issue #25](https://github.com/4lessandrodev/rich-domain/issues/25)
 
 ---
-### [1.15.1] - 2022-01-03
+### [1.15.1] - 2023-01-03
 
 ### Changed
 
@@ -233,7 +253,7 @@ The function still works, but it is marked as deprecated. show warning if using.
 
 ### Fixed
 
-- AutoMapper: fix convertion for aggregate
+- AutoMapper: fix conversion for aggregate
 - Now its possible to convert entity on aggregate
 
 ---

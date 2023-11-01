@@ -97,7 +97,16 @@ export class ID<T = string> implements UID<T> {
 	 * @returns `true` if provided id value and instance value has the same value and `false` if not.
 	 */
 	equal(id: UID<any>): boolean {
-		return (typeof this._value === typeof id.value()) && (this._value as any === id.value());
+		return (typeof this._value === typeof id?.value()) && (this._value as any === id?.value());
+	}
+
+	/**
+	 * @description Compare value from instance and provided id.
+	 * @param id instance of ID
+	 * @returns `true` if provided id value and instance value has the same value and `false` if not.
+	 */
+	isEqual(id: UID<any>): boolean {
+		return this.equal(id);
 	}
 
 	/**

@@ -1,4 +1,4 @@
-import { Class, ID, Ok, Result, ValueObject } from "../../lib/core";
+import { Class, Ok, Result, ValueObject } from "../../lib/core";
 import { ICommand, IPropsValidation, IResult } from "../../lib/types";
 
 describe('value-object', () => {
@@ -228,88 +228,26 @@ describe('value-object', () => {
 			expect(sample.value().toObject()).toEqual(result.toObject())
 		});
 
-		it('should navigate for history', () => {
+		it('should clone a value object with custom props', () => {
 
-			interface Props { value: string, foo: string };
-
+			interface Props { value: string; foo: string; }
 			class Sample extends ValueObject<Props>{
 				private constructor(props: Props) {
 					super(props);
 				}
 
-				public static create(props: Props): IResult<Sample> {
-					return Result.Ok(new Sample(props));
+				public static create(props: Props): Result<Sample> {
+					return Ok(new Sample(props));
 				}
 			};
 
 			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
 
-			expect(sample.value().history().count()).toBe(1);
+			const result = sample.value().clone({ foo: 'other' });
 
-			sample.value().set('foo').to('changed'); // set
-
-			expect(sample.value().history().count()).toBe(2);
-			expect(sample.value().get('value')).toBe('Sample');
-			expect(sample.value().get('foo')).toBe('changed'); // changed
-
-			sample.value().set('value').to('changed2'); // set changed
-			expect(sample.value().get('value')).toBe('changed2');
-
-			sample.value().history().back();
-			expect(sample.value().get('value')).toBe('Sample');
-			expect(sample.value().get('foo')).toBe('changed');
-
-			sample.value().history().back();
-			expect(sample.value().get('value')).toBe('Sample');
-			expect(sample.value().get('foo')).toBe('bar');
-
-			sample.value().history().forward();
-			expect(sample.value().get('value')).toBe('Sample');
-
-			expect(sample.value().history().list()).toHaveLength(3);
-			sample.value().history().snapshot();
-			expect(sample.value().history().list()).toHaveLength(4);
+			expect(result.toObject()).toEqual({ foo: 'other', value: 'Sample' });
 		});
 
-		it('should back to a token', () => {
-			interface Props { value: string, foo: string };
-
-			class Sample extends ValueObject<Props>{
-				private constructor(props: Props) {
-					super(props);
-				}
-
-				public static create(props: Props): IResult<Sample> {
-					return Result.Ok(new Sample(props));
-				}
-			};
-
-			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
-
-			const step2 = ID.short();
-			const step3 = ID.short();
-			const step4 = ID.short();
-
-			sample.value().change('foo', 'bar0');
-			sample.value().change('foo', 'bar1');
-			sample.value().history().snapshot(step2);
-
-			sample.value().change('foo', 'bar2');
-			sample.value().change('foo', 'bar3');
-			sample.value().history().snapshot(step3);
-
-			sample.value().change('foo', 'bar4');
-			sample.value().change('foo', 'bar5');
-			sample.value().history().snapshot(step4);
-
-			expect(sample.value().get('foo')).toBe('bar5');
-			sample.value().history().back(step2);
-
-			expect(sample.value().get('foo')).toBe('bar1');
-
-			sample.value().history().forward(step4);
-			expect(sample.value().get('foo')).toBe('bar5');
-		});
 	});
 
 	describe('disable set', () => {
@@ -344,9 +282,9 @@ describe('value-object', () => {
 		it('should disable set with success', () => {
 			const result = HumanAge.create({ value: 10, birthDay: new Date('2022-01-01T03:00:00.000Z') });
 			const age = result.value();
-			
+
 			expect(age.get('value')).toBe(10);
-			
+
 			age.set('birthDay').to(new Date());
 			age.set('value').to(55);
 
@@ -524,11 +462,11 @@ describe('value-object', () => {
 			expect(result.value().get('value')).toBe('valid_value');
 
 			result.value().set('value').to('change_value');
-			
+
 			expect(result.value().get('value')).toBe('change_value');
-	
+
 			result.value().set('value').to('invalid');
-	
+
 			expect(result.value().get('value')).toBe('change_value');
 		})
 	});
@@ -539,7 +477,7 @@ describe('value-object', () => {
 			value: string;
 		}
 		class Exam extends ValueObject<Props> {
-			private constructor(props: Props){
+			private constructor(props: Props) {
 				super(props)
 			}
 
@@ -549,22 +487,22 @@ describe('value-object', () => {
 		};
 
 		it('should to be equal another instance', () => {
-			const a = Exam.create({ value : "hello there" }).value();
-			const b = Exam.create({ value : "hello there" }).value();
+			const a = Exam.create({ value: "hello there" }).value();
+			const b = Exam.create({ value: "hello there" }).value();
 
 			expect(a.isEqual(b)).toBeTruthy();
 		});
 
 		it('should to be equal another instance', () => {
-			const a = Exam.create({ value : "hello there" }).value();
+			const a = Exam.create({ value: "hello there" }).value();
 			const b = a.clone();
 
 			expect(a.isEqual(b)).toBeTruthy();
 		});
 
 		it('should not to be equal another instance', () => {
-			const a = Exam.create({ value : "hello there 1" }).value();
-			const b = Exam.create({ value : "hello there 2" }).value();
+			const a = Exam.create({ value: "hello there 1" }).value();
+			const b = Exam.create({ value: "hello there 2" }).value();
 
 			expect(a.isEqual(b)).toBeFalsy();
 		});
@@ -576,12 +514,12 @@ describe('value-object', () => {
 			value: string;
 		}
 		class Exam extends ValueObject<Props> {
-			private constructor(props: Props){
+			private constructor(props: Props) {
 				super(props)
 			}
 
 			RemoveSpaces(fromValue?: string): string {
-				if(fromValue) return this.util.string(fromValue).removeSpaces();
+				if (fromValue) return this.util.string(fromValue).removeSpaces();
 				return this.util.string(this.props.value).removeSpaces();
 			}
 
@@ -595,18 +533,50 @@ describe('value-object', () => {
 		};
 
 		it('should remove spaces', () => {
-			const a = Exam.create({ value : " Some Value With Many Space" }).value();
+			const a = Exam.create({ value: " Some Value With Many Space" }).value();
 			expect(a.RemoveSpaces()).toBe('SomeValueWithManySpace');
 		});
 
 		it('should remove special chars', () => {
-			const a = Exam.create({ value : "#Some@Value&With%Many*Special-Chars" }).value();
+			const a = Exam.create({ value: "#Some@Value&With%Many*Special-Chars" }).value();
 			expect(a.RemoveSpecialChars()).toBe('SomeValueWithManySpecialChars');
 		});
 
 		it('should remove special chars and spaces', () => {
-			const a = Exam.create({ value : "#Some @Value &With %Many *Special-Chars" }).value();
+			const a = Exam.create({ value: "#Some @Value &With %Many *Special-Chars" }).value();
 			expect(a.RemoveSpaces(a.RemoveSpecialChars())).toBe('SomeValueWithManySpecialChars');
 		});
+	});
+
+	describe('compare', () => {
+
+		interface Props { value: string };
+		class Simple extends ValueObject<Props> {
+			constructor(props: Props) {
+				super(props)
+			}
+
+			public static create(props: Props): IResult<Simple> {
+				return Result.Ok(new Simple(props));
+			}
+		}
+
+		it('should infer type on compare', () => {
+			const a = Simple.create({ value: 'a' }).value();
+			const b = Simple.create({ value: 'b' }).value();
+			const c = Simple.create({ value: 'a' }).value();
+
+			expect(a.isEqual(b)).toBeFalsy();
+			expect(a.isEqual(c)).toBeTruthy();
+		});
+
+		it('should compare nullable or undefined', () => {
+			const a = Simple.create({ value: 'a' }).value();
+			const b = Simple.create({ value: 'b' }).value();
+
+			expect(a.isEqual(null as unknown as Simple)).toBeFalsy();
+			expect(b.isEqual(undefined as unknown as Simple)).toBeFalsy();
+		});
+
 	});
 });

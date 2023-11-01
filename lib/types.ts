@@ -52,6 +52,7 @@ export interface UID<T = string> {
 	createdAt(): Date;
 	isShort(): boolean;
 	equal(id: UID<string>): boolean;
+	isEqual(id: UID<string>): boolean;
 	deepEqual(id: UID<string>): boolean;
 	cloneAsNew(): UID<string>;
 	clone(): UID<T>;
@@ -247,7 +248,6 @@ export interface IGettersAndSetters<Props> {
 		to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => boolean;
 	};
 	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean): boolean;
-	history(): IPublicHistory<Props>;
 }
 
 export interface IAggregate<Props> {

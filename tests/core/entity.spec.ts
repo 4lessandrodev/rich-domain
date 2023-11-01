@@ -1,4 +1,4 @@
-import {  Entity, Id, Ok, Result, ValueObject } from "../../lib/core";
+import { Entity, Id, Ok, Result, ValueObject } from "../../lib/core";
 import { IResult, UID } from "../../lib/types";
 
 describe("entity", () => {
@@ -6,7 +6,7 @@ describe("entity", () => {
 	describe("simple entity", () => {
 
 		interface Props { id?: string, foo: string };
-		
+
 		class EntitySample extends Entity<Props> {
 			private constructor(props: Props) {
 				super(props);
@@ -25,7 +25,7 @@ describe("entity", () => {
 			const ent = EntitySample.create({ foo: 'bar' });
 
 			ent.value().change('foo', 'changed');
-			expect(ent.isOk()).toBeTruthy();	
+			expect(ent.isOk()).toBeTruthy();
 		});
 	});
 
@@ -67,30 +67,6 @@ describe("entity", () => {
 			expect(clone.get('key')).toBe('value');
 		});
 
-		it('should snapshot entity', () => {
-			expect(entity.value().history().count()).toBe(1);
-			entity.value().history().snapshot();
-			expect(entity.value().history().count()).toBe(2);
-		});
-
-		it('should return last history if try to go next and it does not exists', () => {
-			const step1 = entity.value().history().forward();
-			const step2 = entity.value().history().forward();
-			const step3 = entity.value().history().forward();
-			const step4 = entity.value().history().forward();
-
-			expect(step1).not.toBeNull();
-			expect(step2).not.toBeNull();
-			expect(step3).not.toBeNull();
-			expect(step4).not.toBeNull();
-		});
-
-		it('should list history', () => {
-			const history = entity.value().history().list();
-			expect(Array.isArray(history)).toBeTruthy();
-			expect(history).toHaveLength(2);
-		});
-
 		it('should return fail if provide null props', () => {
 			const result = En.create(null);
 			expect(result.isFail()).toBeTruthy();
@@ -99,7 +75,7 @@ describe("entity", () => {
 
 	describe("should accept validation without error", () => {
 		interface Props { id?: string, foo: string };
-		
+
 		class EntitySample extends Entity<Props> {
 			private constructor(props: Props) {
 				super(props);
@@ -166,43 +142,43 @@ describe("entity", () => {
 
 		it("should to be equal", () => {
 
-			const props = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
+			const props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
 			const id = Id();
 
-			const a = EntityExample.create({...props, id }).value();
-			const b = EntityExample.create({...props, id}).value();
-			
+			const a = EntityExample.create({ ...props, id }).value();
+			const b = EntityExample.create({ ...props, id }).value();
+
 			expect(a.isEqual(b)).toBeTruthy();
 		});
 
 		it("should to be equal", () => {
 
 			const id = Id();
-			const props = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
+			const props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
 
-			const a = EntityExample.create({...props, id}).value();
+			const a = EntityExample.create({ ...props, id }).value();
 			const b = a.clone();
-			
+
 			expect(a.isEqual(b)).toBeTruthy();
 		});
 
 		it("should not to be equal if change state", () => {
 
 			const id = Id();
-			const props = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
+			const props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
 
-			const a = EntityExample.create({...props, id}).value();
+			const a = EntityExample.create({ ...props, id }).value();
 			const b = a.clone();
 			b.set('key').to(201);
-			
+
 			expect(a.isEqual(b)).toBeFalsy();
 		});
 
 		it("should not to be equal if state is different", () => {
 
 			const id = Id();
-			const propsA = { id, key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
-			const propsB = { id, key: 200, values:[ {name: 'abc'},{name: 'dif'}] } satisfies Props;
+			const propsA = { id, key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
+			const propsB = { id, key: 200, values: [{ name: 'abc' }, { name: 'dif' }] } satisfies Props;
 
 			const a = EntityExample.create(propsA).value();
 			const b = EntityExample.create(propsB).value();
@@ -212,25 +188,33 @@ describe("entity", () => {
 
 		it("should not to be equal if id is different", () => {
 
-			const propsA = { key: 200, values:[ {name: 'abc'},{name: 'def'}] } satisfies Props;
-			const propsB = { key: 200, values:[ {name: 'abc'},{name: 'dif'}] } satisfies Props;
+			const propsA = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
+			const propsB = { key: 200, values: [{ name: 'abc' }, { name: 'dif' }] } satisfies Props;
 
 			const a = EntityExample.create(propsA).value();
 			const b = EntityExample.create(propsB).value();
 
 			expect(a.isEqual(b)).toBeFalsy();
 		});
+
+		it("should compare null and undefined", () => {
+
+			const propsA = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
+			const a = EntityExample.create(propsA).value();
+			expect(a.isEqual(null as unknown as EntityExample)).toBeFalsy();
+			expect(a.isEqual(undefined as unknown as EntityExample)).toBeFalsy();
+		});
 	});
 	describe("util", () => {
 
 		interface Props { id?: string, foo: string };
-		
+
 		class ValSamp extends Entity<Props> {
 			private constructor(props: Props) {
 				super(props);
 			}
 
-			public static isValidProps(value: string): boolean {		
+			public static isValidProps(value: string): boolean {
 				return this.validator.string(value).hasLengthBetween(3, 50);
 			}
 
@@ -240,7 +224,7 @@ describe("entity", () => {
 
 			public static create(props: Props): IResult<ValSamp> {
 				const isValid = this.isValidProps(props.foo);
-				if(!isValid) return Result.fail('Erro');
+				if (!isValid) return Result.fail('Erro');
 				return Result.Ok(new ValSamp(props))
 			}
 		}

@@ -52,7 +52,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 * @returns new Aggregate instance.
 	 */
 	clone(props?: Partial<Props> & { copyEvents?: boolean }): this {
-		const _props = props ? { ...this.props, ...props } : this.props;
+		const _props = props ? { ...this.props, ...props } : { ...this.props };
 		const _events = (props && !!props.copyEvents) ? this._domainEvents : [];
 		const instance = Reflect.getPrototypeOf(this);
 		const args = [_props, this.config, _events];
