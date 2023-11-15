@@ -110,7 +110,7 @@ Divided by
 
 ---
 
-<img src="./readme/cover.png" alt="image" width="100%">
+<img src="./cover.png" alt="image" width="100%">
 
 ---
 
@@ -217,8 +217,6 @@ Divided by
 ---
 
 ## 13 - Summary - Basic Usage
-
-Check full documentation on link [Here](https://github.com/4lessandrodev/types-ddd/tree/main/docs)
 
 ### Value Object
 
@@ -360,14 +358,14 @@ export default class Payment extends Entity<Props> {
 
     // any business rule behavior. Update total. Update object state.
     public applyFees(fees: Money): Payment {
-        this.props.total = props.total.sum(fees);
+        this.props.total = this.props.total.sum(fees);
         this.props.fees = fees;
         return this;
     }
 
     // any business rule behavior. Update object state.
     public applyDiscount(discount: Money): Payment {
-        this.props.total = props.total.subtract(discount);
+        this.props.total = this.props.total.subtract(discount);
         this.props.discount = discount;
         return this;
     }
