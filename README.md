@@ -226,7 +226,7 @@ Divided by
 
 ```ts
 
-import { ValueObject, Ok, Fail, Result } from 'types-ddd';
+import { ValueObject, Ok, Fail, Result } from 'rich-domain';
 
 interface Props {
     amount: number;
@@ -338,7 +338,7 @@ console.log(value);
 
 ```ts
 
-import { Entity, Ok, Fail, Result, UID } from 'types-ddd';
+import { Entity, Ok, Fail, Result, UID } from 'rich-domain';
 
 interface Props {
     id?: UID;
