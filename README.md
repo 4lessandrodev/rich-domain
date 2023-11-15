@@ -361,14 +361,14 @@ export default class Payment extends Entity<Props> {
     // any business rule behavior. Update total. Update object state.
     public applyFees(fees: Money): Payment {
         this.props.total = props.total.sum(fees);
-		this.props.fees = fees;
+        this.props.fees = fees;
         return this;
     }
 
     // any business rule behavior. Update object state.
     public applyDiscount(discount: Money): Payment {
         this.props.total = props.total.subtract(discount);
-		this.props.discount = discount;
+        this.props.discount = discount;
         return this;
     }
 
