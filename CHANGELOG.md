@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+---
+
+### [1.19.1] - 2023-12-15
+
+### Changed
+
+- change: update deps
 
 ---
 
