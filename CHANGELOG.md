@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.19.2] - 2024-03-15
+
+### Changed
+
+- change: added support to nodejs v21 
+
+---
+
 ### [1.19.1] - 2023-12-15
 
 ### Changed
