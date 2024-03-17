@@ -6,6 +6,45 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.20.0] - 2024-03-17
+
+### Changed
+
+- change: modify the to add and dispatch event on aggregate
+- added: Implemented a new instance of the event management class, allowing for better event handling and organization.
+
+**Details:**
+Introduced a new method to create an event management instance for the aggregate.
+Improved event handling and organization, enhancing the overall performance and efficiency of event management.
+Enabled easier integration and usage of event management features in various applications.
+
+```ts
+/**
+ * Create a new instance of the event management class
+ * Pass the aggregate as a parameter
+ * Return an event management instance for the aggregate
+ */
+const events = new Events(aggregate);
+
+events.addEvent('eventName', (...args) => {
+    console.log('executing event...');
+    console.log(args);
+});
+
+await events.dispatchEvents();
+
+// OR
+
+events.dispatchEvent('eventName');
+
+```
+
+---
+
+## Released
+
+---
+
 ### [1.19.2] - 2024-03-15
 
 ### Changed
