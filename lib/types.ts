@@ -298,3 +298,52 @@ export interface EventMetrics {
 	total: number;
 	dispatch: number;
 }
+
+/**
+ * Interface representing an event.
+ */
+export interface Event<T> {
+    eventName: string;
+    handler: Handler<T>;
+    options: Options;
+}
+
+/**
+ * Represents a promise-based event handler.
+ */
+export type PromiseHandler<T> = (...args: [T, [Event<T>, ...any[]]]) => Promise<void>;
+
+/**
+ * Represents a normal event handler.
+ */
+export type NormalHandler<T> = (...args: [T, [Event<T>, ...any[]]]) => void;
+
+/**
+ * Represents an event handler, which can be either a promise-based handler or a normal handler.
+ */
+export type Handler<T> = PromiseHandler<T> | NormalHandler<T>;
+
+/**
+ * Interface representing options for an event.
+ */
+export interface Options {
+    priority: number;
+}
+
+/**
+ * Interface representing metrics related to events.
+ * @interface Metrics
+ */
+export interface Metrics {
+    /**
+     * A function that returns the total number of events.
+     * @returns {number} The total number of events.
+     */
+    totalEvents: () => number;
+
+    /**
+     * A function that returns the total number of dispatched events.
+     * @returns {number} The total number of dispatched events.
+     */
+    totalDispatched: () => number;
+}
