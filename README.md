@@ -1685,6 +1685,20 @@ product.addEvent('eventName', (product) => {
 	console.log(product.toObject())
 });
 
+// or alternatively you can create a event handler
+
+class Handler extends EventHandler<Product> {
+    constructor() { super({ eventName: 'eventName' }) };
+
+    dispatch(product: Product): void {
+        const model = product.toObject();
+		console.log(model);
+    }
+}
+
+// add instance to aggregate
+product.addEvent(new Handler());
+
 // dispatch from aggregate instance
 
 product.dispatchEvent("eventName");
