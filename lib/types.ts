@@ -40,7 +40,6 @@ export interface IResult<T, D = string, M = {}> {
  */
 export type Payload<T, D = string, M = {}> = IResult<T, D, M>;
 export type HandlerPayload<T> = { aggregate: T, eventName: string };
-export type EventHandler<T, B> = ICommand<HandlerPayload<T>, Promise<B> | B>;
 
 /**
  * 
@@ -211,7 +210,6 @@ export interface IAggregate<Props> {
 	hashCode(): UID<string>;
 	isNew(): boolean;
 	clone(): IEntity<Props>;
-	addEvent(eventName: string, handler: Handler<this>, options?: Options): void;
 	deleteEvent(eventName: string): void;
 }
 
@@ -257,21 +255,23 @@ export interface EventMetrics {
 /**
  * Interface representing an event.
  */
-export interface Event<T> {
-    eventName: string;
-    handler: Handler<T>;
-    options: Options;
+export interface DEvent<T> {
+	eventName: string;
+	handler: Handler<T>;
+	options: Options;
 }
+
+export type HandlerArgs<T> = [T, [DEvent<T>, ...any[]]]
 
 /**
  * Represents a promise-based event handler.
  */
-export type PromiseHandler<T> = (...args: [T, [Event<T>, ...any[]]]) => Promise<void>;
+export type PromiseHandler<T> = (...args: HandlerArgs<T>) => Promise<void>;
 
 /**
  * Represents a normal event handler.
  */
-export type NormalHandler<T> = (...args: [T, [Event<T>, ...any[]]]) => void;
+export type NormalHandler<T> = (...args: HandlerArgs<T>) => void;
 
 /**
  * Represents an event handler, which can be either a promise-based handler or a normal handler.
@@ -282,7 +282,7 @@ export type Handler<T> = PromiseHandler<T> | NormalHandler<T>;
  * Interface representing options for an event.
  */
 export interface Options {
-    priority: number;
+	priority: number;
 }
 
 /**
@@ -290,15 +290,64 @@ export interface Options {
  * @interface Metrics
  */
 export interface Metrics {
+	/**
+	 * A function that returns the total number of events.
+	 * @returns {number} The total number of events.
+	 */
+	totalEvents: () => number;
+
+	/**
+	 * A function that returns the total number of dispatched events.
+	 * @returns {number} The total number of dispatched events.
+	 */
+	totalDispatched: () => number;
+}
+
+/**
+ * Parameters for defining an event.
+ */
+export interface EventParams {
     /**
-     * A function that returns the total number of events.
-     * @returns {number} The total number of events.
+     * The name of the event.
      */
-    totalEvents: () => number;
+    eventName: string;
+    /**
+     * Additional options for the event.
+     */
+    options?: Options;
+}
+
+
+/**
+ * Abstract class representing an event handler.
+ * @template T - The type of aggregate this event handler is associated with.
+ */
+export abstract class EventHandler<T> {
+    /**
+     * Creates an instance of EventHandler.
+     * @param {EventParams} params - Parameters for the event handler.
+     * @throws {Error} If params.eventName is not provided as a string.
+     */
+    constructor(public readonly params: EventParams) {
+        if (typeof params?.eventName !== 'string') {
+            throw new Error('params.eventName is required as string');
+        }
+    }
 
     /**
-     * A function that returns the total number of dispatched events.
-     * @returns {number} The total number of dispatched events.
+     * Dispatches the event with the provided arguments.
+     * @abstract
+     * @param {T} aggregate - The aggregate associated with the event.
+     * @param {[DEvent<T>, any[]]} args - Arguments for the event dispatch.
+     * @returns {Promise<void> | void} A Promise if the event dispatch is asynchronous, otherwise void.
      */
-    totalDispatched: () => number;
+    abstract dispatch(aggregate: T, args: [DEvent<T>, any[]]): Promise<void> | void;
+
+    /**
+     * Dispatches the event with the provided arguments.
+     * @abstract
+     * @param {...HandlerArgs<T>} args - Arguments for the event dispatch.
+     * @returns {Promise<void> | void} A Promise if the event dispatch is asynchronous, otherwise void.
+     */
+    abstract dispatch(...args: HandlerArgs<T>): Promise<void> | void;
 }

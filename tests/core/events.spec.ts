@@ -1,4 +1,5 @@
 import TsEvents from '../../lib/core/events';
+import { EventHandler } from '../../lib/types';
 
 describe('events', () => {
 
@@ -164,4 +165,44 @@ describe('events', () => {
         expect(instance.metrics.totalDispatched()).toBe(3);
         expect(instance.metrics.totalEvents()).toBe(0);
     });
+
+    it('should call event adding a class handler', () => {
+
+        let params = null;
+
+        class Handler extends EventHandler<{ name: string, age: number }> {
+
+            constructor() {
+                super({ eventName: 'test' })
+            }
+
+            dispatch(...args: any): void | Promise<void> {
+                params = args;
+            }
+        }
+
+        const instance = new TsEvents({ name: 'Jane', age: 21 });
+        const event = new Handler();
+
+        instance.addEvent(event.params.eventName, event.dispatch);
+
+        instance.dispatchEvent('test');
+        expect(params).toMatchObject(
+            [
+                {
+                    "age": 21,
+                    "name": "Jane",
+                },
+                [
+                    {
+                        "eventName": "test",
+                        "handler": event.dispatch,
+                        "options": {
+                            "priority": 2,
+                        },
+                    },
+                ],
+            ]
+        );
+    })
 });
