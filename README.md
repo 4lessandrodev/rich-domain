@@ -445,7 +445,7 @@ export default class Order extends Aggregate<Props> {
     }
 
     // Static method to begin a new order. 
-	// Takes a customer as parameter and returns an instance of Order.
+    // Takes a customer as parameter and returns an instance of Order.
     public static begin(customer: Customer): Order {
         // Initialize the status of the order as "begin".
         const status = OrderStatus.begin();
@@ -458,12 +458,12 @@ export default class Order extends Aggregate<Props> {
 
         // Add an event to indicate that the order has begun.
         order.addEvent('ORDER_BEGUN', (order) => {
-			// Perform some important operation when the order begins.
+        // Perform some important operation when the order begins.
             console.log('Do something important...');
         });
 
         // Alternatively, add an event by creating an
-		// instance of a class that extends EventHandler.
+        // instance of a class that extends EventHandler.
         order.addEvent(new OrderBeganEventHandler());
 
         // Return the created order instance.
@@ -471,31 +471,31 @@ export default class Order extends Aggregate<Props> {
     }
 
     // Method to add an item to the order. 
-	// Takes an item as parameter and returns the Order instance.
+    // Takes an item as parameter and returns the Order instance.
     addItem(item: Item): Order {
         // Add the item to the order's items list.
         this.props.items.add(item);
-		// Sum item price to payment amount
-		this.props.payment.sum(item.price);
+        // Sum item price to payment amount
+        this.props.payment.sum(item.price);
         // Return the Order instance itself to allow chained calls.
         return this;
     }
 
     // Method to perform the payment of the order. 
-	// Takes a payment object as parameter.
+    // Takes a payment object as parameter.
     pay(payment: Payment): Order {
         // Set the status of the order to "paid".
         this.props.status = OrderStatus.paid();
         // Set the provided payment object.
         this.props.payment = payment;
         // Add an event to indicate that the order has been paid.
-		// Assuming OrderPaidEvent is a class representing the event of order payment.
+        // Assuming OrderPaidEvent is a class representing the event of order payment.
         this.addEvent(new OrderPaidEventHandler());
-		return this; 
+        return this; 
     }
 
     // Static method to create an instance of Order.
-	// Returns a Result, which can be Ok (success) or Fail (failure).
+    // Returns a Result, which can be Ok (success) or Fail (failure).
     // The value of the Result is an instance of Order, if creation is successful.
     public static create(props: Props): Result<Order> {
         return Ok(new Order(props));
