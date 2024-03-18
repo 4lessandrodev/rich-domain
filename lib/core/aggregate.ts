@@ -1,5 +1,6 @@
-import { EntityProps, EventHandler, EventMetrics, IAggregate, IDomainEvent, IHandle, IReplaceOptions, IResult, ISettings, UID } from "../types";
-import DomainEvent from "./domain-event";
+import { IResult, ISettings, Options, UID } from "../types";
+import { EntityProps, EventMetrics, Handler, IAggregate } from "../types";
+import TsEvent from "./events";
 import Entity from "./entity";
 import ID from "./id";
 import Result from "./result";
@@ -8,13 +9,14 @@ import Result from "./result";
  * @description Aggregate identified by an id
  */
 export class Aggregate<Props extends EntityProps> extends Entity<Props> implements IAggregate<Props> {
-	private _domainEvents: Array<IDomainEvent<IAggregate<Props>>>;
+	private _domainEvents: TsEvent<this>;
 	private _dispatchEventsAmount: number;
 
-	constructor(props: Props, config?: ISettings, events?: Array<IDomainEvent<IAggregate<Props>>>) {
+	constructor(props: Props, config?: ISettings, events?: TsEvent<IAggregate<Props>>) {
 		super(props, config);
 		this._dispatchEventsAmount = 0;
-		this._domainEvents = Array.isArray(events) ? events : [];
+		this._domainEvents = new TsEvent(this);
+		if(events) this._domainEvents = events as unknown as TsEvent<this>;
 	}
 
 	/**
@@ -38,8 +40,8 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 */
 	get eventsMetrics(): EventMetrics {
 		return {
-			current: this._domainEvents.length,
-			total: this._domainEvents.length + this._dispatchEventsAmount,
+			current: this._domainEvents.metrics.totalEvents(),
+			total: this._domainEvents.metrics.totalEvents() + this._dispatchEventsAmount,
 			dispatch: this._dispatchEventsAmount
 		}
 	}
@@ -53,7 +55,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 */
 	clone(props?: Partial<Props> & { copyEvents?: boolean }): this {
 		const _props = props ? { ...this.props, ...props } : { ...this.props };
-		const _events = (props && !!props.copyEvents) ? this._domainEvents : [];
+		const _events = (props && !!props.copyEvents) ? this._domainEvents : null;
 		const instance = Reflect.getPrototypeOf(this);
 		const args = [_props, this.config, _events];
 		const aggregate = Reflect.construct(instance!.constructor, args);
@@ -62,20 +64,12 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 
 	/**
 	 * @description Dispatch event added to aggregate instance
-	 * @param eventName optional event name as string. If provided only event match name is called.
+	 * @param eventName optional event name as string.
 	 * @returns Promise void as executed event
 	 */
-	dispatchEvent(eventName?: string, handler?: EventHandler<IAggregate<any>, void>): void {
-		if (!eventName) return this.dispatchAll(handler);
-
-		const callback = handler || ({ execute: (): void => { } });
-		for (const event of this._domainEvents) {
-			if (event.aggregate.id.equal(this.id) && event.callback.eventName === eventName) {
-				this._dispatchEventsAmount++;
-				event.callback.dispatch(event, callback);
-				this.deleteEvent(eventName!);
-			}
-		}
+	dispatchEvent(eventName: string): void | Promise<void> {
+		this._domainEvents.dispatchEvent(eventName);
+		this._dispatchEventsAmount++;
 	}
 
 	/**
@@ -83,15 +77,10 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 * @param handler as EventHandler.
 	 * @returns promise void.
 	 */
-	dispatchAll(handler?: EventHandler<this, void>) {
-		const callback = handler || ({ execute: (): void => { } });
-		for (const event of this._domainEvents) {
-			if (event.aggregate.id.equal(this.id)) {
-				this._dispatchEventsAmount++;
-				event.callback.dispatch(event, callback);
-			}
-		}
-		this._domainEvents = [];
+	async dispatchAll(): Promise<void> {
+		const current = this._domainEvents.metrics.totalEvents();
+		await this._domainEvents.dispatchEvents();
+		this._dispatchEventsAmount = this._dispatchEventsAmount + current;
 	};
 
 	/**
@@ -100,24 +89,18 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 * @returns void.
 	 */
 	clearEvents(config = { resetMetrics: false }): void {
-		this._dispatchEventsAmount = config.resetMetrics ? 0 : this._dispatchEventsAmount;
-		this._domainEvents = [];
+		if (config.resetMetrics) this._dispatchEventsAmount = 0;
+		this._domainEvents.clearEvents();
 	};
 
-	/**
-	 * @description Add event to aggregate instance.
-	 * @param eventToAdd Event to be dispatched.
-	 * @param replace 'REPLACE_DUPLICATED' option to remove old event with the same name and id.
-	 * @emits dispatch to aggregate instance. Do not use event using global event manager as DomainEvent.dispatch
-	 */
-	addEvent(eventToAdd: IHandle<this>, replace?: IReplaceOptions): void {
-		const doReplace = replace === 'REPLACE_DUPLICATED';
-		const event = new DomainEvent(this, eventToAdd);
-		const target = Reflect.getPrototypeOf(event.callback);
-		const eventName = event.callback?.eventName ?? target?.constructor.name as string;
-		event.callback.eventName = eventName;
-		if (!!doReplace) this.deleteEvent(eventName);
-		this._domainEvents.push(event);
+    /**
+     * Adds a new event.
+     * @param eventName - The name of the event.
+     * @param handler - The event handler function.
+     * @param options - The options for the event.
+     */
+	addEvent(eventName: string, handler: Handler<this>, options?: Options): void {
+		this._domainEvents.addEvent(eventName, handler, options);
 	}
 
 	/**
@@ -126,13 +109,9 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 * @returns number of deleted events
 	 */
 	deleteEvent(eventName: string): number {
-		let deletedEventsAmount = this._domainEvents.length;
-
-		this._domainEvents = this._domainEvents.filter(
-			domainEvent => (domainEvent.callback.eventName !== eventName)
-		);
-
-		return deletedEventsAmount - this._domainEvents.length;
+		const totalBefore = this._domainEvents.metrics.totalEvents();
+		this._domainEvents.removeEvent(eventName);
+		return totalBefore - this._domainEvents.metrics.totalEvents();
 	}
 
 	public static create(props: any): IResult<any, any, any>;
