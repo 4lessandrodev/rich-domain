@@ -95,14 +95,14 @@ Divided by
                   │     └── domain-services
                   │ 
                   ├── application
-				  │     ├── services
+                  │     ├── services
                   │     └── use-cases
                   │ 
                   └── infra
                         ├── models
-						├── adapters
-						├── services
-						├── factories
+                        ├── adapters
+                        ├── services
+                        ├── factories
                         └── repository
 
 ```
