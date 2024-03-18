@@ -6,6 +6,118 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.20.0] - 2024-03-17
+
+### Changed
+
+- change: modify the to add and dispatch event on aggregate
+- added: Implemented a new instance of the event management class, allowing for better event handling and organization.
+
+**Details:**
+Introduced a new method to create an event management instance for the aggregate.
+Improved event handling and organization, enhancing the overall performance and efficiency of event management.
+Enabled easier integration and usage of event management features in various applications.
+
+```ts
+
+import { TsEvents } from 'rich-domain';
+
+/**
+ * Create a new instance of the event management class
+ * Pass the aggregate as a parameter
+ * Return an event management instance for the aggregate
+ */
+const events = new TsEvents(aggregate);
+
+events.addEvent('eventName', (...args) => {
+    console.log(args);
+});
+
+// dispatch all events
+await events.dispatchEvents();
+
+// OR dispatch a specific event
+events.dispatchEvent('eventName');
+
+```
+
+
+Implemented a new event handling mechanism using the Handler class.
+Example:
+
+```ts
+
+// implement extending to EventHandler
+class Handler extends EventHandler<Product> {
+  
+    constructor() { 
+      super({ eventName: 'sample' });
+    };
+
+    dispatch(product: Product, params: [DEvent<Product>, any[]]): void | Promise<void> {
+        const model = product.toObject();
+        const [event, args] = params;
+
+        console.log(model);
+        console.log(event);
+
+        // custom params provided on call dispatchEvent
+        console.log(args);
+    }
+}
+
+const event = new Handler();
+
+aggregate.addEvent(event);
+
+aggregate.dispatchEvent('sample', { custom: 'params' });
+
+```
+
+### Bug Fixes
+Fixed an issue with the event dispatching mechanism.
+Notes
+This version introduces significant changes to the event handling system, enhancing the flexibility and usability of the Aggregate class.
+
+### Migrating from v1.19.x
+
+Change event handler implementation
+
+
+```ts
+// use extends to EventHandler
+class Handler extends EventHandler<Product> {
+  
+    constructor() { 
+      super({ eventName: 'sample' });
+    };
+
+    // aggregate as first param
+    dispatch(product: Product): void | Promise<void> {
+      // your implementation
+    }
+}
+
+```
+
+Remove imports `DomainEvents` and use events from aggregate instance
+
+```ts
+
+aggregate.addEvent(event);
+
+aggregate.dispatchEvent('eventName');
+
+```
+
+
+
+---
+
+## Released
+
+---
+
 ### [1.19.2] - 2024-03-15
 
 ### Changed

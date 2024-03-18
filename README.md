@@ -1673,28 +1673,6 @@ export default Product;
 #### Domain Event
 
 Let's create an aggregate instance and see how to add domain event to it.
-
-```ts
-
-export class ProductCreatedEvent implements IHandle<Product>{
-	public eventName: string;
-
-	constructor() { 
-		this.eventName = 'ProductCreated';
-	}
-	
-	dispatch(event: IDomainEvent<Product>): void {
-		// your action here
-		const { aggregate } = event;
-		console.log(`EVENT DISPATCH: ${aggregate.hashCode().value()}`);
-	}
-}
-
-export default ProductCreatedEvent;
-
-```
-
-Now let's add the event to a product instance.<br>
 Events are stored in memory and are deleted after being triggered.
 
 ```ts
@@ -1703,27 +1681,27 @@ const result = Product.create({ name, price });
 
 const product = result.value();
 
-const event = new ProductCreatedEvent();
+product.addEvent('eventName', (product) => {
+	console.log(product.toObject())
+});
 
-product.addEvent(event);
+// or alternatively you can create a event handler
 
-```
+class Handler extends EventHandler<Product> {
+    constructor() { super({ eventName: 'eventName' }) };
 
-Now we can dispatch the event whenever we want.
+    dispatch(product: Product): void {
+        const model = product.toObject();
+		console.log(model);
+    }
+}
 
-```ts
+// add instance to aggregate
+product.addEvent(new Handler());
 
-DomainEvents.dispatch({ id: product.id, eventName: "ProductCreated" });
+// dispatch from aggregate instance
 
-> "EVENT DISPATCH: [Aggregate@Product]:6039756f-d3bc-452e-932a-ec89ff536dda"
-
-// OR you can dispatch all events in aggregate instance
-
-product.dispatchEvent();
-
-// OR
-
-product.dispatchEvent("ProductCreated");
+product.dispatchEvent("eventName");
 
 ```
 ---

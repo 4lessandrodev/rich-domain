@@ -34,6 +34,7 @@ export class Validator {
 		return props instanceof Date;
 	}
 	isObject(props: any): boolean {
+		delete props?._domainEvents;
 		const isObj = typeof props === 'object';
 		if (!isObj || props === null) return false;
 		if (JSON.stringify(props) === JSON.stringify({})) return true;
