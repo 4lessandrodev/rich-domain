@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ---
+### [1.20.1-beta] - 2024-03-18
+
+### Updates
+
+Implemented a new event handling mechanism using the Handler class.
+Example:
+
+```ts
+
+// implement extending to EventHandler
+class Handler extends EventHandler<Product> {
+    constructor() { super({ eventName: 'sample' }) };
+
+    dispatch(product: Product, args_1: [DEvent<Product>, any[]]): void | Promise<void> {
+        const model = product.toObject();
+        const [event, args] = args_1;
+
+        console.log(model);
+        console.log(event);
+        console.log(event.eventName);
+        console.log(event.options);
+        // custom params provided on call dispatchEvent
+        console.log(args);
+    }
+}
+
+const event = new Handler();
+orange.addEvent(event);
+
+await orange.dispatchEvent('sample', { custom: 'params' });
+
+```
+
+### Bug Fixes
+Fixed an issue with the event dispatching mechanism.
+Notes
+This version introduces significant changes to the event handling system, enhancing the flexibility and usability of the Aggregate class.
+
+---
 
 ### [1.20.0-beta] - 2024-03-17
 

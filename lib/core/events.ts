@@ -1,8 +1,8 @@
-import { Metrics, Event, Options, Handler, PromiseHandler } from "../types";
+import { Metrics, DEvent, Options, Handler, PromiseHandler } from "../types";
 
 export default class TsEvents<T> {
     private _metrics: Metrics;
-    private _events: Event<T>[];
+    private _events: DEvent<T>[];
     private totalDispatched: number;
 
     /**

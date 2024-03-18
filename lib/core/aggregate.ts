@@ -1,4 +1,4 @@
-import { IResult, ISettings, Options, UID } from "../types";
+import { EventHandler, IResult, ISettings, Options, UID } from "../types";
 import { EntityProps, EventMetrics, Handler, IAggregate } from "../types";
 import TsEvent from "./events";
 import Entity from "./entity";
@@ -16,7 +16,7 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 		super(props, config);
 		this._dispatchEventsAmount = 0;
 		this._domainEvents = new TsEvent(this);
-		if(events) this._domainEvents = events as unknown as TsEvent<this>;
+		if (events) this._domainEvents = events as unknown as TsEvent<this>;
 	}
 
 	/**
@@ -67,8 +67,8 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	 * @param eventName optional event name as string.
 	 * @returns Promise void as executed event
 	 */
-	dispatchEvent(eventName: string): void | Promise<void> {
-		this._domainEvents.dispatchEvent(eventName);
+	dispatchEvent(eventName: string, ...args: any[]): void | Promise<void> {
+		this._domainEvents.dispatchEvent(eventName, args);
 		this._dispatchEventsAmount++;
 	}
 
@@ -93,16 +93,30 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 		this._domainEvents.clearEvents();
 	};
 
-    /**
-     * Adds a new event.
-     * @param eventName - The name of the event.
-     * @param handler - The event handler function.
-     * @param options - The options for the event.
-     */
-	addEvent(eventName: string, handler: Handler<this>, options?: Options): void {
-		this._domainEvents.addEvent(eventName, handler, options);
-	}
+	/**
+	 * Adds a new event.
+	 * @param event - The event object containing the event name, handler, and options.
+	 */
+	addEvent(event: EventHandler<this>): void;
 
+	/**
+	 * Adds a new event.
+	 * @param eventName - The name of the event.
+	 * @param handler - The event handler function.
+	 * @param options - The options for the event.
+	 */
+	addEvent(eventName: string, handler: Handler<this>, options?: Options): void;
+
+	addEvent(eventNameOrEvent: string | EventHandler<this>, handler?: Handler<this>, options?: Options): void {
+		if (typeof eventNameOrEvent === 'string' && handler) {
+			this._domainEvents.addEvent(eventNameOrEvent, handler! ?? null, options);
+			return;
+		}
+		const _options = (eventNameOrEvent as EventHandler<this>)?.params?.options;
+		const eventName = (eventNameOrEvent as EventHandler<this>)?.params?.eventName;
+		const eventHandler = (eventNameOrEvent as EventHandler<this>)?.dispatch;
+		this._domainEvents.addEvent(eventName, eventHandler! ?? null, _options);
+	}
 	/**
 	 * @description Delete event match with provided name
 	 * @param eventName event name as string

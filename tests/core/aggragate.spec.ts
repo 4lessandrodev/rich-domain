@@ -1,5 +1,5 @@
 import { Aggregate, ID, Ok, Result, ValueObject } from "../../lib/core";
-import { IResult, ISettings, UID } from "../../lib/types";
+import { DEvent, EventHandler, IResult, ISettings, UID } from "../../lib/types";
 
 describe('aggregate', () => {
 
@@ -246,8 +246,8 @@ describe('aggregate', () => {
 		it('should dispatch all domain events from aggregate', async () => {
 			const agg = UserAgg.create({ name: 'Jane' }).value();
 
-			agg.addEvent('event1', () => {});
-			agg.addEvent('event2', () => {});
+			agg.addEvent('event1', () => { });
+			agg.addEvent('event2', () => { });
 
 			expect(agg.eventsMetrics.current).toBe(2);
 
@@ -261,8 +261,8 @@ describe('aggregate', () => {
 
 			const agg = UserAgg.create({ name: 'Jane' }).value();
 
-			agg.addEvent('unique', () => {});
-			agg.addEvent('unique', () => {});
+			agg.addEvent('unique', () => { });
+			agg.addEvent('unique', () => { });
 
 			expect(agg.eventsMetrics.current).toBe(1);
 			await agg.dispatchAll();
@@ -367,7 +367,7 @@ describe('aggregate', () => {
 			class Agg extends Aggregate<{ key: string }> { };
 
 			const agg = Agg.create({ key: 'some' }).value();
-			agg.addEvent('event', () => {}, { priority: 1 });
+			agg.addEvent('event', () => { }, { priority: 1 });
 
 			expect(agg.eventsMetrics.current).toBe(1);
 			expect(agg.eventsMetrics.dispatch).toBe(0);
@@ -379,11 +379,11 @@ describe('aggregate', () => {
 
 			const aggB = Agg.create({ key: 'some' }).value();
 
-			aggB.addEvent('event1', () => {});
+			aggB.addEvent('event1', () => { });
 			aggB.dispatchEvent('event1');
 			expect(aggB.eventsMetrics.dispatch).toBe(1);
 
-			aggB.addEvent('event2', () => {});
+			aggB.addEvent('event2', () => { });
 			expect(aggB.eventsMetrics.current).toBe(1);
 			expect(aggB.eventsMetrics.dispatch).toBe(1);
 
@@ -406,8 +406,8 @@ describe('aggregate', () => {
 
 			const agg = Agg.create({ key: 'some' }).value();
 
-			agg.addEvent('eventA', () => {});
-			agg.addEvent('eventB', () => {});
+			agg.addEvent('eventA', () => { });
+			agg.addEvent('eventB', () => { });
 
 			expect(agg.eventsMetrics.current).toBe(2);
 			expect(agg.eventsMetrics.dispatch).toBe(0);
@@ -478,5 +478,50 @@ describe('aggregate', () => {
 			expect(object.name).toBe('orange');
 			expect(object.price).toBe(10);
 		});
+	});
+
+	it('should add event as class', async () => {
+		interface Props {
+			id?: UID;
+			price: number;
+			name: string;
+			createdAt?: Date;
+			updatedAt?: Date;
+		};
+
+		class Product extends Aggregate<Props>{
+			private constructor(props: Props) {
+				super(props)
+			}
+			public static create(props: Props): Result<Product> {
+				return Ok(new Product(props));
+			}
+		}
+
+		const props: Props = { name: 'Orange', price: 1.21 };
+		const orange = Product.create(props).value();
+
+		class Handler extends EventHandler<Product> {
+			constructor() { super({ eventName: 'event' }) };
+
+			dispatch(product: Product, args_1: [DEvent<Product>, any[]]): void | Promise<void> {
+				const model = product.toObject();
+				const [event, args] = args_1;
+
+				console.log(model);
+				console.log(event);
+				console.log(event.eventName);
+				console.log(event.options);
+				console.log(args);
+			}
+
+		}
+
+		const event = new Handler();
+		orange.addEvent(event);
+
+		await orange.dispatchEvent('event', { custom: 'params' });
+		expect(orange.eventsMetrics.dispatch).toBe(1);
+
 	});
 });
