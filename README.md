@@ -78,8 +78,8 @@ Divided by
        │    └── env
        │
        ├── shared
-       │    └── infra
-       │         └── server  
+       │    ├── constants
+       │    └── utils
        │
        └── modules
             │ 
@@ -90,16 +90,19 @@ Divided by
                   │     ├── entities
                   │     ├── aggregates
                   │     ├── events
-                  │     ├── subscriptions
-                  │     ├── adapter
-                  │     ├── repository-interface
+                  │     ├── adapters
+                  │     ├── interfaces
                   │     └── domain-services
                   │ 
                   ├── application
-                  │     └── use-cases 
+				  │     ├── services
+                  │     └── use-cases
                   │ 
                   └── infra
                         ├── models
+						├── adapters
+						├── services
+						├── factories
                         └── repository
 
 ```
@@ -413,7 +416,107 @@ console.log(result.toObject());
 
 ---
 
-See also how to use Aggregate.
+### Aggregate
+
+Encapsulate and are composed of entity classes and value objects that change together in a business transaction
+
+#### Create an aggregate to compose your context.
+
+In my example, let's use the context of payment. All payment transactions are encapsulated by an order (payment order) that represents a user's purchasing context.
+
+```ts
+
+import { Aggregate, Ok, Fail, Result, UID, EventHandler } from 'rich-domain';
+
+interface Props {
+    id?: UID;
+    payment: Payment;
+    items: List<Item>;
+    status: OrderStatus;
+    customer: Customer;
+}
+
+// Simple example of an order aggregate encapsulating entities and value objects for context.
+export default class Order extends Aggregate<Props> {
+
+    // Private constructor to ensure instances creation through static methods.
+    private constructor(props: Props){
+        super(props);
+    }
+
+    // Static method to begin a new order. 
+	// Takes a customer as parameter and returns an instance of Order.
+    public static begin(customer: Customer): Order {
+        // Initialize the status of the order as "begin".
+        const status = OrderStatus.begin();
+        // Initialize the list of items as empty.
+        const items: List<Item> = List.empty();
+        // Initialize the payment as zero, since the order hasn't been paid yet.
+        const payment = Payment.none();
+        // Create a new instance of Order with the provided parameters.
+        const order = new Order({ status, payment, items, customer });
+
+        // Add an event to indicate that the order has begun.
+        order.addEvent('ORDER_BEGUN', (order) => {
+			// Perform some important operation when the order begins.
+            console.log('Do something important...');
+        });
+
+        // Alternatively, add an event by creating an
+		// instance of a class that extends EventHandler.
+        order.addEvent(new OrderBeganEventHandler());
+
+        // Return the created order instance.
+        return order;
+    }
+
+    // Method to add an item to the order. 
+	// Takes an item as parameter and returns the Order instance.
+    addItem(item: Item): Order {
+        // Add the item to the order's items list.
+        this.props.items.add(item);
+		// Sum item price to payment amount
+		this.props.payment.sum(item.price);
+        // Return the Order instance itself to allow chained calls.
+        return this;
+    }
+
+    // Method to perform the payment of the order. 
+	// Takes a payment object as parameter.
+    pay(payment: Payment): Order {
+        // Set the status of the order to "paid".
+        this.props.status = OrderStatus.paid();
+        // Set the provided payment object.
+        this.props.payment = payment;
+        // Add an event to indicate that the order has been paid.
+		// Assuming OrderPaidEvent is a class representing the event of order payment.
+        this.addEvent(new OrderPaidEventHandler());
+		return this; 
+    }
+
+    // Static method to create an instance of Order.
+	// Returns a Result, which can be Ok (success) or Fail (failure).
+    // The value of the Result is an instance of Order, if creation is successful.
+    public static create(props: Props): Result<Order> {
+        return Ok(new Order(props));
+    }
+}
+
+```
+
+How to use events
+
+```ts
+
+order.dispatchEvent('ORDER_BEGUN');
+
+// OR 
+
+await order.dispatchAll();
+
+```
+
+---
 
 ## Features
 
@@ -480,13 +583,13 @@ First let's create our interfaces to use as generic type.
 ```tS
 
 // Payload type
-interface IData { data: string };
+interface Data { data: string };
 
 // Error type
-interface IError { message: string };
+interface Err { message: string };
 
 // MetaData type. Optional
-interface IMeta { arg: number };
+interface Meta { arg: number };
 
 ```
 
@@ -494,29 +597,29 @@ Now let's implement a function that return the result below
 
 ```ts
 
-IResult<IData, IError, IMeta>;
+Result<Data, Err, Meta>;
 
 ```
 So let's implement that on a simple function.
 
 ```ts
 
-const isEven = (value: number): Result<IData, IError, IMeta> => {
+const isEven = (value: number): Result<Data, Err, Meta> => {
 
 	const isEvenValue = value % 2 === 0;
-	const metaData: IMeta = { arg: value };
+	const metaData: Meta = { arg: value };
 	
 	if (isEvenValue) {
 		
 		// success payload 
-		const payload: IData = { data: `${value} is even` };
+		const payload: Data = { data: `${value} is even` };
 
 		// return success
 		return Ok(payload, metaData);
 	}
 
 	// failure payload 
-	const error: IError = { message: `${value} is not even` };
+	const error: Err = { message: `${value} is not even` };
 
 	// return failure
 	return Fail(error, metaData);
@@ -624,7 +727,7 @@ Fail example
 
 ```ts
 
-const result: IResult<void> = checkEven(43);
+const result: Result<void> = checkEven(43);
 
 console.log(result.isFail());
 
@@ -969,23 +1072,6 @@ console.log(name.get('value'));
 
 ```
 
-When you use the `set` or `change` function to modify the state, each change is saved in a history
-
-```ts
-
-console.log(name.history().count());
-
-> 2
-
-// back to old value on history
-name.history().back();
-
-console.log(name.get('value'));
-
-> "Jane"
-
-```
-
 > **We don't advise you to use state change of a value object. Create a new one instead of changing its state. However the library will leave that up to you to decide.**
 
 To disable the setters of a value object use the parameters below in the super.<br>
@@ -1022,7 +1108,7 @@ A validator instance is available in the "Value Object" domain class.
 
 ```ts
 
-import { IResult, Ok, Fail, ValueObject } from "rich-domain";
+import { Result, Ok, Fail, ValueObject } from "rich-domain";
 
 export interface NameProps {
 	value: string;
@@ -1038,7 +1124,7 @@ export class Name extends ValueObject<NameProps>{
 		return string(value).hasLengthBetween(3, 30);
 	}
 
-	public static create(value: string): IResult<Name> {
+	public static create(value: string): Result<Name> {
 		const message = 'name must have length min 3 and max 30 char';
 
 		if (!this.isValidProps({ value })) return Fail(message);
@@ -1177,9 +1263,9 @@ This method is useful for cases where you have value objects inside other value 
 
 const street = Street.create('Dom Juan').value();
 
-const number = Number.create(42).value();
+const complement = Complement.create('n42').value();
 
-const result = Address.create({ street, number });
+const result = Address.create({ street, complement });
 
 const address = result.value();
 
@@ -1188,7 +1274,7 @@ console.log(address.toObject());
 > Object 
 `{
 	"street": "Dom Juan", 
-	"number": 42,
+	"complement": n42,
  }`
 
 ```
@@ -1286,7 +1372,7 @@ export class User extends Entity<UserProps>{
 		super(props)
 	}
 
-	public static create(props: UserProps): IResult<User> {
+	public static create(props: UserProps): Result<User> {
 		return Result.Ok(new User(props));
 	}
 }
@@ -1302,7 +1388,7 @@ All attributes for an entity must be value object except id.
 ```ts
 
 const nameAttr = Name.create('James');
-const ageAttr = Name.create(21);
+const ageAttr = Age.create(21);
 
 // always check if value objects are success
 const results = Combine([ nameAttr, ageAttr ]);
@@ -1441,7 +1527,7 @@ export class User extends Entity<UserProps>{
 
 	public static create(props: UserProps): IResult<User> {
 
-		const isValidRules = User.isValidProps(props);
+		const isValidRules = this.isValidProps(props);
 		if(!isValidRules) return Result.fail('invalid props');
 
 		return Result.Ok(new User(props));
@@ -1524,7 +1610,7 @@ export class User extends Entity<UserProps>{
 		return isValidName && isValidAge;
 	}
 
-	public static create(props: UserProps): IResult<User> {
+	public static create(props: UserProps): Result<User> {
 
 		const isValidRules = User.isValidProps(props);
 		if(!isValidRules) return Result.fail('invalid props');
@@ -1661,7 +1747,7 @@ export class Product extends Aggregate<ProductProps>{
 		super(props);
 	}
 
-	public static create(props: ProductProps): IResult<Product> {
+	public static create(props: ProductProps): Result<Product> {
 		return Result.Ok(new Product(props));
 	}
 }
