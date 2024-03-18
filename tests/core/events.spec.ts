@@ -1,6 +1,6 @@
-import TsEvents from '../../lib/core/events.v2';
+import TsEvents from '../../lib/core/events';
 
-describe('events.v2', () => {
+describe('events', () => {
 
     it('should create instance with success', () => {
         const instance = new TsEvents({ name: 'Jane', age: 21 });
