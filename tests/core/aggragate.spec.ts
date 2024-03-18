@@ -1,5 +1,5 @@
 import { Aggregate, ID, Ok, Result, ValueObject } from "../../lib/core";
-import { IDomainEvent, IHandle, IResult, ISettings, UID } from "../../lib/types";
+import { IResult, ISettings, UID } from "../../lib/types";
 
 describe('aggregate', () => {
 
@@ -217,39 +217,24 @@ describe('aggregate', () => {
 		});
 
 		it('should add domain event [3]', async () => {
-
-			class Handler implements IHandle<UserAgg> {
-				eventName: string = 'Handler Event';
-				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
-					console.log(event.aggregate.toObject());
-				}
-			}
-
 			const agg = UserAgg.create({ name: 'Jane' }).value();
 
-			agg.addEvent(new Handler(), 'REPLACE_DUPLICATED');
+			agg.addEvent('someEvent', () => {
+				console.log('event');
+			});
 
 			expect(agg.eventsMetrics.current).toBe(1);
-			agg.deleteEvent('Handler Event');
+			agg.deleteEvent('someEvent');
 			expect(agg.eventsMetrics.current).toBe(0);
 		});
 
 
 		it('should dispatch domain event from aggregate', async () => {
-
-			class Handler implements IHandle<UserAgg> {
-				public eventName?: string | undefined;
-				constructor() {
-					this.eventName = "hello"
-				}
-				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
-					console.log(event.aggregate.toObject());
-				}
-			}
-
 			const agg = UserAgg.create({ name: 'Jane' }).value();
 
-			agg.addEvent(new Handler());
+			agg.addEvent('hello', (agg) => {
+				console.log(agg.get('name'));
+			});
 
 			expect(agg.eventsMetrics.total).toBe(1);
 
@@ -258,76 +243,29 @@ describe('aggregate', () => {
 			expect(agg.eventsMetrics.current).toBe(0);
 		});
 
-		it('should dispatch all domain events from aggregate', () => {
-
-			class HandlerA implements IHandle<UserAgg> {
-				public eventName?: string | undefined;
-				constructor() {
-					this.eventName = "helloA"
-				}
-				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
-					console.log(event.aggregate.toObject());
-				}
-			}
-			class HandlerB implements IHandle<UserAgg> {
-				public eventName?: string | undefined;
-				constructor() {
-					this.eventName = "helloB"
-				}
-				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
-					console.log(event.aggregate.toObject());
-				}
-			}
-
+		it('should dispatch all domain events from aggregate', async () => {
 			const agg = UserAgg.create({ name: 'Jane' }).value();
 
-			agg.addEvent(new HandlerA());
-			agg.addEvent(new HandlerB());
+			agg.addEvent('event1', () => {});
+			agg.addEvent('event2', () => {});
 
 			expect(agg.eventsMetrics.current).toBe(2);
 
-			agg.dispatchEvent();
+			await agg.dispatchAll();
 
 			expect(agg.eventsMetrics.current).toBe(0);
+			expect(agg.eventsMetrics.dispatch).toBe(2);
 		});
 
-		it('should add domain event [2]', async () => {
-
-			class Handler implements IHandle<UserAgg> {
-				eventName: string = 'Handler Event';
-				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
-					console.log(event.aggregate.toObject());
-				}
-			}
+		it('should add domain event [1] with the same name', async () => {
 
 			const agg = UserAgg.create({ name: 'Jane' }).value();
 
-			agg.addEvent(new Handler(), 'REPLACE_DUPLICATED');
+			agg.addEvent('unique', () => {});
+			agg.addEvent('unique', () => {});
 
 			expect(agg.eventsMetrics.current).toBe(1);
-
-			agg.dispatchEvent('Handler Event')
-
-			expect(agg.eventsMetrics.current).toBe(0);
-		});
-
-		it('should add domain event [1]', async () => {
-
-			class Handler implements IHandle<UserAgg> {
-				eventName = undefined;
-				dispatch(event: IDomainEvent<UserAgg>): void | Promise<void> {
-					console.log(event.aggregate.toObject());
-				}
-			}
-
-			const agg = UserAgg.create({ name: 'Jane' }).value();
-
-			agg.addEvent(new Handler(), 'REPLACE_DUPLICATED');
-
-			expect(agg.eventsMetrics.current).toBe(1);
-
-			agg.dispatchEvent(Handler.name)
-
+			await agg.dispatchAll();
 			expect(agg.eventsMetrics.current).toBe(0);
 		});
 
@@ -408,41 +346,28 @@ describe('aggregate', () => {
 		it('should dispatch all events once', async () => {
 
 			class Agg extends Aggregate<{ key: string }> { };
-			class Event implements IHandle<Agg> {
-				dispatch(): Promise<void> {
-					return Promise.resolve();
-				}
-			}
-
-			const event = new Event();
-			const eventSpy = jest.spyOn(event, 'dispatch');
+			const spy = jest.fn();
 
 			const agg = Agg.create({ key: 'some' }).value();
-			agg.addEvent(event);
+			agg.addEvent('event', spy);
 
 			expect(agg.eventsMetrics.current).toBe(1);
 			expect(agg.eventsMetrics.dispatch).toBe(0);
 
-			agg.dispatchAll();
+			await agg.dispatchAll();
 			expect(agg.eventsMetrics.current).toBe(0);
 			expect(agg.eventsMetrics.dispatch).toBe(1);
 
-			expect(eventSpy).toHaveBeenCalled();
+			expect(spy).toHaveBeenCalled();
 
 		});
 
 		it('should clear events and metrics', async () => {
 
 			class Agg extends Aggregate<{ key: string }> { };
-			class Event implements IHandle<Agg> {
-				dispatch(): Promise<void> {
-					return Promise.resolve();
-				}
-			}
 
-			const event = new Event();
 			const agg = Agg.create({ key: 'some' }).value();
-			agg.addEvent(event);
+			agg.addEvent('event', () => {}, { priority: 1 });
 
 			expect(agg.eventsMetrics.current).toBe(1);
 			expect(agg.eventsMetrics.dispatch).toBe(0);
@@ -453,10 +378,12 @@ describe('aggregate', () => {
 			expect(agg.eventsMetrics.dispatch).toBe(0);
 
 			const aggB = Agg.create({ key: 'some' }).value();
-			aggB.addEvent(event);
-			aggB.dispatchEvent(Event.name);
+
+			aggB.addEvent('event1', () => {});
+			aggB.dispatchEvent('event1');
 			expect(aggB.eventsMetrics.dispatch).toBe(1);
-			aggB.addEvent(event);
+
+			aggB.addEvent('event2', () => {});
 			expect(aggB.eventsMetrics.current).toBe(1);
 			expect(aggB.eventsMetrics.dispatch).toBe(1);
 
@@ -475,21 +402,12 @@ describe('aggregate', () => {
 				}
 			};
 
-			class Event implements IHandle<Agg> {
-				eventName: string;
-				constructor(name: string) {
-					this.eventName = name;
-				}
-				dispatch(): Promise<void> {
-					return Promise.resolve();
-				}
-			}
 
-			const eventA = new Event('eventA');
-			const eventB = new Event('eventA');
+
 			const agg = Agg.create({ key: 'some' }).value();
-			agg.addEvent(eventA);
-			agg.addEvent(eventB);
+
+			agg.addEvent('eventA', () => {});
+			agg.addEvent('eventB', () => {});
 
 			expect(agg.eventsMetrics.current).toBe(2);
 			expect(agg.eventsMetrics.dispatch).toBe(0);
@@ -511,7 +429,7 @@ describe('aggregate', () => {
 	});
 
 	describe('toObject', () => {
-		it('should infer types to aggregate on toObject method', () => {
+		it('should infer types to aggregate on toObject method', async () => {
 
 			class Name extends ValueObject<{ value: string }>{
 				private constructor(props: { value: string }) {
@@ -544,6 +462,16 @@ describe('aggregate', () => {
 			const name = Name.create('orange').value();
 			const props: Props = { name, additionalInfo: ['from brazil'], price: 10 };
 			const orange = Product.create(props).value();
+
+			orange.addEvent('create', () => {
+				console.log('make a juice');
+			})
+
+			orange.addEvent('save', () => {
+				console.log('make a juice');
+			}, { priority: 1 })
+
+			await orange.dispatchAll();
 
 			const object = orange.toObject();
 			expect(object.additionalInfo).toEqual(['from brazil']);

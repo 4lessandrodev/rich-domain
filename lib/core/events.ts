@@ -1,88 +1,142 @@
-import { EventHandler, IAggregate, IDispatchOptions, IDomainEvent, IEvent, IIterator, UID } from "../types";
-import Iterator from "./iterator";
+import { Metrics, Event, Options, Handler, PromiseHandler } from "../types";
 
-/**
- * @description Domain Events manager for global events.
- * @global events for aggregates.
- * @ignore events added in instance of aggregates directly.
- */
- export abstract class DomainEvents {
-	public static events: IIterator<IDomainEvent<IAggregate<any>>> = Iterator.create();
+export default class TsEvents<T> {
+    private _metrics: Metrics;
+    private _events: Event<T>[];
+    private totalDispatched: number;
 
-	/**
-	 * @description Add event to state.
-	 * @param param event to be added.
-	 */
-	public static addEvent<T = any>({ event, replace }: IEvent<IAggregate<T>>) {
-		const target = Reflect.getPrototypeOf(event.callback);
-		const eventName = event.callback?.eventName ?? target?.constructor.name as string;
-		if (!!replace) DomainEvents.deleteEvent({ eventName, id: event.aggregate.id });
-		event.callback.eventName = eventName;
-		DomainEvents.events.addToEnd(event);
-	}
+    /**
+     * Creates an instance of Events for aggregate.
+     */
+    constructor(private readonly aggregate: T) {
+        this._events = [];
+        this.totalDispatched = 0;
+        this._metrics = {
+            totalDispatched: (): number => this.totalDispatched,
+            totalEvents: (): number => this._events.length
+        }
+    }
 
-	/**
-	 * @description Dispatch event for a provided name and an aggregate id.
-	 * @param options params to find event to dispatch it.
-	 * @returns promise void.
-	 */
-	public static async dispatch(options: IDispatchOptions, handler?: EventHandler<IAggregate<any>, void>): Promise<void> {
-		const log = (): void => console.log('None handler provided');
-		const callback: EventHandler<IAggregate<any>, void> = handler ? handler : ({ execute: (): void => { log(); } });
-		const eventsToDispatch: Array<IDomainEvent<IAggregate<any>>> = [];
-		const events = DomainEvents.events.toArray();
-		let position = 0;
-		while (events[position]) {
-			const event = events[position];
-			if (event.aggregate.id.equal(options.id) && event.callback.eventName === options.eventName) {
-				eventsToDispatch.push(event);
-				DomainEvents.events.removeItem(event);
-			}
-			position = position + 1;
-		}
-		eventsToDispatch.forEach((agg): void | Promise<void> => agg.callback.dispatch(agg, callback));
-	}
+    /**
+     * Getter method for accessing metrics related to events.
+     * @returns {Metrics} Metrics related to events.
+     */
+    get metrics(): Metrics {
+        return this._metrics;
+    }
 
-	/**
-	 * @description Dispatch event for a provided name and an aggregate id.
-	 * @param id aggregate id.
-	 * @returns promise void.
-	 */
-	public static async dispatchAll(id: UID, handler?: EventHandler<IAggregate<any>, void>): Promise<void> {
-		const log = (): void => console.log('None handler provided');
-		const callback: EventHandler<IAggregate<any>, void> = handler ? handler : ({ execute: (): void => { log(); } });
-		const eventsToDispatch: Array<IDomainEvent<IAggregate<any>>> = [];
-		const events = DomainEvents.events.toArray();
-		let position = 0;
-		while (events[position]) {
-			const event = events[position];
-			if (event.aggregate.id.equal(id)) {
-				eventsToDispatch.push(event);
-				DomainEvents.events.removeItem(event);
-			}
-			position = position + 1;
-		}
-		eventsToDispatch.forEach((agg): void | Promise<void> => agg.callback.dispatch(agg, callback));
-	}
+    /**
+     * Gets the priority based on the number of events.
+     * @returns The priority value.
+     */
+    private getPriority(): number {
+        const totalEvents = this._events.length;
+        if (totalEvents <= 1) return 2;
+        return totalEvents;
+    }
 
-	/**
-	 * @description Delete an event from state.
-	 * @param options to find event to be deleted.
-	 */
-	public static deleteEvent(options: IDispatchOptions): void {
-		const events = DomainEvents.events.toArray();
-		let position = 0;
-		while (events[position]) {
-			const event = events[position];
-			const target = Reflect.getPrototypeOf(event.callback);
-			const eventName = event.callback?.eventName ?? target?.constructor.name;
-			
-			if (event.aggregate.id.equal(options.id) && options.eventName === eventName) {
-				DomainEvents.events.removeItem(event);
-			}
-			position = position + 1;
-		}
-	}
+    /**
+     * Gets the default options.
+     * @returns The default options.
+     */
+    private getDefaultOptions(): Options {
+        const priority = this.getPriority();
+        return {
+            priority
+        };
+    }
+
+    /**
+     * Adds a new event.
+     * @param eventName - The name of the event.
+     * @param handler - The event handler function.
+     * @param options - The options for the event.
+     */
+    addEvent(eventName: string, handler: Handler<T>, options?: Options): void {
+        const defaultOptions = this.getDefaultOptions();
+        const opt = options ? options : defaultOptions;
+        this.validateEventName(eventName);
+        this.validateHandler(handler, eventName);
+        this.removeEvent(eventName);
+        this._events.push({ eventName, handler, options: opt });
+    }
+
+    /**
+     * Validates the event handler.
+     * @param handler - The event handler function.
+     * @param eventName - The name of the event.
+     */
+    private validateHandler(handler: Handler<T>, eventName: string): void {
+        if (typeof handler !== 'function') {
+            const message = `addEvent: handler for ${eventName} is not a function`;
+            throw new Error(message);
+        };
+    }
+
+    /**
+     * Validates the event name.
+     * @param eventName - The name of the event.
+     */
+    private validateEventName(eventName: string): void {
+        if (typeof eventName !== 'string' || String(eventName).length < 3) {
+            const message = `addEvent: invalid event name ${eventName}`;
+            throw new Error(message);
+        }
+    }
+
+    /**
+     * Clears all events.
+     */
+    clearEvents(): void {
+        this._events = []
+    }
+
+    /**
+     * Removes an event by name.
+     * @param eventName - The name of the event to remove.
+     */
+    removeEvent(eventName: string): void {
+        this._events = this._events.filter(
+            (event): boolean => event.eventName !== eventName
+        );
+    }
+
+    /**
+     * Dispatches an event.
+     * @param eventName - The name of the event to dispatch.
+     * @param args - Any param user wants provide as argument.
+     * @returns The result of the event handler function.
+     */
+    dispatchEvent(eventName: string, ...args: any[]): void | Promise<void> {
+        const _event = this._events.find(
+            (evt): boolean => evt.eventName === eventName
+        );
+        if (!_event) {
+            const message = `dispatchEvent: ${eventName} event not found`;
+            return console.error(message);
+        };
+        this.totalDispatched = this.totalDispatched + 1;
+        _event.handler(this.aggregate, [_event, ...args]);
+        this.removeEvent(eventName);
+    }
+
+    /**
+     * Dispatches all events.
+     * @returns A promise that resolves when all promise-based events are completed.
+     */
+    async dispatchEvents(): Promise<void> {
+        const promisesEvents: PromiseHandler<T>[] = [];
+        const sorted = this._events.sort(
+            (a, b): number => a.options.priority - b.options.priority
+        );
+        sorted.forEach((_event): void => {
+            this.totalDispatched = this.totalDispatched + 1;
+            const fn = _event.handler(this.aggregate, [_event]);
+            if (fn instanceof Promise) {
+                promisesEvents.push(fn as unknown as PromiseHandler<T>);
+            }
+        });
+        await Promise.all(promisesEvents).catch(console.error);
+        this.clearEvents();
+    }
 }
-
-export default DomainEvents;

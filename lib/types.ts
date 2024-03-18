@@ -179,51 +179,6 @@ export interface IPublicHistory<Props> {
 
 export type IPropsValidation<T> = { [P in keyof Required<T>]: (value: T[P]) => boolean };
 
-/**
- * @description Domain Events Params
- * @param aggregate the entity to add the event.
- * @param createdAt the current date time the event was created.
- * @param callback the event handler to be executed on dispatch.
- */
-export interface IDomainEvent<T> {
-	aggregate: T;
-	createdAt: Date;
-	callback: IHandle<T>;
-}
-
-/**
- * @description Define a handler to be executed on dispatch an event.
- * @var eventName is optional value as string or undefine.
- * @method dispatch is the method to be executed on dispatch the event.
- */
-export interface IHandle<T> {
-	/**
-	 * @description eventName is optional value. Default is className
-	 */
-	eventName?: string;
-	dispatch(event: IDomainEvent<T>, handler: EventHandler<T, void>): Promise<void> | void;
-}
-
-/**
- * @description Options to dispatch some event.
- * @param eventName is the value defined on handler. Default is the class name.
- * @param id is the ID to identify the aggregate on state.
- */
-export interface IDispatchOptions {
-	eventName: string;
-	id: UID<string>;
-}
-
-/**
- * @description Event options
- */
-export interface IEvent<G> {
-	event: IDomainEvent<G>;
-	replace?: boolean;
-}
-
-export type IReplaceOptions = 'REPLACE_DUPLICATED' | 'UPDATE' | 'KEEP';
-
 export interface IAdapter<F, T, E = any, M = any> {
 	build(target: F): IResult<T, E, M>;
 }
@@ -256,7 +211,7 @@ export interface IAggregate<Props> {
 	hashCode(): UID<string>;
 	isNew(): boolean;
 	clone(): IEntity<Props>;
-	addEvent(event: IHandle<IAggregate<Props>>, replace?: IReplaceOptions): void;
+	addEvent(eventName: string, handler: Handler<this>, options?: Options): void;
 	deleteEvent(eventName: string): void;
 }
 
@@ -297,4 +252,53 @@ export interface EventMetrics {
 	current: number;
 	total: number;
 	dispatch: number;
+}
+
+/**
+ * Interface representing an event.
+ */
+export interface Event<T> {
+    eventName: string;
+    handler: Handler<T>;
+    options: Options;
+}
+
+/**
+ * Represents a promise-based event handler.
+ */
+export type PromiseHandler<T> = (...args: [T, [Event<T>, ...any[]]]) => Promise<void>;
+
+/**
+ * Represents a normal event handler.
+ */
+export type NormalHandler<T> = (...args: [T, [Event<T>, ...any[]]]) => void;
+
+/**
+ * Represents an event handler, which can be either a promise-based handler or a normal handler.
+ */
+export type Handler<T> = PromiseHandler<T> | NormalHandler<T>;
+
+/**
+ * Interface representing options for an event.
+ */
+export interface Options {
+    priority: number;
+}
+
+/**
+ * Interface representing metrics related to events.
+ * @interface Metrics
+ */
+export interface Metrics {
+    /**
+     * A function that returns the total number of events.
+     * @returns {number} The total number of events.
+     */
+    totalEvents: () => number;
+
+    /**
+     * A function that returns the total number of dispatched events.
+     * @returns {number} The total number of dispatched events.
+     */
+    totalDispatched: () => number;
 }
