@@ -1,6 +1,6 @@
 {
 	"name": "rich-domain",
-	"version": "1.19.2",
+	"version": "1.20.0-beta",
 	"description": "This package provide utils file and interfaces to assistant build a complex application with domain driving design",
 	"main": "index.js",
 	"types": "index.d.ts",

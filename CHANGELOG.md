@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### [1.20.0] - 2024-03-17
+### [1.20.0-beta] - 2024-03-17
 
 ### Changed
 
