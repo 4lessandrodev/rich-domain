@@ -428,6 +428,7 @@ In my example, let's use the context of payment. All payment transactions are en
 
 import { Aggregate, Ok, Fail, Result, UID, EventHandler } from 'rich-domain';
 
+// Entities and VO that encapsulate context.
 interface Props {
     id?: UID;
     payment: Payment;
@@ -436,7 +437,8 @@ interface Props {
     customer: Customer;
 }
 
-// Simple example of an order aggregate encapsulating entities and value objects for context.
+// Simple example of an order aggregate encapsulating entities and 
+// value objects for context.
 export default class Order extends Aggregate<Props> {
 
     // Private constructor to ensure instances creation through static methods.
@@ -457,7 +459,7 @@ export default class Order extends Aggregate<Props> {
         const order = new Order({ status, payment, items, customer });
 
         // Add an event to indicate that the order has begun.
-        order.addEvent('ORDER_BEGUN', (order) => {
+        order.addEvent('ORDER_HAS_BEGUN', (order) => {
         // Perform some important operation when the order begins.
             console.log('Do something important...');
         });
@@ -489,14 +491,16 @@ export default class Order extends Aggregate<Props> {
         // Set the provided payment object.
         this.props.payment = payment;
         // Add an event to indicate that the order has been paid.
-        // Assuming OrderPaidEvent is a class representing the event of order payment.
+        // Assuming OrderPaidEvent is a class representing 
+		// the event of order payment.
         this.addEvent(new OrderPaidEventHandler());
         return this; 
     }
 
     // Static method to create an instance of Order.
     // Returns a Result, which can be Ok (success) or Fail (failure).
-    // The value of the Result is an instance of Order, if creation is successful.
+    // The value of the Result is an instance of Order, 
+	// if creation is successful.
     public static create(props: Props): Result<Order> {
         return Ok(new Order(props));
     }
@@ -508,11 +512,21 @@ How to use events
 
 ```ts
 
-order.dispatchEvent('ORDER_BEGUN');
+order.addEvent('OTHER_EVENT', (...args) => {
+	console.log(args);
+});
 
-// OR 
+// Or add an EventHandler instance
+order.addEvent(new GenerateInvoiceEvent());
 
+order.dispatchEvent('ORDER_HAS_BEGUN');
+
+// dispatch with args
+order.dispatchEvent('OTHER_EVENT', { info: 'custom_args' });
+
+// OR call all added events
 await order.dispatchAll();
+
 
 ```
 
