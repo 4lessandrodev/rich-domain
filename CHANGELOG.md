@@ -72,6 +72,8 @@ aggregate.addEvent(event);
 
 aggregate.dispatchEvent('sample', { custom: 'params' });
 
+await aggregate.dispatchAll();
+
 ```
 
 ### Bug Fixes
