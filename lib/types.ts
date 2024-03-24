@@ -332,6 +332,7 @@ export abstract class EventHandler<T> {
         if (typeof params?.eventName !== 'string') {
             throw new Error('params.eventName is required as string');
         }
+		this.dispatch = this.dispatch.bind(this);
     }
 
     /**

@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.20.1] - 2024-03-24
+
+### Fixed
+
+- Added context binding (this.bind(this)) to the EventHandler class constructor to ensure proper access to class properties and methods within event handlers.
+
+---
+
 ### [1.20.0] - 2024-03-17
 
 ### Changed
