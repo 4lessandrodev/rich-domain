@@ -6,6 +6,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.20.2] - 2024-03-25
+
+### Changed
+
+- Improved UUID generation function to ensure better atomicity and performance.
+- Enhanced environment detection for browser and Node.js environments.
+- Refactored UUID generation logic to eliminate potential race conditions and ensure thread safety.
+- Updated UUID generation algorithm to utilize native environment resources more efficiently.
+- Added support for generating UUIDs in both browser and Node.js environments, leveraging appropriate platform-specific methods.
+- Enhanced UUID generation function to follow standard UUID format (8-4-4-4-12) using hexadecimal characters.
+- Ensured backward compatibility with existing usage patterns while delivering significant improvements in reliability and efficiency.
+
+---
+
 ### [1.20.1] - 2024-03-24
 
 ### Fixed
