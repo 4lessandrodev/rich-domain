@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.20.3] - 2024-03-25
+
+### Fix
+
+- fix bind window.crypto to browser context
+
+---
+
 ### [1.20.2] - 2024-03-25
 
 ### Changed

@@ -1,4 +1,4 @@
-import * as cr from 'crypto';
+import * as crypto from 'crypto';
 
 /*
 	  UUID                   = time-low "-" time-mid "-"
@@ -22,35 +22,35 @@ import * as cr from 'crypto';
 
    urn:uuid:f81d4fae-7dec-41d0-a765-00a0c91e6bf6
 */
-export const GenerateUUID = (): string => {
-    const hexChars = '0123456789abcdef';
-    let uuid = '';
+const customCrypto = {
+    randomUUID: () => {
+        const hexChars = '0123456789abcdef';
+        let uuid = '';
 
-    // Generate an UUID on format xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-    for (let i = 0; i < 36; i++) {
-        if (i === 8 || i === 13 || i === 18 || i === 23) {
-            uuid += '-';
-        } else if (i === 14) {
-            uuid += '4'; // V4 for random uuid
-        } else if (i === 19) {
-            uuid += hexChars.charAt(Math.floor(Math.random() * 4) + 8); // [8, 9, a, b]
-        } else {
-            uuid += hexChars.charAt(Math.floor(Math.random() * 16));
+        // Generate an UUID on format xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+        for (let i = 0; i < 36; i++) {
+            if (i === 8 || i === 13 || i === 18 || i === 23) {
+                uuid += '-';
+            } else if (i === 14) {
+                uuid += '4'; // V4 for random uuid
+            } else if (i === 19) {
+                uuid += hexChars.charAt(Math.floor(Math.random() * 4) + 8); // [8, 9, a, b]
+            } else {
+                uuid += hexChars.charAt(Math.floor(Math.random() * 16));
+            }
         }
+
+        return uuid;
     }
+};
 
-    return uuid;
+if (typeof process !== 'undefined' && crypto && crypto?.randomUUID) {
+    customCrypto.randomUUID = crypto.randomUUID;
+	// @ts-ignore
+} else if (typeof window !== 'undefined' && window?.crypto && window?.crypto?.randomUUID) {
+	// @ts-ignore
+    customCrypto.randomUUID = window.crypto.randomUUID.bind(window.crypto);
 }
 
-const crypto = { randomUUID: GenerateUUID };
-
-if(typeof process !== 'undefined' && cr && cr?.randomUUID) {
-	crypto.randomUUID = cr.randomUUID;
-	// @ts-ignore
-} else if (typeof window !== 'undefined' && window?.crypto && window.crypto?.randomUUID) {
-	// @ts-ignore
-	crypto.randomUUID = window.crypto.randomUUID
-}
-
-export const UUID = crypto.randomUUID;
+export const UUID = customCrypto.randomUUID;
 export default UUID;
