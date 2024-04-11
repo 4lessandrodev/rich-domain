@@ -25,7 +25,7 @@ export default class BrowserEventManager implements EventManager {
         return null;
     }
 
-    addEvent(eventName: string, fn: (...args: any[]) => void | Promise<void>) {
+    subscribe(eventName: string, fn: (...args: any[]) => void | Promise<void>) {
         if (this.exists(eventName)) return;
         this.events.push({ eventName, callback: fn });
         window.sessionStorage.setItem('rich-domain-event:'+ eventName, 'true');

@@ -28,7 +28,7 @@ export default class ServerEventManager implements EventManager {
         return null;
     }
 
-    addEvent(eventName: string, fn: (...args: any[]) => void | Promise<void>) {
+    subscribe(eventName: string, fn: (...args: any[]) => void | Promise<void>) {
         if (this.exists(eventName)) return;
         this.events.push({ eventName, callback: fn });
         this.emitter.addListener(eventName, fn);

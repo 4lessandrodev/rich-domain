@@ -10,8 +10,8 @@ describe('context', () => {
 
         const context = Context.events();
 
-        context.addEvent('REGISTER', (user: { name: string }) => {
-            console.log(user);
+        context.subscribe('REGISTER', (event) => {
+            console.log(event);
         });
 
         // ------------------
@@ -49,7 +49,7 @@ describe('context', () => {
 
         const contextX = Context.events();
 
-        contextX.addEvent('SIGNUP', (arg) => {
+        contextX.subscribe('SIGNUP', (arg) => {
             console.log(arg);
         });
 
