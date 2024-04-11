@@ -1,7 +1,5 @@
 import { EventEmitter } from "events";
-import EventManager from "./event-manager";
-
-export type EventType = { eventName: string, callback: (...args: any[]) => void | Promise<void> };
+import { EventManager, EventType } from "../types";
 
 export default class ServerEventManager implements EventManager {
     private events: EventType[];

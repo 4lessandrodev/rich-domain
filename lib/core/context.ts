@@ -1,6 +1,6 @@
 import platform from "../utils/platform.util";
 import BrowserEventManager from "./browser-event-manager";
-import EventManager from "./event-manager";
+import { EventManager } from "../types";
 import ServerEventManager from "./server-event-manager";
 
 export abstract class Context {

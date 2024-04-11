@@ -1,6 +1,4 @@
-import EventManager from "./event-manager";
-
-export type EventType = { eventName: string, callback: (...args: any[]) => void | Promise<void> };
+import { EventManager, EventType } from "../types";
 
 export default class BrowserEventManager implements EventManager {
     private events: EventType[];
@@ -14,7 +12,7 @@ export default class BrowserEventManager implements EventManager {
     }
 
     static instance(): BrowserEventManager {
-        if(BrowserEventManager._instance) return BrowserEventManager._instance;
+        if (BrowserEventManager._instance) return BrowserEventManager._instance;
         BrowserEventManager._instance = new BrowserEventManager();
         return BrowserEventManager._instance;
     }
@@ -28,29 +26,33 @@ export default class BrowserEventManager implements EventManager {
     subscribe(eventName: string, fn: (...args: any[]) => void | Promise<void>): void {
         if (this.exists(eventName)) return;
         this.events.push({ eventName, callback: fn });
-        window.sessionStorage.setItem('rich-domain-event:'+ eventName, 'true');
-        document.addEventListener(eventName, fn);
+        globalThis.window.sessionStorage.setItem('rich-domain-event:' + eventName, 'true');
+        globalThis.window.addEventListener(eventName, fn);
+        globalThis.window.addEventListener('beforeunload', (): void => {
+            globalThis.window.sessionStorage.removeItem('rich-domain-event:' + eventName);
+        });
     }
 
     exists(eventName: string): boolean {
-        const existsOnWindow = !!window.sessionStorage.getItem('rich-domain-event:'+eventName);
+        const existsOnWindow = !!globalThis.window.sessionStorage.getItem('rich-domain-event:' + eventName);
         const existsInternal = !!this.events.find((evt): boolean => evt.eventName === eventName);
         return existsOnWindow || existsInternal;
     }
 
     removerEvent(eventName: string): boolean {
-        window.sessionStorage.removeItem('rich-domain-event:'+eventName);
+        window.sessionStorage.removeItem('rich-domain-event:' + eventName);
         const event = this.getEvent(eventName);
         if (!event) return false;
         this.events = this.events.filter((event): boolean => event.eventName !== eventName);
-        document.removeEventListener(event.eventName, event.callback);
+        globalThis.window.removeEventListener(event.eventName, event.callback);
+        globalThis.window.sessionStorage.removeItem('rich-domain-event:'+ eventName);
         return true;
     }
 
     dispatchEvent(eventName: string, ...args: any[]): void {
         const exists = this.exists(eventName);
-        if(!exists) return;
-        document.dispatchEvent(new CustomEvent(eventName, {
+        if (!exists) return;
+        globalThis.window.dispatchEvent(new CustomEvent(eventName, {
             bubbles: true,
             detail: args
         }));
