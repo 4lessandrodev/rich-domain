@@ -17,41 +17,41 @@ export default class ServerEventManager implements EventManager {
     }
 
     static instance(): ServerEventManager {
-        if(ServerEventManager._instance) return ServerEventManager._instance;
+        if (ServerEventManager._instance) return ServerEventManager._instance;
         ServerEventManager._instance = new ServerEventManager();
         return ServerEventManager._instance;
     }
 
     private getEvent(eventName: string): EventType | null {
-        const event = this.events.find((event) => event.eventName === eventName);
+        const event = this.events.find((event): boolean => event.eventName === eventName);
         if (event) return event;
         return null;
     }
 
-    subscribe(eventName: string, fn: (...args: any[]) => void | Promise<void>) {
+    subscribe(eventName: string, fn: (...args: any[]) => void | Promise<void>): void {
         if (this.exists(eventName)) return;
         this.events.push({ eventName, callback: fn });
         this.emitter.addListener(eventName, fn);
     }
 
-    exists(eventName: string) {
+    exists(eventName: string): boolean {
         const count = this.emitter.listenerCount(eventName);
         const hasListener = count > 0;
-        const hasLocal = !!this.events.find((evt) => evt.eventName === eventName);
+        const hasLocal = !!this.events.find((evt): boolean => evt.eventName === eventName);
         return hasListener || hasLocal;
     }
 
-    removerEvent(eventName: string) {
+    removerEvent(eventName: string): boolean {
         const event = this.getEvent(eventName);
         if (!event) return false;
-        this.events = this.events.filter((event) => event.eventName !== eventName);
+        this.events = this.events.filter((event): boolean => event.eventName !== eventName);
         this.emitter.removeListener(event.eventName, event.callback);
         return true;
     }
 
-    dispatchEvent(eventName: string, ...args: any[]) {
+    dispatchEvent(eventName: string, ...args: any[]): void {
         const exists = this.exists(eventName);
-        if(!exists) return;
+        if (!exists) return;
         this.emitter.emit(eventName, { detail: args });
     }
 }

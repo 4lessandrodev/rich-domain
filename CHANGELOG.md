@@ -75,7 +75,7 @@ All notable changes to this project will be documented in this file.
             }
 
             dispatch(user: User): void {
-                // dispatch to context event
+                // dispatch to global context event manager
                 contextY.dispatchEvent(this.params.eventName, user.toObject());
             };
         }
