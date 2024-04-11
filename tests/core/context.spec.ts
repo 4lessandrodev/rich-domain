@@ -3,96 +3,94 @@ import { EventHandler } from "../../lib/types";
 
 describe('context', () => {
 
-    it('user instance should dispatch global event', () => {
+    // Define User class outside of test blocks for reusability
+    type Props = { name: string };
 
-        // ------------------
-        // Any Other Context 
-
-        const context = Context.events();
-
-        context.subscribe('REGISTER', (event) => {
-            console.log(event);
-        });
-
-        // ------------------
-        // User Account Context
-
-        type Props = { name: string };
-
-        class User extends Aggregate<Props>{
-            private constructor(props: Props) {
-                super(props);
-            }
-
-            public static signUp(name: string): User {
-                return new User({ name });
-            }
-
-            public static create(props: Props): Result<User> {
-                return Ok(new User(props));
-            }
+    class User extends Aggregate<Props>{
+        private constructor(props: Props) {
+            super(props);
         }
 
+        public static signUp(name: string): User {
+            return new User({ name });
+        }
+
+        public static create(props: Props): Result<User> {
+            return Ok(new User(props));
+        }
+    }
+
+    // Define SigNupEvent class outside of test blocks for reusability
+    const contextY = Context.events();
+
+    class SignUpEvent extends EventHandler<User> {
+        constructor() {
+            super({ eventName: 'HANDLER' })
+        }
+
+        dispatch(user: User): void {
+            contextY.dispatchEvent(this.params.eventName, user.toObject());
+        };
+    }
+
+    it('should dispatch global event when user signs up', () => {
+        // Mock event handler
+        const mockEventHandler = jest.fn();
+
+        // Subscribe to REGISTER event
+        const context = Context.events();
+        context.subscribe('REGISTER', mockEventHandler);
+
+        // User signs up
         const user = User.signUp('Jane Doe');
 
-        context.dispatchEvent('REGISTER', user.toObject());
+        const model = user.toObject();
 
-        expect(1).toBe(1);
+        // Dispatch REGISTER event with user data
+        context.dispatchEvent('REGISTER', model);
 
+        // Expect event handler to have been called
+        expect(mockEventHandler).toHaveBeenCalledWith({ detail: [model] });
     });
 
+    it('should dispatch global event on handler when user signs up', () => {
+        // Mock event handler
+        const mockGlobalEventHandler = jest.fn();
 
-    it('another possibility, dispatch to global event on handler', () => {
-
-        // ------------------
-        // Any Other Context 
-
+        // Subscribe to SIGNUP event in global context
         const contextX = Context.events();
+        contextX.subscribe('SIGNUP', mockGlobalEventHandler);
 
-        contextX.subscribe('SIGNUP', (arg) => {
-            console.log(arg);
-        });
-
-
-        // ------------------
-        // User Account Context
-
-        type Props = { name: string };
-
-        class User extends Aggregate<Props>{
-            private constructor(props: Props) {
-                super(props);
-            }
-
-            public static signUp(name: string): User {
-                const user = new User({ name });
-                user.addEvent(new SigNupEvent());
-                return user;
-            }
-
-            public static create(props: Props): Result<User> {
-                return Ok(new User(props));
-            }
-        }
-
-        const contextY = Context.events();
-
-        class SigNupEvent extends EventHandler<User> {
-            constructor() {
-                super({ eventName: 'SIGNUP' })
-            }
-
-            dispatch(user: User): void {
-                contextY.dispatchEvent(this.params.eventName, user.toObject());
-            };
-        }
-
+        // User signs up
         const user = User.signUp('John Doe');
-        
-        user.dispatchEvent('SIGNUP');
 
-        expect(1).toBe(1);
+        const model = user.toObject();
 
+        Context.events().dispatchEvent('SIGNUP', model);
+
+        // Expect event handler to have been called
+        expect(mockGlobalEventHandler).toHaveBeenCalledWith({ detail: [model] });
     });
+
+   
+    it('should dispatch global event on handler when user signs up', () => {
+        // Mock event handler
+        const mockGlobalEventHandler = jest.fn();
+
+        // Subscribe to SIGNUP event in global context
+        const contextX = Context.events();
+        contextX.subscribe('HANDLER', mockGlobalEventHandler);
+
+        // User signs up
+        const user = User.signUp('John Doe');
+        user.addEvent(new SignUpEvent());
+
+        const model = user.toObject();
+
+        user.dispatchEvent('HANDLER');
+
+        // Expect event handler to have been called
+        expect(mockGlobalEventHandler).toHaveBeenCalledWith({ detail: [model] });
+    }); 
 
 });
