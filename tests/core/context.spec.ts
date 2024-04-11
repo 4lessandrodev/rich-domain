@@ -1,16 +1,16 @@
 import { Aggregate, Ok, Result, Context } from "../../lib/core";
 import { EventHandler } from "../../lib/types";
 
-describe('global-events', () => {
+describe('context', () => {
 
     it('user instance should dispatch global event', () => {
 
         // ------------------
         // Any Other Context 
 
-        const context = Context.instance();
+        const context = Context.events();
 
-        context.addListener('REGISTER', (user: { name: string }) => {
+        context.addEvent('REGISTER', (user: { name: string }) => {
             console.log(user);
         });
 
@@ -35,7 +35,7 @@ describe('global-events', () => {
 
         const user = User.signUp('Jane Doe');
 
-        context.emit('REGISTER', user.toObject());
+        context.dispatchEvent('REGISTER', user.toObject());
 
         expect(1).toBe(1);
 
@@ -47,9 +47,9 @@ describe('global-events', () => {
         // ------------------
         // Any Other Context 
 
-        const contextX = Context.instance();
+        const contextX = Context.events();
 
-        contextX.addListener('SIGNUP', (arg) => {
+        contextX.addEvent('SIGNUP', (arg) => {
             console.log(arg);
         });
 
@@ -75,7 +75,7 @@ describe('global-events', () => {
             }
         }
 
-        const contextY = Context.instance();
+        const contextY = Context.events();
 
         class SigNupEvent extends EventHandler<User> {
             constructor() {
@@ -83,7 +83,7 @@ describe('global-events', () => {
             }
 
             dispatch(user: User): void {
-                contextY.emit(this.params.eventName, user.toObject());
+                contextY.dispatchEvent(this.params.eventName, user.toObject());
             };
         }
 
