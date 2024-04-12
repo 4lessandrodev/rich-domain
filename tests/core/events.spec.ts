@@ -204,5 +204,37 @@ describe('events', () => {
                 ],
             ]
         );
-    })
+    });
+
+    it('should bind this to instance', () => {
+
+        let payload: { email: string } | null = null;
+
+        interface Mailer {
+            sendEmail(arg: { email: string }): void;
+        }
+
+        class SesMailer implements Mailer {
+            sendEmail(arg: { email: string }) {
+                payload = arg;
+            }
+        }
+
+        class SignupEvent extends EventHandler<{ email: string }> {
+            constructor(
+                private readonly mailer: Mailer
+            ) {
+                super({ eventName: 'SignupEvent' });
+            }
+            async dispatch(account: { email: string }): Promise<void> {
+                this.mailer.sendEmail(account);
+            }
+        }
+
+        const data = { email: 'jane@mail.com' };
+        const event = new SignupEvent(new SesMailer());
+        event.dispatch(data);
+
+        expect(payload).toEqual(data);
+    });
 });

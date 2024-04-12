@@ -6,6 +6,128 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## Released
+
+---
+
+### [1.21.0] - 2024-04-11
+
+#### Features Added
+
+- Added Context Communication: Implemented a feature for inter-context communication within the library, enabling seamless interaction between different contexts within a project.
+
+- Introduced Custom Events: Custom events can now be dispatched both globally and within specific aggregates, providing flexibility in event handling and propagation.
+
+- Compatibility with Browser and Node.js: Maintained compatibility between browser and server environments by utilizing CustomEvents in the DOM for browser compatibility and standard event handling for Node.js.
+
+- Aggregate Event Management: Aggregates retain event management methods, allowing for the encapsulation of business rules within specific contexts.
+
+#### Known Issues
+
+- Investigating potential chain reactions of lambda functions in certain scenarios.
+
+#### Future Considerations
+
+- Strong Typing: Consideration for enhancing typing support for event parameters to provide better developer guidance and error checking.
+
+- Further Investigation: Continue investigating potential implications of fanning-out from a single lambda function to ensure robustness in complex scenarios.
+
+#### Usage Examples
+
+```ts
+
+        import { Aggregate, Ok, Result, Context, EventHandler } from 'rich-domain';
+
+        // ------------------
+        // Some Context X
+
+        const contextX = Context.events();
+
+        // Listening global events
+        contextX.subscribe('SIGNUP', (arg) => {
+            console.log(arg);
+        });
+
+
+        // ------------------
+        // User Account as Context Y
+
+        type Props = { name: string };
+
+        class User extends Aggregate<Props>{
+            private constructor(props: Props) {
+                super(props);
+            }
+
+            public static signUp(name: string): User {
+                const user = new User({ name });
+                // add handler according to business rule
+                user.addEvent(new SignUpEvent());
+                return user;
+            }
+
+            public static create(props: Props): Result<User> {
+                return Ok(new User(props));
+            }
+        }
+
+        const contextY = Context.events();
+
+        class SignUpEvent extends EventHandler<User> {
+            constructor() {
+                super({ eventName: 'SIGNUP' })
+            }
+
+            dispatch(user: User): void {
+                // dispatch to global context event manager
+                contextY.dispatchEvent(this.params.eventName, user.toObject());
+            };
+        }
+
+        const user = User.signUp('John Doe');
+        
+        // dispatch to call handler
+        user.dispatchEvent('SIGNUP');
+
+```
+
+#### Acknowledgments
+
+thanks to @mmmoli for contributions and inspirations
+
+
+---
+
+### [1.20.3] - 2024-03-25
+
+### Fix
+
+- fix bind window.crypto to browser context
+
+---
+
+### [1.20.2] - 2024-03-25
+
+### Changed
+
+- Improved UUID generation function to ensure better atomicity and performance.
+- Enhanced environment detection for browser and Node.js environments.
+- Refactored UUID generation logic to eliminate potential race conditions and ensure thread safety.
+- Updated UUID generation algorithm to utilize native environment resources more efficiently.
+- Added support for generating UUIDs in both browser and Node.js environments, leveraging appropriate platform-specific methods.
+- Enhanced UUID generation function to follow standard UUID format (8-4-4-4-12) using hexadecimal characters.
+- Ensured backward compatibility with existing usage patterns while delivering significant improvements in reliability and efficiency.
+
+---
+
+### [1.20.1] - 2024-03-24
+
+### Fixed
+
+- Added context binding (this.bind(this)) to the EventHandler class constructor to ensure proper access to class properties and methods within event handlers.
+
+---
+
 ### [1.20.0] - 2024-03-17
 
 ### Changed
@@ -71,6 +193,8 @@ const event = new Handler();
 aggregate.addEvent(event);
 
 aggregate.dispatchEvent('sample', { custom: 'params' });
+
+await aggregate.dispatchAll();
 
 ```
 

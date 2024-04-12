@@ -1,7 +1,5 @@
 import * as crypto from 'crypto';
 
-const { randomUUID } = crypto;
-
 /*
 	  UUID                   = time-low "-" time-mid "-"
 							   time-high-and-version "-"
@@ -22,32 +20,35 @@ const { randomUUID } = crypto;
    The following is an example of the string representation of a UUID as
    a URN:
 
-   urn:uuid:f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+   urn:uuid:f81d4fae-7dec-41d0-a765-00a0c91e6bf6
 */
-const chars = [
-	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-	"a", "b", "c", "d", "e", "f",
-	"A", "B", "C", "D", "E", "F"
-];
+const customCrypto = {
+    randomUUID: () => {
+        const hexChars = '0123456789abcdef';
+        let uuid = '';
 
-const charsAsc = [
-	"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-	"a", "b", "c", "d", "e", "f"
-];
+        // Generate an UUID on format xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+        for (let i = 0; i < 36; i++) {
+            if (i === 8 || i === 13 || i === 18 || i === 23) {
+                uuid += '-';
+            } else if (i === 14) {
+                uuid += '4'; // V4 for random uuid
+            } else if (i === 19) {
+                uuid += hexChars.charAt(Math.floor(Math.random() * 4) + 8); // [8, 9, a, b]
+            } else {
+                uuid += hexChars.charAt(Math.floor(Math.random() * 16));
+            }
+        }
 
-export const GenerateUUID = (): string => {
-	const GetRandom = (): string => chars[Math.trunc(Math.random() * chars.length)];
-	const GetRandomAsc = (): string => charsAsc[Math.trunc(Math.random() * charsAsc.length)];
-	const CurrentTime = (Date.now()).toString(16).padStart(4, GetRandom()) + GetRandomAsc();
+        return uuid;
+    }
+};
 
-	let str = GetRandomAsc();
-	while (str.length < 33) {
-		str = str + GetRandomAsc();
-	}
-	str = str + CurrentTime.slice(9);
-	const result = `${str.slice(0, 8)}-${str.slice(9, 13)}-${str.slice(14, 18)}-${str.slice(19, 23)}-${str.slice(24)}`
-	return result.slice(0, 36);
+if (typeof process !== 'undefined' && crypto && crypto?.randomUUID) {
+    customCrypto.randomUUID = crypto.randomUUID;
+} else if (typeof window !== 'undefined' && window?.crypto && window?.crypto?.randomUUID) {
+    customCrypto.randomUUID = window.crypto.randomUUID.bind(window.crypto);
 }
 
-export const UUID = randomUUID || GenerateUUID;
+export const UUID = customCrypto.randomUUID;
 export default UUID;

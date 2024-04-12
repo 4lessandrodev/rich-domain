@@ -1,3 +1,12 @@
+export abstract class EventManager {
+    abstract subscribe(eventName: string, fn: (...args: any[]) => void | Promise<void>): void;
+    abstract exists(eventName: string): boolean;
+    abstract removerEvent(eventName: string): boolean;
+    abstract dispatchEvent(eventName: string, ...args: any[]): void;
+}
+
+export type EventType = { eventName: string, callback: (...args: any[]) => void | Promise<void> };
+
 /**
  * @summary The result is used to returns a operation result instead the own value.
  * @interface IResult<T, D, M>;
@@ -211,6 +220,7 @@ export interface IAggregate<Props> {
 	isNew(): boolean;
 	clone(): IEntity<Props>;
 	deleteEvent(eventName: string): void;
+	context(): EventManager;
 }
 
 export type IParentName = 'ValueObject' | 'Entity';
@@ -332,6 +342,7 @@ export abstract class EventHandler<T> {
         if (typeof params?.eventName !== 'string') {
             throw new Error('params.eventName is required as string');
         }
+		this.dispatch = this.dispatch.bind(this);
     }
 
     /**
