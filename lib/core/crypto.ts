@@ -46,9 +46,7 @@ const customCrypto = {
 
 if (typeof process !== 'undefined' && crypto && crypto?.randomUUID) {
     customCrypto.randomUUID = crypto.randomUUID;
-	// @ts-ignore
 } else if (typeof window !== 'undefined' && window?.crypto && window?.crypto?.randomUUID) {
-	// @ts-ignore
     customCrypto.randomUUID = window.crypto.randomUUID.bind(window.crypto);
 }
 

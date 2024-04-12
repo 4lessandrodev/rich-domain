@@ -508,7 +508,31 @@ export default class Order extends Aggregate<Props> {
 
 ```
 
-How to use events
+#### How to use events
+
+Event Handler
+
+```ts
+
+import { Context, EventHandler } from 'rich-domain';
+
+
+class OrderCreatedEvent extends EventHandler<Order> {
+
+    constructor() {
+        super({ eventName: 'ORDER_CREATED' });
+    }
+
+    dispatch(order: Order): void {
+        // dispatch event to another context
+        order.context().dispatchEvent('EVENT', order.toObject());
+    };
+}
+
+```
+
+Aggregates domain events
+
 
 ```ts
 
@@ -517,7 +541,7 @@ order.addEvent('OTHER_EVENT', (...args) => {
 });
 
 // Or add an EventHandler instance
-order.addEvent(new GenerateInvoiceEvent());
+order.addEvent(new OrderCreatedEvent());
 
 order.dispatchEvent('ORDER_HAS_BEGUN');
 
@@ -529,6 +553,26 @@ await order.dispatchAll();
 
 
 ```
+
+#### How to subscribe to a global event
+
+```ts
+
+import { Context } from 'rich-domain';
+
+const context = Context.events();
+
+// subscribe to a global event
+context.subscribe('EVENT', (args) => {
+   const [model] = args.detail;
+   console.log(model);
+});
+
+// dispatch an event to a context
+context.dispatchEvent('EVENT', { name: 'Jane' });
+
+
+``` 
 
 ---
 

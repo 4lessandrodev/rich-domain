@@ -14,3 +14,4 @@ export * from './decrement-time.util';
 export * from './to-precision.util';
 export * from './is-nan.util';
 export * from './ensure-number';
+export * from './platform.util';

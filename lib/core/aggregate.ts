@@ -4,6 +4,8 @@ import TsEvent from "./events";
 import Entity from "./entity";
 import ID from "./id";
 import Result from "./result";
+import Context from "./context";
+import { EventManager } from "../types";
 
 /**
  * @description Aggregate identified by an id
@@ -30,6 +32,14 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 	public hashCode(): UID<string> {
 		const name = Reflect.getPrototypeOf(this);
 		return ID.create(`[Aggregate@${name?.constructor.name}]:${this.id.value()}`);
+	}
+
+	/**
+	 * @description Manager Contexts Events
+	 * @returns Event Manger to subscribe or dispatch global events
+	 */
+	public context(): EventManager {
+		return Context.events();
 	}
 
 	/**
