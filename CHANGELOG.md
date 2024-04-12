@@ -44,7 +44,7 @@ All notable changes to this project will be documented in this file.
         const contextX = Context.events();
 
         // Listening global events
-        contextX.subscribe('SIGNUP', (arg) => {
+        contextX.subscribe('USER_REGISTERED', (arg) => {
             console.log(arg);
         });
 
@@ -80,7 +80,7 @@ All notable changes to this project will be documented in this file.
 
             dispatch(user: User): void {
                 // dispatch to global context event manager
-                contextY.dispatchEvent(this.params.eventName, user.toObject());
+                user.context().dispatchEvent("USER_REGISTERED", user.toObject());
             };
         }
 
