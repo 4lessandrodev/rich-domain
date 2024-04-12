@@ -6,7 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### [1.20.3-beta.0] - 2024-04-11
+## Released
+
+---
+
+### [1.20.4] - 2024-04-11
 
 #### Features Added
 
@@ -91,11 +95,6 @@ All notable changes to this project will be documented in this file.
 
 thanks to @mmmoli for contributions and inspirations
 
----
-
-
-
-## Released
 
 ---
 
