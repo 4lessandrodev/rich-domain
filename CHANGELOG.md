@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### [1.20.4] - 2024-04-11
+### [1.21.0] - 2024-04-11
 
 #### Features Added
 
