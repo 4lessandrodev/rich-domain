@@ -6,7 +6,7 @@ export default class BrowserEventManager implements EventManager {
 
     private constructor() {
         this.events = [];
-        if (typeof document === 'undefined' || typeof window === 'undefined') {
+        if (typeof globalThis?.window === 'undefined') {
             throw new Error('BrowserEventManager is not supported');
         }
     }
@@ -26,7 +26,7 @@ export default class BrowserEventManager implements EventManager {
     subscribe(eventName: string, fn: (...args: any[]) => void | Promise<void>): void {
         if (this.exists(eventName)) return;
         this.events.push({ eventName, callback: fn });
-        globalThis.window.sessionStorage.setItem('rich-domain-event:' + eventName, 'true');
+        globalThis.window.sessionStorage.setItem('rich-domain-event:' + eventName, Date.now().toString());
         globalThis.window.addEventListener(eventName, fn);
         globalThis.window.addEventListener('beforeunload', (): void => {
             globalThis.window.sessionStorage.removeItem('rich-domain-event:' + eventName);
