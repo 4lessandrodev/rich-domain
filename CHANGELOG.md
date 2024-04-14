@@ -184,7 +184,7 @@ This version introduces significant changes to the event handling system, enhanc
         const contextX = Context.events();
 
         // Listening global events
-        contextX.subscribe('SIGNUP', (arg) => {
+        contextX.subscribe('USER_REGISTERED', (arg) => {
             console.log(arg);
         });
 
@@ -220,7 +220,7 @@ This version introduces significant changes to the event handling system, enhanc
 
             dispatch(user: User): void {
                 // dispatch to global context event manager
-                contextY.dispatchEvent(this.params.eventName, user.toObject());
+                user.context().dispatchEvent("USER_REGISTERED", user.toObject());
             };
         }
 
