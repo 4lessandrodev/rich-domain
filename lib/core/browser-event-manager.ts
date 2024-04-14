@@ -5,14 +5,14 @@ export default class BrowserEventManager implements EventManager {
     private events: EventType[];
     private static _instance: BrowserEventManager;
 
-    private constructor(private readonly _window: Window) {
+    private constructor(private readonly _window: Window & typeof globalThis) {
         this.events = [];
         if (typeof this._window === 'undefined') {
             throw new Error('BrowserEventManager is not supported');
         }
     }
 
-    static instance(window: Window): BrowserEventManager {
+    static instance(window: Window & typeof globalThis): BrowserEventManager {
         if (BrowserEventManager._instance) return BrowserEventManager._instance;
         BrowserEventManager._instance = new BrowserEventManager(window);
         return BrowserEventManager._instance;
@@ -59,7 +59,7 @@ export default class BrowserEventManager implements EventManager {
                 const localEventName = this.events[i].eventName;
                 const match = regex.test(localEventName);
                 if (match) {
-                    this._window.dispatchEvent(new CustomEvent(localEventName, {
+                    this._window.dispatchEvent(new this._window.CustomEvent(localEventName, {
                         bubbles: true,
                         detail: args || []
                     }));
@@ -69,7 +69,7 @@ export default class BrowserEventManager implements EventManager {
             return;
         }
 
-        this._window.dispatchEvent(new CustomEvent(eventName, {
+        this._window.dispatchEvent(new this._window.CustomEvent(eventName, {
             bubbles: true,
             detail: args || []
         }));
