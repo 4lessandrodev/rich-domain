@@ -2,6 +2,17 @@
 import BrowserEventManager from '../../lib/core/browser-event-manager'
 
 describe('BrowserEventManager', () => {
+    class CustomEventMock {
+        type: string;
+        bubbles: boolean;
+        detail: any;
+    
+        constructor(type: string, eventInitDict?: CustomEventInit) {
+            this.type = type;
+            this.bubbles = eventInitDict?.bubbles ?? false;
+            this.detail = eventInitDict?.detail ?? null;
+        }
+    }
     var sessionStorage = new Map<string, string>();
     var globalThis = {
         window: {
@@ -13,7 +24,8 @@ describe('BrowserEventManager', () => {
             },
             addEventListener: jest.fn(),
             removeEventListener: jest.fn(),
-            dispatchEvent: jest.fn()
+            dispatchEvent: jest.fn(),
+            CustomEvent: CustomEventMock
         }
     } as const;
 
@@ -24,7 +36,7 @@ describe('BrowserEventManager', () => {
     describe('instance', () => {
         
         it('should throw if window is not defined', () => {
-            const init = () => BrowserEventManager.instance(undefined as unknown as Window);
+            const init = () => BrowserEventManager.instance(undefined as unknown as any);
             expect(init).toThrow();
         });
 
