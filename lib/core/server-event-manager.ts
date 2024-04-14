@@ -1,17 +1,17 @@
 import { EventEmitter } from "events";
-import { EventManager, EventType } from "../types";
-
+import { Event, EventManager, EventType } from "../types";
+import validateContextEventName from "../utils/validate-context-event-name.util";
 export default class ServerEventManager implements EventManager {
     private events: EventType[];
     private static _instance: ServerEventManager;
     private readonly emitter: EventEmitter;
 
-    private constructor(options?: { captureRejections: boolean }) {
+    private constructor() {
         this.events = [];
-        if (typeof process === 'undefined' || typeof EventEmitter === 'undefined') {
+        if (typeof global?.process === 'undefined' || typeof EventEmitter === 'undefined') {
             throw new Error('ServerEventManager is not supported');
         }
-        this.emitter = new EventEmitter(options);
+        this.emitter = new EventEmitter({ captureRejections: true });
     }
 
     static instance(): ServerEventManager {
@@ -26,7 +26,8 @@ export default class ServerEventManager implements EventManager {
         return null;
     }
 
-    subscribe(eventName: string, fn: (...args: any[]) => void | Promise<void>): void {
+    subscribe(eventName: string, fn: (event: Event) => void | Promise<void>): void {
+        validateContextEventName(eventName);
         if (this.exists(eventName)) return;
         this.events.push({ eventName, callback: fn });
         this.emitter.addListener(eventName, fn);
@@ -43,13 +44,25 @@ export default class ServerEventManager implements EventManager {
         const event = this.getEvent(eventName);
         if (!event) return false;
         this.events = this.events.filter((event): boolean => event.eventName !== eventName);
-        this.emitter.removeListener(event.eventName, event.callback);
+        this.emitter.removeListener(eventName, event.callback);
         return true;
     }
 
     dispatchEvent(eventName: string, ...args: any[]): void {
-        const exists = this.exists(eventName);
-        if (!exists) return;
-        this.emitter.emit(eventName, { detail: args });
+        validateContextEventName(eventName);
+        if (eventName.includes('*')) {
+            const regex = new RegExp(eventName.replace('*', '.*'));
+            let i = 0;
+            while (this.events[i]) {
+                const localEventName = this.events[i].eventName;
+                const match = regex.test(localEventName);
+                if (match) {
+                    this.emitter.emit(localEventName, args);
+                }
+                i++;
+            }
+            return;
+        }
+        this.emitter.emit(eventName, { detail: args || [] });
     }
 }

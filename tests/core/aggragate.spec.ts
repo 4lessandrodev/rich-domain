@@ -1,4 +1,4 @@
-import { Aggregate, ID, Ok, Result, ValueObject } from "../../lib/core";
+import { Aggregate, ID, Ok, Result, TsEvents, ValueObject } from "../../lib/core";
 import { DEvent, EventHandler, IResult, ISettings, UID } from "../../lib/types";
 
 describe('aggregate', () => {
@@ -524,4 +524,105 @@ describe('aggregate', () => {
 		expect(orange.eventsMetrics.dispatch).toBe(1);
 
 	});
+});
+
+describe('Aggregate', () => {
+    describe('hashCode', () => {
+        it('should return the hash code of the aggregate', () => {
+            const props = { id: '123', name: 'Test Aggregate' };
+            const aggregate = new Aggregate(props);
+            const hashCode = aggregate.hashCode();
+            expect(hashCode.value()).toBe("[Aggregate@Aggregate]:123");
+        });
+    });
+
+    describe('context', () => {
+        it('should return an EventManager', () => {
+            const aggregate = new Aggregate({});
+            const context = aggregate.context();
+            expect(context).toBeDefined();
+            // Adicione mais testes aqui para verificar se o context é uma instância válida de EventManager.
+        });
+    });
+
+    describe('eventsMetrics', () => {
+        it('should return the aggregate metrics', () => {
+            const aggregate = new Aggregate({}, undefined);
+			aggregate.addEvent('testEvent', () => {});
+            const metrics = aggregate.eventsMetrics;
+            expect(metrics.current).toBe(1);
+            expect(metrics.total).toBe(1);
+            expect(metrics.dispatch).toBe(0);
+        });
+    });
+
+    describe('clone', () => {
+        it('should create a new instance of Aggregate', () => {
+            const props = { id: '123', name: 'Test Aggregate' };
+            const aggregate = new Aggregate(props);
+            const clonedAggregate = aggregate.clone();
+            expect(clonedAggregate).toBeInstanceOf(Aggregate);
+            expect(clonedAggregate.toObject()).toEqual(aggregate.toObject());
+        });
+    });
+
+    describe('dispatchEvent', () => {
+        it('should dispatch the specified event', () => {
+            const aggregate = new Aggregate({});
+            const eventName = 'testEvent';
+            aggregate.dispatchEvent(eventName);
+        });
+    });
+
+    describe('dispatchAll', () => {
+		it('should dispatch the specified event', () => {
+			const tsEvent = new TsEvents( new Aggregate({}));
+            const aggregate = new Aggregate({}, {}, tsEvent as any);
+            const eventName = 'testEvent';
+            const handler = jest.fn();
+			aggregate.addEvent(eventName, handler);
+            const dispatchSpy = jest.spyOn(tsEvent, 'dispatchEvent');
+            aggregate.addEvent(eventName, handler);
+            aggregate.dispatchEvent(eventName);
+            expect(dispatchSpy).toHaveBeenCalled();
+            expect(handler).toHaveBeenCalled();
+        });
+    });
+
+    describe('clearEvents', () => {
+        it('should delete all events in the current aggregate instance', () => {
+            const events = new TsEvents(new Aggregate({}));
+            const aggregate = new Aggregate({}, {}, events as any);
+            const clearEventsSpy = jest.spyOn(events, 'clearEvents').mockImplementation(() => {});
+            aggregate.clearEvents();
+            expect(clearEventsSpy).toHaveBeenCalled();
+        });
+    });
+
+    describe('addEvent', () => {
+        it('should add a new event to the aggregate', () => {
+            const aggregate = new Aggregate({});
+            const eventName = 'testEvent';
+            const handler = () => {};
+            aggregate.addEvent(eventName, handler);
+        });
+    });
+
+    describe('deleteEvent', () => {
+        it('should delete the event matching the provided name', () => {
+            const aggregate = new Aggregate({});
+            const eventName = 'testEvent';
+            aggregate.addEvent(eventName, () => {});
+            const deletedCount = aggregate.deleteEvent(eventName);
+            expect(deletedCount).toBe(1);
+        });
+    });
+
+    describe('create', () => {
+        it('should create a new instance of Aggregate', () => {
+            const props = { id: '123', name: 'Test Aggregate' };
+            const result = Aggregate.create(props);
+            expect(result).toBeInstanceOf(Result);
+        });
+    });
 });

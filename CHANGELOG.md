@@ -10,6 +10,142 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### Updates
+
+### [1.21.1] - 2024-04-13
+
+#### Features Added
+
+- Added feature to segregate events by contexts.
+
+Implementation Details:
+
+- Implemented a mechanism to subscribe to events under different contexts.
+- Implemented the ability to dispatch events to specific contexts based on the event name pattern.
+- Introduced validation to ensure that event names follow the pattern "contextName:EventName".
+
+```ts
+
+// Example Usage
+const context = Context.events();
+
+const handler = (event) => console.log(event);
+
+// Subscribing to events under different contexts
+context.subscribe('Context-A:SIGNUP', handler);
+context.subscribe('Context-B:SIGNUP', handler);
+context.subscribe('Context-C:SIGNUP', handler);
+context.subscribe('Context-B:NOTIFY', handler);
+context.subscribe('Context-B:SEND-EMAIL', handler);
+
+// Dispatching events to specific contexts
+context.dispatchEvent('Context-B:SIGNUP'); // Dispatches the SIGNUP event to Context-B
+context.dispatchEvent('*:SIGNUP'); // Dispatches the SIGNUP event to all contexts
+context.dispatchEvent('*:*'); // Dispatches all events to all contexts
+context.dispatchEvent('Context-B:*'); // Dispatches all events under Context-B
+
+```
+
+---
+
+### [1.21.0] - 2024-04-11
+
+#### Features Added
+
+- Added Context Communication: Implemented a feature for inter-context communication within the library, enabling seamless interaction between different contexts within a project.
+
+- Introduced Custom Events: Custom events can now be dispatched both globally and within specific aggregates, providing flexibility in event handling and propagation.
+
+- Compatibility with Browser and Node.js: Maintained compatibility between browser and server environments by utilizing CustomEvents in the DOM for browser compatibility and standard event handling for Node.js.
+
+- Aggregate Event Management: Aggregates retain event management methods, allowing for the encapsulation of business rules within specific contexts.
+
+#### Known Issues
+
+- Investigating potential chain reactions of lambda functions in certain scenarios.
+
+#### Future Considerations
+
+- Strong Typing: Consideration for enhancing typing support for event parameters to provide better developer guidance and error checking.
+
+- Further Investigation: Continue investigating potential implications of fanning-out from a single lambda function to ensure robustness in complex scenarios.
+
+#### Usage Examples
+
+```ts
+
+        // implement extending to EventHandler
+        class Handler extends EventHandler<Product> {
+            constructor() { super({ eventName: 'sample' }) };
+
+            dispatch(product: Product, args_1: [DEvent<Product>, any[]]): void | Promise<void> {
+                const model = product.toObject();
+                const [event, args] = args_1;
+
+                console.log(model);
+                console.log(event);
+                console.log(event.eventName);
+                console.log(event.options);
+                // custom params provided on call dispatchEvent
+                console.log(args);
+            }
+        }
+
+        // Listening global events
+        contextX.subscribe('ACCOUNT:USER_REGISTERED', (arg) => {
+            console.log(arg);
+        });
+
+
+        // ------------------
+        // User Account as Context Y
+
+        type Props = { name: string };
+
+        class User extends Aggregate<Props>{
+            private constructor(props: Props) {
+                super(props);
+            }
+
+            public static signUp(name: string): User {
+                const user = new User({ name });
+                // add handler according to business rule
+                user.addEvent(new SignUpEvent());
+                return user;
+            }
+
+            public static create(props: Props): Result<User> {
+                return Ok(new User(props));
+            }
+        }
+
+        const contextY = Context.events();
+
+        class SignUpEvent extends EventHandler<User> {
+            constructor() {
+                super({ eventName: 'SIGNUP' })
+            }
+
+            dispatch(user: User): void {
+                // dispatch to global context event manager
+                user.context().dispatchEvent("ACCOUNT:USER_REGISTERED", user.toObject());
+            };
+        }
+
+        const user = User.signUp('John Doe');
+        
+        // dispatch to call handler
+        user.dispatchEvent('SIGNUP');
+
+```
+
+### Bug Fixes
+Fixed an issue with the event dispatching mechanism.
+Notes
+This version introduces significant changes to the event handling system, enhancing the flexibility and usability of the Aggregate class.
+
+---
+
 ### [1.21.0] - 2024-04-11
 
 #### Features Added

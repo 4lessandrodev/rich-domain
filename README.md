@@ -416,6 +416,12 @@ console.log(result.toObject());
 
 ---
 
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+See also how to use Aggregate.
+=======
+>>>>>>> 2fd77cf (feat: added event segregate by context)
 ### Aggregate
 
 Encapsulate and are composed of entity classes and value objects that change together in a business transaction
@@ -525,7 +531,11 @@ class OrderCreatedEvent extends EventHandler<Order> {
 
     dispatch(order: Order): void {
         // dispatch event to another context
+<<<<<<< HEAD
         order.context().dispatchEvent('EVENT', order.toObject());
+=======
+        order.context().dispatchEvent('CONTEXT:EVENT', order.toObject());
+>>>>>>> 2fd77cf (feat: added event segregate by context)
     };
 }
 
@@ -563,6 +573,7 @@ import { Context } from 'rich-domain';
 const context = Context.events();
 
 // subscribe to a global event
+<<<<<<< HEAD
 context.subscribe('EVENT', (args) => {
    const [model] = args.detail;
    console.log(model);
@@ -575,6 +586,27 @@ context.dispatchEvent('EVENT', { name: 'Jane' });
 ``` 
 
 ---
+=======
+context.subscribe('CONTEXT:EVENT', (event) => {
+   const [model] = event.detail;
+   console.log(model);
+});
+
+// dispatch an event to a context with args
+context.dispatchEvent('CONTEXT:EVENT', { name: 'Jane' });
+
+
+// Dispatching events to specific contexts
+context.dispatchEvent('Context-X:SIGNUP'); // Dispatches the SIGNUP event to Context-X
+context.dispatchEvent('*:SIGNUP'); // Dispatches the SIGNUP event to all contexts
+context.dispatchEvent('*:*'); // Dispatches all events to all contexts. Not recommended
+context.dispatchEvent('Context-Y:*'); // Dispatches all events under Context-Y
+
+``` 
+
+---
+>>>>>>> Stashed changes
+>>>>>>> 2fd77cf (feat: added event segregate by context)
 
 ## Features
 
