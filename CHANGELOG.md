@@ -12,7 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Updates
 
-### [1.21.1] - 2024-04-13
+### [1.22.0] - 2024-04-13
 
 #### Features Added
 
@@ -39,10 +39,14 @@ context.subscribe('Context-B:NOTIFY', handler);
 context.subscribe('Context-B:SEND-EMAIL', handler);
 
 // Dispatching events to specific contexts
-context.dispatchEvent('Context-B:SIGNUP'); // Dispatches the SIGNUP event to Context-B
-context.dispatchEvent('*:SIGNUP'); // Dispatches the SIGNUP event to all contexts
-context.dispatchEvent('*:*'); // Dispatches all events to all contexts
-context.dispatchEvent('Context-B:*'); // Dispatches all events under Context-B
+// Dispatches the SIGNUP event to Context-B
+context.dispatchEvent('Context-B:SIGNUP');
+// Dispatches the SIGNUP event to all contexts
+context.dispatchEvent('*:SIGNUP');
+// Dispatches all events to all contexts. Not recommended
+context.dispatchEvent('*:*');
+// Dispatches all events under Context-B
+context.dispatchEvent('Context-B:*');
 
 ```
 

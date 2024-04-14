@@ -1,10 +1,6 @@
 {
 	"name": "rich-domain",
-<<<<<<< HEAD
-	"version": "1.21.0",
-=======
-	"version": "1.21.1",
->>>>>>> 2fd77cf (feat: added event segregate by context)
+	"version": "1.22.0",
 	"description": "This package provide utils file and interfaces to assistant build a complex application with domain driving design",
 	"main": "index.js",
 	"types": "index.d.ts",
