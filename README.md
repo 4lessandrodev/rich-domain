@@ -416,6 +416,9 @@ console.log(result.toObject());
 
 ---
 
+
+See also how to use Aggregate.
+
 ### Aggregate
 
 Encapsulate and are composed of entity classes and value objects that change together in a business transaction
@@ -525,7 +528,7 @@ class OrderCreatedEvent extends EventHandler<Order> {
 
     dispatch(order: Order): void {
         // dispatch event to another context
-        order.context().dispatchEvent('EVENT', order.toObject());
+        order.context().dispatchEvent('CONTEXT:EVENT', order.toObject());
     };
 }
 
@@ -562,15 +565,24 @@ import { Context } from 'rich-domain';
 
 const context = Context.events();
 
-// subscribe to a global event
-context.subscribe('EVENT', (args) => {
-   const [model] = args.detail;
+context.subscribe('CONTEXT:EVENT', (event) => {
+   const [model] = event.detail;
    console.log(model);
 });
 
-// dispatch an event to a context
-context.dispatchEvent('EVENT', { name: 'Jane' });
+// dispatch an event to a context with args
+context.dispatchEvent('CONTEXT:EVENT', { name: 'Jane' });
 
+
+// Dispatching events to specific contexts
+// Dispatches the SIGNUP event to Context-X
+context.dispatchEvent('Context-X:SIGNUP'); 
+// Dispatches the SIGNUP event to all contexts
+context.dispatchEvent('*:SIGNUP'); 
+// Dispatches all events to all contexts. Not recommended
+context.dispatchEvent('*:*'); 
+// Dispatches all events under Context-Y
+context.dispatchEvent('Context-Y:*'); 
 
 ``` 
 

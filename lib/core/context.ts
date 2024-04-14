@@ -10,7 +10,7 @@ export abstract class Context {
         if (platform.isNodeJs(global?.process)) {
             Context.eventManager = ServerEventManager.instance();
         } else if (platform.isBrowser(globalThis?.window)) {
-            Context.eventManager = BrowserEventManager.instance();
+            Context.eventManager = BrowserEventManager.instance(globalThis.window);
         } else {
             throw new Error('Could not define platform');
         }

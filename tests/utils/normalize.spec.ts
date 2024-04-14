@@ -31,4 +31,22 @@ describe('normalize', () => {
         const result = Float('2.33asd' as any);
         expect(result).toBe(2.33);
     })
+
+    it('should return parsed float value if input is a string and not NaN', () => {
+        const value = '3.14R';
+        const result = Float(value as any);
+        expect(result).toBe(parseFloat('3.14'));
+    });
+
+    it('should return the input value if it is a number', () => {
+        const value = 3.14;
+        const result = Float(value);
+        expect(result).toBe(value);
+    });
+
+    it('should return 0 if input is neither a string nor a number', () => {
+        const value = 'not a number';
+        const result = Float(value as any);
+        expect(result).toBe(0);
+    });
 });

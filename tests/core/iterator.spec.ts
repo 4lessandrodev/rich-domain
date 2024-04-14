@@ -252,3 +252,46 @@ describe('iterator', () => {
 		});
 	});
 });
+
+describe('Iterator', () => {
+    describe('initialization', () => {
+        it('should initialize with empty data if no initial data provided', () => {
+            const iterator = Iterator.create();
+            expect(iterator.total()).toBe(0);
+        });
+
+        it('should initialize with provided initial data', () => {
+            const initialData = [1, 2, 3];
+            const iterator = Iterator.create({ initialData });
+            expect(iterator.total()).toBe(initialData.length);
+        });
+    });
+
+    describe('hasNext', () => {
+        it('should return true if there is a next element', () => {
+            const iterator = Iterator.create({ initialData: [1, 2, 3] });
+            iterator.next();
+            expect(iterator.hasNext()).toBe(true);
+        });
+
+        it('should return false if there is no next element', () => {
+            const iterator = Iterator.create({ initialData: [1] });
+            iterator.next();
+            expect(iterator.hasNext()).toBe(false);
+        });
+    });
+
+    describe('hasPrev', () => {
+        it('should return true if there is a previous element', () => {
+            const iterator = Iterator.create({ initialData: [1, 2, 3] });
+            iterator.next();
+			iterator.next();
+            expect(iterator.hasPrev()).toBe(true);
+        });
+
+        it('should return false if there is no previous element', () => {
+            const iterator = Iterator.create({ initialData: [1] });
+            expect(iterator.hasPrev()).toBe(false);
+        });
+    });
+});

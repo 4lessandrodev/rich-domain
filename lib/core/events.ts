@@ -35,6 +35,23 @@ export class TsEvents<T> {
     return totalEvents;
   }
 
+
+  /**
+   * Dispatches an event.
+   * @param eventName - The name of the event to dispatch.
+   * @param args - Any param user wants provide as argument.
+   * @returns The result of the event handler function.
+   */
+  dispatchEvent(eventName: string, ...args: any[]): void | Promise<void> {
+    const _event = this._events.find(
+      (evt): boolean => evt.eventName === eventName,
+    );
+    if (!_event) return;
+    this.totalDispatched = this.totalDispatched + 1;
+    _event.handler(this.aggregate, [_event, ...args]);
+    this.removeEvent(eventName);
+  }
+
   /**
    * Gets the default options.
    * @returns The default options.
@@ -101,24 +118,6 @@ export class TsEvents<T> {
     );
   }
 
-  /**
-   * Dispatches an event.
-   * @param eventName - The name of the event to dispatch.
-   * @param args - Any param user wants provide as argument.
-   * @returns The result of the event handler function.
-   */
-  dispatchEvent(eventName: string, ...args: any[]): void | Promise<void> {
-    const _event = this._events.find(
-      (evt): boolean => evt.eventName === eventName,
-    );
-    if (!_event) {
-      const message = `dispatchEvent: ${eventName} event not found`;
-      return console.error(message);
-    }
-    this.totalDispatched = this.totalDispatched + 1;
-    _event.handler(this.aggregate, [_event, ...args]);
-    this.removeEvent(eventName);
-  }
 
   /**
    * Dispatches all events.
