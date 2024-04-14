@@ -577,10 +577,13 @@ context.dispatchEvent('CONTEXT:EVENT', { name: 'Jane' });
 // Dispatching events to specific contexts
 // Dispatches the SIGNUP event to Context-X
 context.dispatchEvent('Context-X:SIGNUP'); 
+
 // Dispatches the SIGNUP event to all contexts
 context.dispatchEvent('*:SIGNUP'); 
+
 // Dispatches all events to all contexts. Not recommended
 context.dispatchEvent('*:*'); 
+
 // Dispatches all events under Context-Y
 context.dispatchEvent('Context-Y:*'); 
 
