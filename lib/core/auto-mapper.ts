@@ -1,4 +1,4 @@
-import { EntityMapperPayload, IAutoMapper, IEntity, IValueObject } from "../types";
+import { AutoMapperSerializer, EntityMapperPayload, IAutoMapper, IEntity, IValueObject } from "../types";
 import { Validator } from "../utils";
 import ID from "./id";
 
@@ -13,10 +13,10 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 	 * @param valueObject as instance.
 	 * @returns an object or a value object value.
 	 */
-	valueObjectToObj(valueObject: IValueObject<Props>): { [key in keyof Props]: any } {
-		
+	valueObjectToObj(valueObject: IValueObject<Props>): AutoMapperSerializer<Props> {
+
 		// internal state
-		if(valueObject === null) return null as any;
+		if (valueObject === null) return null as any;
 
 		if (this.validator.isID(valueObject)) return (valueObject as any)?.value();
 
@@ -28,7 +28,7 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 			this.validator.isObject(valueObject) ||
 			this.validator.isDate(valueObject);
 
-		if (isSimpleValue) return valueObject as { [key in keyof Props]: any };
+		if (isSimpleValue) return valueObject as AutoMapperSerializer<Props>
 
 		const isID = this.validator.isID(valueObject);
 
@@ -103,7 +103,7 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 	 * @param entity instance.
 	 * @returns a simple object.
 	 */
-	entityToObj(entity: IEntity<Props>): { [key in keyof Props]: any } & EntityMapperPayload {
+	entityToObj(entity: IEntity<Props>): AutoMapperSerializer<Props> & EntityMapperPayload {
 
 		if (this.validator.isID(entity)) return (entity as any)?.value();
 

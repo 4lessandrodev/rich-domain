@@ -65,13 +65,58 @@ describe('value-object', () => {
 
 	});
 
+	describe('toObject method', () => {
+		interface Props {
+			street: string;
+			number: number;
+			city: City;
+		}
+		class City extends ValueObject<'A' | 'B' | 'C'> { }
+		class Address extends ValueObject<Props> { }
+
+		it('should verify resolved types', () => {
+			const address = new Address({
+				city: new City('A'),
+				number: 123,
+				street: '5th Avenue'
+			});
+			const addressObject = address.toObject()
+
+			expect(addressObject).toEqual({
+				city: 'A',
+				number: 123,
+				street: '5th Avenue'
+			});
+			expect(addressObject.city).toBe('A');
+			expect(addressObject.number).toBe(123);
+			expect(addressObject.street).toBe('5th Avenue');
+			expect(addressObject.number.toExponential()).toBe('1.23e+2');
+			expect(addressObject.number.toFixed()).toBe('123');
+			expect(addressObject.city.concat('B')).toBe('AB');
+			expect(addressObject.city.toLowerCase()).toBe('a');
+			expect(addressObject.street.toUpperCase()).toBe('5TH AVENUE');
+		});
+
+		it ('should be imutable', () => {
+			const address = new Address({
+				city: new City('A'),
+				number: 123,
+				street: '5th Avenue'
+			});
+			const addressObject = address.toObject()
+			expect(Object.isFrozen(addressObject)).toBeTruthy();
+			expect(() => (addressObject as any).city = 'B').toThrowError();
+		});
+
+	});
+
 	describe('simple value-object', () => {
 
 		interface Props {
 			value: string;
 		};
 
-		class StringVo extends ValueObject<Props>{
+		class StringVo extends ValueObject<Props> {
 			private constructor(props: Props) {
 				super(props);
 			}
@@ -101,7 +146,7 @@ describe('value-object', () => {
 			value: string;
 		};
 
-		class StringVo extends ValueObject<Props>{
+		class StringVo extends ValueObject<Props> {
 			private constructor(props: Props) {
 				super(props);
 			}
@@ -132,7 +177,7 @@ describe('value-object', () => {
 			age: number;
 		};
 
-		class StringVo extends ValueObject<Props>{
+		class StringVo extends ValueObject<Props> {
 			private constructor(props: Props) {
 				super(props);
 			}
@@ -166,7 +211,7 @@ describe('value-object', () => {
 		});
 
 		it('should transform value object to object', () => {
-			class Sample extends ValueObject<string>{
+			class Sample extends ValueObject<string> {
 				private constructor(props: string) {
 					super(props);
 				}
@@ -179,7 +224,7 @@ describe('value-object', () => {
 
 
 		it('should transform value object to object', () => {
-			class Sample extends ValueObject<{ value: string }>{
+			class Sample extends ValueObject<{ value: string }> {
 				private constructor(props: { value: string }) {
 					super(props);
 				}
@@ -192,7 +237,7 @@ describe('value-object', () => {
 
 		it('should transform value object to object', () => {
 
-			class Sample extends ValueObject<{ value: string, foo: string }>{
+			class Sample extends ValueObject<{ value: string, foo: string }> {
 				private constructor(props: { value: string, foo: string }) {
 					super(props);
 				}
@@ -215,7 +260,7 @@ describe('value-object', () => {
 		});
 
 		it('should clone a value object with success', () => {
-			class Sample extends ValueObject<{ value: string, foo: string }>{
+			class Sample extends ValueObject<{ value: string, foo: string }> {
 				private constructor(props: { value: string, foo: string }) {
 					super(props);
 				}
@@ -231,7 +276,7 @@ describe('value-object', () => {
 		it('should clone a value object with custom props', () => {
 
 			interface Props { value: string; foo: string; }
-			class Sample extends ValueObject<Props>{
+			class Sample extends ValueObject<Props> {
 				private constructor(props: Props) {
 					super(props);
 				}
@@ -330,7 +375,7 @@ describe('value-object', () => {
 
 		interface Props3 { value: string, foo: string };
 
-		class Sample extends ValueObject<Props3>{
+		class Sample extends ValueObject<Props3> {
 			private constructor(props: Props3) {
 				super(props);
 			}

@@ -1,7 +1,6 @@
-import {  IParentName, ISettings } from "../types";
-import { ICreateManyDomain, IGettersAndSetters } from "../types";
-import  validator, { Validator } from "../utils/validator";
-import  util, { Utils } from "../utils/util";
+import { ICreateManyDomain, IGettersAndSetters, IParentName, ISettings } from "../types";
+import util, { Utils } from "../utils/util";
+import validator, { Validator } from "../utils/validator";
 import createManyDomainInstances from "./create-many-domain-instance";
 import ID from "./id";
 
@@ -11,7 +10,7 @@ import ID from "./id";
 export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 	protected validator: Validator = validator;
 	protected static validator: Validator = validator;
-	protected util: Utils = util;
+	protected util: Utils = util; 
 	protected static util: Utils = util;
 	private parentName: IParentName = 'ValueObject';
 
@@ -276,6 +275,10 @@ export class GettersAndSetters<Props> implements IGettersAndSetters<Props> {
 			this['props'] = Object.assign({}, { ...this['props'] }, { updatedAt: new Date() });
 		}
 		return true;
+	}
+
+	getRaw(): Props {
+		return this.props;
 	}
 
 }
