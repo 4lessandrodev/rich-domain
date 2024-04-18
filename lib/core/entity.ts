@@ -1,4 +1,6 @@
-import { EntityMapperPayload, EntityProps, IAdapter, IEntity, IResult, ISettings, UID } from "../types";
+import { AutoMapperSerializer, EntityMapperPayload, EntityProps, IAdapter, IEntity, IResult, ISettings, UID } from "../types";
+import { ReadonlyDeep } from "../types-util";
+import { deepFreeze } from "../utils/deep-freeze.util";
 import AutoMapper from "./auto-mapper";
 import GettersAndSetters from "./getters-and-setters";
 import ID from "./id";
@@ -42,9 +44,15 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @description Get value as object from entity.
 	 * @returns object with properties.
 	 */
-	toObject<T>(adapter?: IAdapter<this, T>): T extends {} ? T & EntityMapperPayload : { [key in keyof Props]: any } & EntityMapperPayload {
+	toObject<T>(adapter?: IAdapter<this, T>)
+		: T extends {}
+		? T & EntityMapperPayload
+		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload>  {
 		if (adapter && typeof adapter?.build === 'function') return adapter.build(this).value() as any;
-		return this.autoMapper.entityToObj(this) as any;
+
+		const serializedObject = this.autoMapper.entityToObj(this) as ReadonlyDeep<AutoMapperSerializer<Props>>;
+		const frozenObject = deepFreeze<any>(serializedObject);
+		return frozenObject
 	}
 
 	/**
