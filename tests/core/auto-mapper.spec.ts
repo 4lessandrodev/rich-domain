@@ -645,8 +645,8 @@ describe('auto-mapper', () => {
 		it('should transform in simple object when value object inside other', () => {
 			const vo1 = Vo1.create('sub-object').value();
 			const vo = Vo2.create({ text: 'example', vo1, nullable: 10 }).value();
-
-			expect(vo.toObject()).toMatchInlineSnapshot(`
+			const obj = vo.toObject();
+			expect(obj).toMatchInlineSnapshot(`
 	Object {
 	  "nullable": 10,
 	  "text": "example",
