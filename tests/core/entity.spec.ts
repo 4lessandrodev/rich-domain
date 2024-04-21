@@ -31,7 +31,7 @@ describe("entity", () => {
 
 	describe('toObject', () => {
 
-		class En extends Entity<{ key: string }>{
+		class En extends Entity<{ key: string }> {
 			private constructor(props: { key: string }) {
 				super(props)
 			}
@@ -72,6 +72,414 @@ describe("entity", () => {
 			expect(result.isFail()).toBeTruthy();
 		});
 	});
+
+
+	describe('toObject -> playing with prototypes', () => {
+		interface PersonProps {
+			name: Username
+			age: Age
+			married: boolean
+		}
+		class Username extends ValueObject<string> { }
+		class Age extends ValueObject<number> { }
+		class Person extends Entity<PersonProps> { }
+
+		let person: Person
+
+		beforeEach(() => {
+			person = new Person({
+				age: new Age(20),
+				married: false,
+				name: new Username('John Doe')
+			})
+		})
+		it('should access resolved primitive values prototype', () => {
+			/**
+			 * Since we have access to the resolved primitive value
+			 * returned by the `toObject` method, we can access the
+			 * prototype of the resolved value and manipulate it.
+			 * 
+			 * Point here is that if we can consume it prototype that means typescript is infering the correct type.
+			 */
+			const personObject = person.toObject();
+
+			const defaultPersonName = 'John Doe';
+			const personObjectName = personObject.name
+
+			expect(personObjectName).toBe(defaultPersonName);
+			expect(personObjectName.length).toBe(defaultPersonName.length);
+			expect(personObjectName.concat('2')).toBe('John Doe2');
+			expect(personObjectName.includes('John')).toBeTruthy();
+			expect(personObjectName.indexOf('Doe')).toBe(5);
+			expect(personObjectName.lastIndexOf('Doe')).toBe(5); 
+			expect(personObject.age.toExponential()).toBe('2e+1');
+			expect(personObject.age.toFixed()).toBe('20');
+			expect(personObject.age.toPrecision()).toBe('20');
+			expect(personObject.age.toString()).toBe('20');
+			expect(personObject.age.valueOf()).toBe(20);
+
+			expect(personObject.married.valueOf()).toBe(false);
+
+ 
+
+		})
+	})
+
+	describe('toObject -> Deep nested readonly properties', () => {
+		interface PersonProps {
+			fullname: Fullname
+			skills: Skill[]
+			age: number
+		}
+		class Skill extends ValueObject<string> { }
+		class Fullname extends ValueObject<{ firstName: Username, lastName: Username }> { }
+		class Username extends ValueObject<string> { }
+		class Person extends Entity<PersonProps> { }
+
+		let person: Person
+
+		beforeEach(() => {
+			person = new Person({
+				age: 20,
+				skills: [new Skill('JS'), new Skill('TS')],
+				fullname: new Fullname({
+					firstName: new Username('John'),
+					lastName: new Username('Doe')
+				})
+			})
+		})
+
+		it('should not be able to mutate any level of data on personObject', () => {
+			/**
+			 * Typescript it self already infered an DeepReadonly type on any level of the object.
+			 * So, at type checking level you cant even try to set a new value to any property.
+			 * 
+			 * BUT, at runtime, we should still have the same behavior. That means we'll check if 
+			 * the object is really immutable.
+			 */
+			const personObject = person.toObject();
+			expect(Object.isFrozen(personObject)).toBeTruthy();
+			expect(Object.isFrozen(personObject.fullname)).toBeTruthy(); 
+			expect(Object.isFrozen(personObject.skills)).toBeTruthy(); 
+
+			
+			expect(() => (personObject as any).age = 22).toThrowError();
+			expect(() => (personObject as any).fullname = 'new value').toThrowError();
+			expect(() => (personObject as any).fullname.firstName = 'new value').toThrowError();
+			expect(() => (personObject as any).fullname.lastName = 'new value').toThrowError();
+			expect(() => (personObject as any).skills = []).toThrowError();
+			expect(() => (personObject as any).skills[0] = 'new value').toThrowError();
+			expect(() => (personObject as any).skills.push('PYTHON')).toThrowError();
+
+ 
+		});
+	})
+	describe('toObject -> Entity with value objects of different types, arrays, dates, strings, objects, etc.', () => {
+		class ActivitiesName extends ValueObject<string> { }
+		class Description extends ValueObject<string> { }
+		class CorporateName extends ValueObject<string> { }
+		class FantasyName extends ValueObject<string> { }
+
+		// NESTED VALUE OBJECT
+		class Activities extends ValueObject<{
+			name: ActivitiesName
+			done: boolean
+		}> { }
+
+		class User extends Entity<{
+			name: string
+			age: number
+		}> { }
+		class Company extends Entity<{
+			corporateName: CorporateName
+			fantasyName: FantasyName
+		}> { }
+		interface LeadProps {
+			crmId: string
+			user: User
+		}
+		class Lead extends Entity<LeadProps> { }
+		interface ProposalProps {
+			description: Description // value object
+			activities: Activities[] // list of value objects
+			lead: Lead // entity inside entity which has another entity inside
+			companies: Company[] // list of entities
+			deadline: Date // object
+			budget: number // primitive number
+			isApproved: boolean // primitive boolean
+			//...
+		}
+
+		class Proposal extends Entity<ProposalProps> { }
+
+		let proposal: Proposal
+
+		beforeEach(() => {
+			const activities = [
+				new Activities({ name: new ActivitiesName('Activity 1'), done: true, }),
+				new Activities({ name: new ActivitiesName('Activity 2'), done: false, })
+			]
+
+			const user = new User({ name: 'John Doe', age: 20, })
+
+			const lead = new Lead({ crmId: '123', user })
+
+			const companies = [
+				new Company({ corporateName: new CorporateName('Company 1'), fantasyName: new FantasyName('Fantasy 1') }),
+				new Company({ corporateName: new CorporateName('Company 2'), fantasyName: new FantasyName('Fantasy 2') })
+			]
+
+			proposal = new Proposal({
+				activities,
+				companies,
+				budget: 2000,
+				deadline: new Date(),
+				description: new Description('Proposal description'),
+				isApproved: false,
+				lead
+			})
+		})
+
+		it('should return object with all values', () => {
+			const proposalObject = proposal.toObject();
+			expect(proposalObject).toEqual({
+				id: expect.any(String),
+				createdAt: expect.any(Date),
+				updatedAt: expect.any(Date),
+
+				activities: [
+					{ name: 'Activity 1', done: true },
+					{ name: 'Activity 2', done: false }
+				],
+				companies: [
+					{
+						corporateName: 'Company 1',
+						fantasyName: 'Fantasy 1',
+						createdAt: expect.any(Date),
+						updatedAt: expect.any(Date),
+						id: expect.any(String)
+					},
+					{
+						corporateName: 'Company 2',
+						fantasyName: 'Fantasy 2',
+						createdAt: expect.any(Date),
+						updatedAt: expect.any(Date),
+						id: expect.any(String)
+					}
+				],
+				budget: 2000,
+				deadline: expect.any(Date),
+				description: 'Proposal description',
+				isApproved: false,
+				lead: {
+					id: expect.any(String),
+					createdAt: expect.any(Date),
+					updatedAt: expect.any(Date),
+
+					crmId: '123',
+					user: {
+						id: expect.any(String),
+						createdAt: expect.any(Date),
+						updatedAt: expect.any(Date),
+						name: 'John Doe',
+						age: 20,
+					}
+				}
+			});
+		});
+
+
+		describe('should access props', () => {
+			it('should access activities', () => {
+				const proposalObject = proposal.toObject();
+				expect(proposalObject.activities).toEqual([
+					{ name: 'Activity 1', done: true },
+					{ name: 'Activity 2', done: false }
+				]);
+
+				expect(proposalObject.activities[0].name).toBe('Activity 1');
+				expect(proposalObject.activities[0].done).toBe(true);
+			})
+
+			it('should access companies', () => {
+				const proposalObject = proposal.toObject();
+				expect(proposalObject.companies).toEqual([
+					{
+						corporateName: 'Company 1',
+						fantasyName: 'Fantasy 1',
+						createdAt: expect.any(Date),
+						updatedAt: expect.any(Date),
+						id: expect.any(String)
+					},
+					{
+						corporateName: 'Company 2',
+						fantasyName: 'Fantasy 2',
+						createdAt: expect.any(Date),
+						updatedAt: expect.any(Date),
+						id: expect.any(String)
+					}
+				]);
+				expect(proposalObject.companies[0].corporateName).toBe('Company 1');
+				expect(proposalObject.companies[0].fantasyName).toBe('Fantasy 1');
+			})
+
+			it('should access lead', () => {
+				const proposalObject = proposal.toObject();
+				expect(proposalObject.lead).toEqual({
+
+					id: expect.any(String),
+					createdAt: expect.any(Date),
+					updatedAt: expect.any(Date),
+					crmId: '123',
+					user: {
+						id: expect.any(String),
+						createdAt: expect.any(Date),
+						updatedAt: expect.any(Date),
+						name: 'John Doe',
+						age: 20,
+					}
+				});
+
+				expect(proposalObject.lead.crmId).toBe('123');
+				expect(typeof proposalObject.lead.user.id).toBe('string');
+				expect(proposalObject.lead.user.name).toBe('John Doe');
+				expect(proposalObject.lead.user.age).toBe(20);
+				expect(proposalObject.lead.user.createdAt).toEqual(expect.any(Date));
+			})
+
+			it('should access primitive props and plain objects', () => {
+				const proposalObject = proposal.toObject();
+				expect(proposalObject.budget).toBe(2000);
+				expect(proposalObject.deadline).toEqual(expect.any(Date));
+				expect(proposalObject.description).toBe('Proposal description');
+				expect(proposalObject.isApproved).toBe(false);
+			})
+		});
+	})
+
+	describe('toObject -> Entity with single value object', () => {
+		interface PersonProps {
+			name: string
+			age: number
+			married: boolean
+			skills: string[]
+		}
+		class Person extends Entity<PersonProps> { }
+
+		let person: Person
+
+		beforeEach(() => {
+			person = new Person({ age: 20, married: false, name: 'John Doe', skills: ['JS', 'TS'] })
+		})
+
+		it('should return object with all values', () => {
+			const personObject = person.toObject();
+			expect(personObject).toEqual({
+				id: expect.any(String),
+				createdAt: expect.any(Date),
+				updatedAt: expect.any(Date),
+				age: 20,
+				married: false,
+				name: 'John Doe',
+				skills: ['JS', 'TS']
+			});
+		});
+
+		it('should access props', () => {
+			const personObject = person.toObject();
+			expect(personObject.age).toBe(20);
+			expect(personObject.married).toBe(false);
+			expect(personObject.name).toBe('John Doe');
+			expect(personObject.skills).toEqual(['JS', 'TS']);
+		});
+	})
+	describe('toObject -> Entity with multiple value objects, and each value object with more than one attribute.', () => {
+		interface PersonProps {
+			name: Fullname
+			address: Address
+		}
+		class Fullname extends ValueObject<{
+			firstName: string
+			lastName: string
+		}> { }
+		class Address extends ValueObject<{
+			street: string
+			city: string
+			zip: string
+		}> { }
+		class Person extends Entity<PersonProps> { }
+
+		let person: Person
+
+		beforeEach(() => {
+			person = new Person({
+				address: new Address({ city: 'New York', street: '5th Ave', zip: '10001' }),
+				name: new Fullname({ firstName: 'John', lastName: 'Doe' })
+			})
+		})
+
+		it('should return object with all values', () => {
+			const personObject = person.toObject();
+			expect(personObject).toEqual({
+				id: expect.any(String),
+				createdAt: expect.any(Date),
+				updatedAt: expect.any(Date),
+				address: { city: 'New York', street: '5th Ave', zip: '10001' },
+				name: { firstName: 'John', lastName: 'Doe' }
+			});
+		});
+
+		it('should access props', () => {
+			const personObject = person.toObject();
+			expect(personObject.address).toEqual({ city: 'New York', street: '5th Ave', zip: '10001' });
+			expect(personObject.name).toEqual({ firstName: 'John', lastName: 'Doe' });
+
+			expect(personObject.address.city).toBe('New York');
+			expect(personObject.address.zip).toBe('10001');
+			expect(personObject.address.street).toBe('5th Ave');
+			expect(personObject.name.firstName).toBe('John');
+			expect(personObject.name.lastName).toBe('Doe');
+		});
+	})
+	describe('toObject -> Entity with more than one value object, and each value object with a single attribute.', () => {
+		interface PersonProps {
+			name: Username
+			age: Age
+			married: boolean
+		}
+		class Username extends ValueObject<string> { }
+		class Age extends ValueObject<number> { }
+		class Person extends Entity<PersonProps> { }
+
+		let person: Person
+
+		beforeEach(() => {
+			person = new Person({
+				age: new Age(20),
+				married: false,
+				name: new Username('John Doe')
+			})
+		})
+
+		it('should return object with all values', () => {
+			const personObject = person.toObject();
+			expect(personObject).toEqual({
+				id: expect.any(String),
+				createdAt: expect.any(Date),
+				updatedAt: expect.any(Date),
+				age: 20,
+				married: false,
+				name: 'John Doe'
+			});
+		});
+
+		it('should access props', () => {
+			const personObject = person.toObject();
+			expect(personObject.age).toBe(20);
+			expect(personObject.married).toBe(false);
+			expect(personObject.name).toBe('John Doe');
+		});
+	})
 
 	describe("should accept validation without error", () => {
 		interface Props { id?: string, foo: string };
@@ -130,7 +538,7 @@ describe("entity", () => {
 			values: Array<Val>;
 		}
 
-		class EntityExample extends Entity<Props>{
+		class EntityExample extends Entity<Props> {
 			private constructor(props: Props) {
 				super(props)
 			}
@@ -244,7 +652,7 @@ describe("entity", () => {
 	describe('toObject', () => {
 		it('should infer types to aggregate on toObject method', () => {
 
-			class Name extends ValueObject<{ value: string }>{
+			class Name extends ValueObject<{ value: string }> {
 				private constructor(props: { value: string }) {
 					super(props)
 				}
@@ -263,7 +671,7 @@ describe("entity", () => {
 				updatedAt?: Date;
 			};
 
-			class Product extends Entity<Props>{
+			class Product extends Entity<Props> {
 				private constructor(props: Props) {
 					super(props)
 				}

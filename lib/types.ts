@@ -1,10 +1,13 @@
+import { Entity, ValueObject } from "./core";
+import { ReadonlyDeep } from "./types-util";
+
 export type Event = { detail: any[] };
 
 export abstract class EventManager {
-    abstract subscribe(eventName: string, fn: (event: Event) => void | Promise<void>): void;
-    abstract exists(eventName: string): boolean;
-    abstract removerEvent(eventName: string): boolean;
-    abstract dispatchEvent(eventName: string, ...args: any[]): void;
+	abstract subscribe(eventName: string, fn: (event: Event) => void | Promise<void>): void;
+	abstract exists(eventName: string): boolean;
+	abstract removerEvent(eventName: string): boolean;
+	abstract dispatchEvent(eventName: string, ...args: any[]): void;
 }
 
 export type EventType = { eventName: string, callback: (...args: any[]) => void | Promise<void> };
@@ -194,7 +197,10 @@ export interface IAdapter<F, T, E = any, M = any> {
 }
 
 export interface IEntity<Props> {
-	toObject<T>(adapter?: IAdapter<IEntity<Props>, any>): T extends {} ? T & EntityMapperPayload : { [key in keyof Props]: any } & EntityMapperPayload;
+	toObject<T>(adapter?: IAdapter<IEntity<Props>, any>): T extends {}
+		? T & EntityMapperPayload
+		: ReadonlyDeep<AutoMapperSerializer<Props>> & EntityMapperPayload;
+
 	get id(): UID<string>;
 	hashCode(): UID<string>;
 	isNew(): boolean;
@@ -203,7 +209,7 @@ export interface IEntity<Props> {
 
 export interface IValueObject<Props> {
 	clone(): IValueObject<Props>;
-	toObject<T>(adapter?: IAdapter<this, T>): T;
+	toObject<T>(adapter?: IAdapter<this, T>): T extends {} ? T : ReadonlyDeep<AutoMapperSerializer<Props>>;
 }
 
 export interface IGettersAndSetters<Props> {
@@ -213,10 +219,14 @@ export interface IGettersAndSetters<Props> {
 		to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => boolean;
 	};
 	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean): boolean;
+
+	getRaw(): Props;
 }
 
 export interface IAggregate<Props> {
-	toObject<T>(adapter?: IAdapter<this, T>): T extends {} ? T & EntityMapperPayload : { [key in keyof Props]: any } & EntityMapperPayload;
+	toObject<T>(adapter?: IAdapter<this, T>): T extends {}
+		? T & EntityMapperPayload
+		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload>;
 	get id(): UID<string>;
 	hashCode(): UID<string>;
 	isNew(): boolean;
@@ -228,9 +238,30 @@ export interface IAggregate<Props> {
 export type IParentName = 'ValueObject' | 'Entity';
 
 
+
+type SerializerEntityReturnType<ThisEntity extends Entity<any>> = ReturnType<ThisEntity['getRaw']>
+type SerializerValueObjectReturnType<ThisValueObject extends ValueObject<any>> = ReturnType<ThisValueObject['getRaw']>
+
+export type AutoMapperSerializer<Props> = {
+	[key in keyof Props]:
+	Props[key] extends ValueObject<any>
+	? AutoMapperSerializer<SerializerValueObjectReturnType<Props[key]>>
+	: Props[key] extends Entity<any>
+	? AutoMapperSerializer<SerializerEntityReturnType<Props[key]>> & EntityMapperPayload
+	: Props[key] extends Array<any>
+	? Array<
+			AutoMapperSerializer<ReturnType<Props[key][0]['getRaw']>> 
+			& (
+				Props[key][0] extends Entity<any> 
+				? EntityMapperPayload
+				: {}
+			)
+		> 
+	: Props[key]
+}
 export interface IAutoMapper<Props> {
-	valueObjectToObj(valueObject: IValueObject<Props>): { [key in keyof Props]: any };
-	entityToObj(entity: IEntity<Props>): { [key in keyof Props]: any } & EntityMapperPayload;
+	valueObjectToObj(valueObject: IValueObject<Props>): AutoMapperSerializer<Props>
+	entityToObj(entity: IEntity<Props>): AutoMapperSerializer<Props> & EntityMapperPayload
 }
 
 export interface IManyData {
@@ -319,14 +350,14 @@ export interface Metrics {
  * Parameters for defining an event.
  */
 export interface EventParams {
-    /**
-     * The name of the event.
-     */
-    eventName: string;
-    /**
-     * Additional options for the event.
-     */
-    options?: Options;
+	/**
+	 * The name of the event.
+	 */
+	eventName: string;
+	/**
+	 * Additional options for the event.
+	 */
+	options?: Options;
 }
 
 
@@ -335,32 +366,33 @@ export interface EventParams {
  * @template T - The type of aggregate this event handler is associated with.
  */
 export abstract class EventHandler<T> {
-    /**
-     * Creates an instance of EventHandler.
-     * @param {EventParams} params - Parameters for the event handler.
-     * @throws {Error} If params.eventName is not provided as a string.
-     */
-    constructor(public readonly params: EventParams) {
-        if (typeof params?.eventName !== 'string') {
-            throw new Error('params.eventName is required as string');
-        }
+	/**
+	 * Creates an instance of EventHandler.
+	 * @param {EventParams} params - Parameters for the event handler.
+	 * @throws {Error} If params.eventName is not provided as a string.
+	 */
+	constructor(public readonly params: EventParams) {
+		if (typeof params?.eventName !== 'string') {
+			throw new Error('params.eventName is required as string');
+		}
 		this.dispatch = this.dispatch.bind(this);
-    }
+	}
 
-    /**
-     * Dispatches the event with the provided arguments.
-     * @abstract
-     * @param {T} aggregate - The aggregate associated with the event.
-     * @param {[DEvent<T>, any[]]} args - Arguments for the event dispatch.
-     * @returns {Promise<void> | void} A Promise if the event dispatch is asynchronous, otherwise void.
-     */
-    abstract dispatch(aggregate: T, args: [DEvent<T>, any[]]): Promise<void> | void;
+	/**
+	 * Dispatches the event with the provided arguments.
+	 * @abstract
+	 * @param {T} aggregate - The aggregate associated with the event.
+	 * @param {[DEvent<T>, any[]]} args - Arguments for the event dispatch.
+	 * @returns {Promise<void> | void} A Promise if the event dispatch is asynchronous, otherwise void.
+	 */
+	abstract dispatch(aggregate: T, args: [DEvent<T>, any[]]): Promise<void> | void;
 
-    /**
-     * Dispatches the event with the provided arguments.
-     * @abstract
-     * @param {...HandlerArgs<T>} args - Arguments for the event dispatch.
-     * @returns {Promise<void> | void} A Promise if the event dispatch is asynchronous, otherwise void.
-     */
-    abstract dispatch(...args: HandlerArgs<T>): Promise<void> | void;
+	/**
+	 * Dispatches the event with the provided arguments.
+	 * @abstract
+	 * @param {...HandlerArgs<T>} args - Arguments for the event dispatch.
+	 * @returns {Promise<void> | void} A Promise if the event dispatch is asynchronous, otherwise void.
+	 */
+	abstract dispatch(...args: HandlerArgs<T>): Promise<void> | void;
 }
+

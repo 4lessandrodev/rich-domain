@@ -15,6 +15,11 @@ index.js.map
 types.d.ts.map
 types.js.map
 
+types-util.d.ts
+types-util.d.ts.map
+types-util.js
+types-util.js.map
+
 !tests/*
 !lib/*
 .idea/

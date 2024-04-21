@@ -12,6 +12,19 @@ All notable changes to this project will be documented in this file.
 
 ### Updates
 
+### [1.22.1] - 2024-04-21
+
+#### Features Added
+
+- Added types inference to method "toObject" on entities and value objects
+- Added method `getRaw` to getters-and-setters instance to expose props object
+
+[#146](https://github.com/4lessandrodev/rich-domain/pull/146) Special thanks and credits to @hikinine
+
+---
+
+### Updates
+
 ### [1.22.0] - 2024-04-13
 
 #### Features Added
