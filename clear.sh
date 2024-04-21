@@ -1,14 +1,7 @@
-#/bin/bash
+#!/bin/bash
 
-rm -rf ./dist
-rm -rf ./core
-rm -rf ./utils
+# Remover diretórios
+rm -rf ./dist ./core ./utils
 
-rm -rf ./index.d.ts
-rm -rf ./index.d.ts.map
-rm -rf ./index.js
-rm -rf ./index.js.map
-rm -rf ./types.d.ts
-rm -rf ./types.d.ts.map
-rm -rf ./types.js
-rm -rf ./types.js.map
+# Remover arquivos
+rm -rf ./index.d.ts{,.map} ./index.js{,.map} ./types.d.ts{,.map} ./types.js{,.map} ./types-util.d.ts{,.map} ./types-util.js{,.map}
