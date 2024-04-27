@@ -25,7 +25,7 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 		const isSimpleValue = this.validator.isBoolean(valueObject) ||
 			this.validator.isNumber(valueObject) ||
 			this.validator.isString(valueObject) ||
-			this.validator.isObject(valueObject) ||
+			this.validator.isObject(valueObject) || // primitive object
 			this.validator.isDate(valueObject);
 
 		if (isSimpleValue) return valueObject as AutoMapperSerializer<Props>
@@ -85,17 +85,15 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 
 		});
 
-		const hasUniqueValue = values.length === 1;
 
+		if (this.validator.isArray(voProps)) return values as any;
 		props = {} as { [key in keyof Props]: any };
 
-		if (!hasUniqueValue) {
-			values.forEach((value, i) => {
-				props = Object.assign({}, { ...props }, { [keys[i]]: value })
-			});
-		}
+		values.forEach((value, i) => {
+			props = Object.assign({}, { ...props }, { [keys[i]]: value })
+		});
 
-		return hasUniqueValue ? values[0] : props as any;
+		return props as any;
 	}
 
 	/**

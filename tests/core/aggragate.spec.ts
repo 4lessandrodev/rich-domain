@@ -475,7 +475,7 @@ describe('aggregate', () => {
 
 			const object = orange.toObject();
 			expect(object.additionalInfo).toEqual(['from brazil']);
-			expect(object.name).toBe('orange');
+			expect(object.name).toEqual({ value: 'orange' });
 			expect(object.price).toBe(10);
 		});
 	});

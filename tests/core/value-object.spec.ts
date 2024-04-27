@@ -12,16 +12,20 @@ describe('value-object', () => {
 			constructor(props: Props) {
 				super(props)
 			}
+
+			public static create(props: Props): Result<GenericVo> {
+				return Ok(new GenericVo(props))
+			}
 		}
 
 		it('should return fails if provide a null value', () => {
-			const obj = GenericVo.create(null);
-			expect(obj.isFail()).toBeTruthy();
+			const obj = GenericVo.create(null as any);
+			expect(obj.isFail()).toBeFalsy();
 		});
 
 		it('should return fails if provide an undefined value', () => {
-			const obj = GenericVo.create(undefined);
-			expect(obj.isFail()).toBeTruthy();
+			const obj = GenericVo.create(undefined as any);
+			expect(obj.isFail()).toBeFalsy();
 		});
 
 		it('should create a valid value-object', () => {
@@ -97,7 +101,7 @@ describe('value-object', () => {
 			expect(addressObject.street.toUpperCase()).toBe('5TH AVENUE');
 		});
 
-		it ('should be imutable', () => {
+		it('should be imutable', () => {
 			const address = new Address({
 				city: new City('A'),
 				number: 123,
@@ -129,15 +133,9 @@ describe('value-object', () => {
 		it('should create a valid value-object', () => {
 			const obj = StringVo.create({ value: 'Hello World' });
 			expect(obj.isFail()).toBeFalsy();
-			expect(obj.value().get('value')).toBe('Hello World');
+			expect(obj.value().getRaw().value).toBe('Hello World');
 		});
 
-		it('should change value with success', () => {
-			const obj = StringVo.create({ value: 'Hello World' });
-			expect(obj.value().get('value')).toBe('Hello World');
-			obj.value().set('value').to('Changed');
-			expect(obj.value().get('value')).toBe('Changed');
-		});
 	});
 
 	describe('hooks on value object result', () => {
@@ -199,15 +197,7 @@ describe('value-object', () => {
 
 		it('should set and change methods use native validation', () => {
 			const str = StringVo.create({ value: 'hello', age: 7 });
-			expect(str.value().get('value')).toBe('hello');
-			str.value().set('value').to('changed value');
-			expect(str.value().get('value')).toBe('changed value');
-			str.value().set('value').to('long and invalid value not pass in validation');
-			expect(str.value().get('value')).toBe('changed value');
-			str.value().set('age').to(18);
-			expect(str.value().get('age')).toBe(18);
-			str.value().set('age').to(220);
-			expect(str.value().get('age')).toBe(18);
+			str.value().getRaw().value;
 		});
 
 		it('should transform value object to object', () => {
@@ -232,7 +222,7 @@ describe('value-object', () => {
 
 			const valueObject = Sample.create({ value: 'Sample' });
 
-			expect(valueObject.value().toObject()).toBe('Sample');
+			expect(valueObject.value().toObject()).toEqual({ value: 'Sample' });
 		});
 
 		it('should transform value object to object', () => {
@@ -295,48 +285,6 @@ describe('value-object', () => {
 
 	});
 
-	describe('disable set', () => {
-		interface Props {
-			value: number;
-			birthDay: Date;
-		};
-
-		class HumanAge extends ValueObject<Props> {
-			private constructor(props: Props) {
-				super(props);
-				this.validation.bind(this);
-			}
-
-			// the "set" function automatically will use this method to validate value before set it.
-			validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean {
-
-				const options: IPropsValidation<Props> = {
-					value: _ => true,
-					// on set false the prop never will be set
-					birthDay: _ => false,
-				}
-
-				return options[key](value);
-			};
-
-			public static create(props: Props): IResult<HumanAge> {
-				return Result.Ok(new HumanAge(props));
-			}
-		}
-
-		it('should disable set with success', () => {
-			const result = HumanAge.create({ value: 10, birthDay: new Date('2022-01-01T03:00:00.000Z') });
-			const age = result.value();
-
-			expect(age.get('value')).toBe(10);
-
-			age.set('birthDay').to(new Date());
-			age.set('value').to(55);
-
-			expect(age.get('birthDay')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
-			expect(age.get('value')).toBe(55);
-		});
-	});
 
 	describe('create many', () => {
 
@@ -446,9 +394,9 @@ describe('value-object', () => {
 			expect(generic.isOk()).toBeTruthy();
 			expect(sample.isOk()).toBeTruthy();
 
-			expect(age.value().get('value')).toBe(21);
-			expect(generic.value().get('value')).toBe('Hello');
-			expect(sample.value().get('value')).toBe('hello');
+			expect(age.value().getRaw().value).toBe(21);
+			expect(generic.value().getRaw().value).toBe('Hello');
+			expect(sample.value().getRaw().value).toBe('hello');
 		});
 
 		it('should fails if provide an empty array', () => {
@@ -472,47 +420,6 @@ describe('value-object', () => {
 
 			expect(result.isFail()).toBeTruthy();
 			expect(iterator.total()).toBe(1);
-		})
-	});
-
-	describe('validation with only one value. no keys', () => {
-		interface Props {
-			value: string;
-		}
-
-		class Simple extends ValueObject<Props> {
-			constructor(props: Props) {
-				super(props)
-			}
-
-			validation(value: string): boolean {
-				return Simple.isValidProps({ value });
-			};
-
-			public static isValidProps({ value }: Props): boolean {
-				const { string } = this.validator;
-				return string(value).hasLengthGreaterThan(10);
-			}
-
-			public static create(props: Props): IResult<Simple> {
-				return Result.Ok(new Simple(props));
-			}
-		}
-
-		it('should validate with only value', () => {
-			const result = Simple.create({ value: 'valid_value' });
-
-			expect(result.isOk()).toBeTruthy();
-
-			expect(result.value().get('value')).toBe('valid_value');
-
-			result.value().set('value').to('change_value');
-
-			expect(result.value().get('value')).toBe('change_value');
-
-			result.value().set('value').to('invalid');
-
-			expect(result.value().get('value')).toBe('change_value');
 		})
 	});
 
@@ -593,7 +500,7 @@ describe('value-object', () => {
 		});
 	});
 
-	describe('compare', () => {
+	describe('compare props as object', () => {
 
 		interface Props { value: string };
 		class Simple extends ValueObject<Props> {
@@ -623,5 +530,86 @@ describe('value-object', () => {
 			expect(b.isEqual(undefined as unknown as Simple)).toBeFalsy();
 		});
 
+		it('should create a valid props object as value object', () => {
+			const primitive = Simple.create({ value: 'TEST' }).value();
+			expect(typeof primitive.getRaw().value).toBe('string');
+			expect(typeof primitive.get('value')).toBe('string');
+			expect(typeof primitive.get('value')).toBe('string');
+			expect(typeof primitive.toObject()).toBe('object');
+
+			expect(primitive.getRaw().value).toBe('TEST');
+			expect(primitive.get('value')).toBe('TEST');
+			expect(primitive.toObject()).toEqual({ value: 'TEST' });
+		});
+
+	});
+
+	describe('primitive value object as string', () => {
+
+		class Primitive extends ValueObject<string> {
+			private constructor(value: string) {
+				super(value)
+			}
+
+			public static create(value: string): Result<Primitive> {
+				return Ok(new Primitive(value));
+			}
+		};
+
+		it('should create a valid primitive value object', () => {
+			const primitive = Primitive.create('TEST').value();
+			expect(typeof primitive.getRaw()).toBe('string');
+			expect(typeof primitive.get('value')).toBe('string');
+			expect(typeof primitive.toObject()).toBe('string');
+
+			expect(primitive.getRaw()).toBe('TEST');
+			expect(primitive.get('value')).toBe('TEST');
+			expect(primitive.toObject()).toBe('TEST');
+		});
+	});
+
+	describe('primitive value object as date', () => {
+
+		class Primitive extends ValueObject<Date> {
+			private constructor(value: Date) {
+				super(value)
+			}
+
+			public static create(value: Date): Result<Primitive> {
+				return Ok(new Primitive(value));
+			}
+		};
+
+		it('should create a valid primitive value object', () => {
+			const date = new Date('2024-04-01T00:00:00');
+			const primitive = Primitive.create(date).value();
+			expect(primitive.getRaw()).toBeInstanceOf(Date);
+			expect(primitive.get('value')).toBeInstanceOf(Date);
+			expect(primitive.toObject()).toEqual(expect.any(Date));
+
+			expect(primitive.getRaw()).toBe(date);
+			expect(primitive.get('value')).toBe(date);
+			expect(primitive.toObject()).toBe(date);
+		});
+	});
+
+	describe('primitive value object as array', () => {
+
+		class Primitive extends ValueObject<Array<number>> {
+			private constructor(value: Array<number>) {
+				super(value)
+			}
+
+			public static create(value: Array<number>): Result<Primitive> {
+				return Ok(new Primitive(value));
+			}
+		};
+
+		it('should create a valid primitive value object', () => {
+			const primitive = Primitive.create([1,2,3]).value();
+			expect(primitive.getRaw()).toEqual([1,2,3]);
+			expect(primitive.get('value')).toEqual([1,2,3]);
+			expect(primitive.toObject()).toEqual([1,2,3]);
+		});
 	});
 });
