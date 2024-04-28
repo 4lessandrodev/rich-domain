@@ -12,6 +12,92 @@ All notable changes to this project will be documented in this file.
 
 ### Updates
 
+---
+
+
+### [1.23.0] - 2024-04-28
+
+#### Changes
+
+- Removed the `set` method from value object instances.
+- Changed the way the `toObject` method works. Path shortcutting of property access has been removed when props have only one attribute.
+- Implemented some improvements in how value objects handle primitive values.
+
+#### Migrate from v1.22.1 to v1.23.0
+
+- **Break Change**
+
+If you are using the `toObject` method in production to create a model from Aggregate, Entity, or Value Object domain instances, it is important to note that the property access path is no longer shortened. 
+
+Now the model object follows exactly the contract defined in `props`. 
+
+For example:
+
+If an object is defined in `props`, even if props contains only one property, if it is an object, the `toObject` method will generate a model according to `props`.
+
+#### Before v1.22.1
+
+```ts
+
+type Props = { value: number };
+
+class Price extends ValueObject<Props>{};
+
+const price = new Price({ value: 200 });
+
+console.log(price.toObject());
+
+// > 200
+
+```
+
+#### After v1.23.0
+
+
+```ts
+
+type Props = { value: number };
+
+class Price extends ValueObject<Props>{};
+
+const price = new Price({ value: 200 });
+
+console.log(price.toObject());
+
+// > { value: 200 }
+
+```
+
+If you want to maintain the return with primitive value without it being an object, use `props` of primitive type.
+
+```ts
+
+class Price extends ValueObject<number>{};
+
+const price = new Price(200);
+
+console.log(price.toObject());
+
+// > 200
+
+```
+
+Another alternative is to use an adapter.
+
+```ts
+
+class Adapter implements IAdapter<Domain, Model> {
+    adapt(domain: Domain): Result<Model> {
+        //...
+    }
+}
+
+price.toObject(new Adapter());
+
+```
+
+---
+
 ### [1.22.1] - 2024-04-21
 
 #### Features Added

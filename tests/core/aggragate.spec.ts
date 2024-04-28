@@ -541,7 +541,10 @@ describe('Aggregate', () => {
             const aggregate = new Aggregate({});
             const context = aggregate.context();
             expect(context).toBeDefined();
-            // Adicione mais testes aqui para verificar se o context é uma instância válida de EventManager.
+			expect(context.exists).toBeDefined();
+			expect(context.dispatchEvent).toBeDefined();
+			expect(context.removerEvent).toBeDefined();
+			expect(context.subscribe).toBeDefined();
         });
     });
 
