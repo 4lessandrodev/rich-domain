@@ -1,4 +1,4 @@
-import { ICreateManyDomain, IBaseGettersAndSetters, ISettings, UID } from "../types";
+import { ICreateManyDomain, IBaseGettersAndSetters, ISettings, UID, IVoSettings } from "../types";
 import util, { Utils } from "../utils/util";
 import validator, { Validator } from "../utils/validator";
 import createManyDomainInstances from "./create-many-domain-instance";
@@ -14,13 +14,12 @@ export class BaseGettersAndSetters<Props> implements IBaseGettersAndSetters<Prop
 
     protected config: ISettings = { disableGetters: false, disableSetters: false };
 
-    constructor(protected props: Props, config?: ISettings) {
+    constructor(protected props: Props, config?: IVoSettings) {
         BaseGettersAndSetters.validator = validator;
         BaseGettersAndSetters.util = util;
         this.validator = validator;
         this.util = util;
         this.config.disableGetters = !!config?.disableGetters;
-        this.config.disableSetters = !!config?.disableSetters;
     }
 
     /**
@@ -53,105 +52,6 @@ export class BaseGettersAndSetters<Props> implements IBaseGettersAndSetters<Prop
     }
 
     /**
-     * @description Validation used to `set` and `change` methods to validate value before set it.
-     * @param _key prop key type
-     * @param _value prop value type
-     * @returns true if value is valid and false if is invalid.
-     * 
-     * 
-     * @example
-     * interface Props { 
-     *		value: string;
-     *		age: number;
-     *	};
-     *	
-     *	class StringVo extends ValueObject<Props>{
-     *		private constructor(props: Props) { super(props) }
-     *	
-     *		validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean {
-     *
-     *			const options: IPropsValidation<Props> = {
-     *				value: (value: string) => value.length < 15,
-     *				age: (value: number) => value > 0
-     *			} 
-     *	
-     *			return options[key](value);
-     *		};
-     *	
-     *		public static create(props: Props): IResult<ValueObject<Props>, string> {
-     *			return Result.Ok(new StringVo(props));
-     *		}
-     *	}
-     */
-    validation(_value: any, _key?: any): boolean;
-
-    /**
-     * @description Validation used to `set` and `change` methods to validate value before set it.
-     * @param _key prop key type
-     * @param _value prop value type
-     * @returns true if value is valid and false if is invalid.
-     * 
-     * 
-     * @example
-     * interface Props { 
-     *		value: string;
-     *		age: number;
-     *	};
-     *	
-     *	class StringVo extends ValueObject<Props>{
-     *		private constructor(props: Props) { super(props) }
-     *	
-     *		validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean {
-     *
-     *			const options: IPropsValidation<Props> = {
-     *				value: (value: string) => value.length < 15,
-     *				age: (value: number) => value > 0
-     *			} 
-     *	
-     *			return options[key](value);
-     *		};
-     *	
-     *		public static create(props: Props): IResult<ValueObject<Props>, string> {
-     *			return Result.Ok(new StringVo(props));
-     *		}
-     *	}
-     */
-    validation(_value: any, _key: any): boolean;
-
-    /**
-     * @description Validation used to `set` and `change` methods to validate value before set it.
-     * @param _key prop key type
-     * @param _value prop value type
-     * @returns true if value is valid and false if is invalid.
-     * 
-     * 
-     * @example
-     * interface Props { 
-     *		value: string;
-     *		age: number;
-     *	};
-     *	
-     *	class StringVo extends ValueObject<Props>{
-     *		private constructor(props: Props) { super(props) }
-     *	
-     *		validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean {
-     *
-     *			const options: IPropsValidation<Props> = {
-     *				value: (value: string) => value.length < 15,
-     *				age: (value: number) => value > 0
-     *			} 
-     *	
-     *			return options[key](value);
-     *		};
-     *	
-     *		public static create(props: Props): IResult<ValueObject<Props>, string> {
-     *			return Result.Ok(new StringVo(props));
-     *		}
-     *	}
-     */
-    validation<Key extends keyof Props>(_value: Props[Key], _key: Key): boolean { return true };
-
-    /**
      * 
      * @param key the property key you want to get
      * @returns the value of property
@@ -179,7 +79,7 @@ export class BaseGettersAndSetters<Props> implements IBaseGettersAndSetters<Prop
     }
 
     getRaw(): Readonly<Props> {
-        if (typeof this.props !== 'object' || !Array.isArray(this.props)) {
+        if (typeof this.props !== 'object' || !Array.isArray(this.props) || this.props instanceof Date) {
             return this.props;
         }
         return Object.freeze(this.props);

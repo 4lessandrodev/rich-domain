@@ -278,7 +278,6 @@ export class GettersAndSetters<Props> implements IEntityGettersAndSetters<Props>
     getRaw(): Readonly<Props> {
         return Object.freeze(this.props);
     }
-
 }
 
 export default GettersAndSetters;

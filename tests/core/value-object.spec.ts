@@ -1,5 +1,5 @@
 import { Class, Ok, Result, ValueObject } from "../../lib/core";
-import { ICommand, IPropsValidation, IResult } from "../../lib/types";
+import { ICommand, IResult } from "../../lib/types";
 
 describe('value-object', () => {
 
@@ -177,27 +177,17 @@ describe('value-object', () => {
 
 		class StringVo extends ValueObject<Props> {
 			private constructor(props: Props) {
-				super(props);
+				super(props, { disableGetters: true });
 			}
-
-			validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean {
-
-				const options: IPropsValidation<Props> = {
-					value: (value: string) => value.length < 15,
-					age: (value: number) => value > 0 && value < 130
-				}
-
-				return options[key](value);
-			};
 
 			public static create(props: Props): IResult<StringVo> {
 				return Result.Ok(new StringVo(props));
 			}
 		}
 
-		it('should set and change methods use native validation', () => {
+		it('should disable getter', () => {
 			const str = StringVo.create({ value: 'hello', age: 7 });
-			str.value().getRaw().value;
+			expect(() => str.value().get('value')).toThrow();
 		});
 
 		it('should transform value object to object', () => {
@@ -296,7 +286,6 @@ describe('value-object', () => {
 		class HumanAge extends ValueObject<Props1> {
 			private constructor(props: Props1) {
 				super(props);
-				this.validation.bind(this);
 			}
 
 			public static isValidProps(props: Props1): boolean {
@@ -606,10 +595,42 @@ describe('value-object', () => {
 		};
 
 		it('should create a valid primitive value object', () => {
-			const primitive = Primitive.create([1,2,3]).value();
-			expect(primitive.getRaw()).toEqual([1,2,3]);
-			expect(primitive.get('value')).toEqual([1,2,3]);
-			expect(primitive.toObject()).toEqual([1,2,3]);
+			const primitive = Primitive.create([1, 2, 3]).value();
+			expect(primitive.getRaw()).toEqual([1, 2, 3]);
+			expect(primitive.get('value')).toEqual([1, 2, 3]);
+			expect(primitive.toObject()).toEqual([1, 2, 3]);
+		});
+
+		it('should create many primitive', () => {
+			const payload = ValueObject.createMany([
+				{
+					class: Primitive,
+					props: [1, 2],
+				},
+				{
+					class: Primitive,
+					props: [3, 4, 5],
+				}
+			]);
+
+			expect(payload.result.isOk()).toBeTruthy();
+			expect(payload.data.next().value()).toMatchInlineSnapshot(`
+Primitive {
+  "autoMapper": AutoMapper {
+    "validator": Validator {},
+  },
+  "config": Object {
+    "disableGetters": false,
+    "disableSetters": false,
+  },
+  "props": Array [
+    1,
+    2,
+  ],
+  "util": Utils {},
+  "validator": Validator {},
+}
+`);
 		});
 	});
 });

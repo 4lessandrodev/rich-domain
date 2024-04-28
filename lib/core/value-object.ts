@@ -1,4 +1,4 @@
-import { AutoMapperSerializer, IAdapter, IResult, ISettings, IValueObject } from "../types";
+import { AutoMapperSerializer, IAdapter, IResult, IValueObject, IVoSettings } from "../types";
 import { ReadonlyDeep } from "../types-util";
 import { deepFreeze } from "../utils/deep-freeze.util";
 import AutoMapper from "./auto-mapper";
@@ -10,7 +10,7 @@ import Result from "./result";
  */
 export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements IValueObject<Props> {
 	protected autoMapper: AutoMapper<Props>;
-	constructor(props: Props, config?: ISettings) {
+	constructor(props: Props, config?: IVoSettings) {
 		super(props, config);
 		this.autoMapper = new AutoMapper();
 	}
