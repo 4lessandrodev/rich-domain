@@ -19,7 +19,7 @@ describe('auto-mapper', () => {
 
 			const result = autoMapper.valueObjectToObj(vo.value());
 
-			expect(result).toBe('hello');
+			expect(result).toEqual({ value: 'hello' });
 
 		});
 
@@ -94,7 +94,7 @@ describe('auto-mapper', () => {
 
 			const result = autoMapper.valueObjectToObj(vo.value());
 
-			expect(result).toEqual([1, 2, 3, 4, 5, 6, 7]);
+			expect(result).toEqual({ value: [1, 2, 3, 4, 5, 6, 7] });
 
 		});
 
@@ -112,7 +112,7 @@ describe('auto-mapper', () => {
 
 			const result = autoMapper.valueObjectToObj(vo.value());
 
-			expect(result).toBe('3c5738cf-825e-48b7-884d-927be849b0b6');
+			expect(result).toEqual({ value: '3c5738cf-825e-48b7-884d-927be849b0b6' });
 
 		});
 
@@ -138,7 +138,7 @@ describe('auto-mapper', () => {
 
 			const result = autoMapper.valueObjectToObj(vo.value());
 
-			expect(result).toEqual(["927be849b0b1", "927be849b0b2", "927be849b0b3"]);
+			expect(result).toEqual({ value: ["927be849b0b1", "927be849b0b2", "927be849b0b3"]});
 
 		});
 
@@ -249,8 +249,8 @@ describe('auto-mapper', () => {
 			const obj = autoMapper.entityToObj(user);
 
 			expect(obj.id).toBe('1519cb69-9904-4f2b-84e1-e6e95431cf24');
-			expect(obj.age).toBe(21);
-			expect(obj.name).toBe('some value');
+			expect(obj.age).toEqual({ value: 21 });
+			expect(obj.name).toEqual({ value: 'some value' });
 			expect(obj.createdAt).toBeInstanceOf(Date);
 			expect(obj.updatedAt).toBeInstanceOf(Date);
 			expect(obj.notes).toEqual([1, 2, 3]);
@@ -337,12 +337,12 @@ describe('auto-mapper', () => {
 
 			const expectedResult = {
 				id: id.value(),
-				name: "jane",
-				item: itemObj,
-				price: 20,
+				name: { value: "jane" },
+				item: { name: itemObj },
+				price: { value: 20 },
 				amount: 42,
 				detail: 'detail info',
-				lastSales: [itemObj, itemObj, itemObj],
+				lastSales: [{ name: itemObj }, { name: itemObj }, { name: itemObj }],
 				options: ['a', 'b', 'c'],
 				createdAt: now,
 				updatedAt: now,
@@ -374,12 +374,12 @@ describe('auto-mapper', () => {
 
 			const prop = {
 				id: id.value(),
-				name: "jane",
-				item: itemObj,
-				price: 20,
+				name: { value: "jane" },
+				item: { name: itemObj },
+				price: { value: 20 },
 				amount: 42,
 				detail: 'detail info',
-				lastSales: [itemObj, itemObj, itemObj],
+				lastSales: [{ name: itemObj }, { name: itemObj }, { name: itemObj }],
 				options: ['a', 'b', 'c'],
 				createdAt: now,
 				updatedAt: now,
@@ -388,12 +388,12 @@ describe('auto-mapper', () => {
 			const expectedResult = {
 				id: id.value(),
 				product: prop,
-				name: "jane",
-				item: itemObj,
-				price: 20,
+				name: { value: "jane" },
+				item: { name: itemObj },
+				price: { value: 20 },
 				amount: 42,
 				detail: 'detail info',
-				lastSales: [itemObj, itemObj, itemObj],
+				lastSales: [{ name: itemObj }, { name: itemObj }, { name: itemObj }],
 				options: ['a', 'b', 'c'],
 				createdAt: now,
 				updatedAt: now,
@@ -503,9 +503,9 @@ describe('auto-mapper', () => {
 				isMarried: true,
 				value: 42,
 				profile: {
-					age: 21,
+					age: { value: 21 },
 					data: 'lorem ipsum',
-					name: 'Mille',
+					name: { value: 'Mille' },
 					notes: [10, 20, 30],
 					value: 7,
 					id: 'valid-uuid-2',
@@ -647,12 +647,14 @@ describe('auto-mapper', () => {
 			const vo = Vo2.create({ text: 'example', vo1, nullable: 10 }).value();
 			const obj = vo.toObject();
 			expect(obj).toMatchInlineSnapshot(`
-	Object {
-	  "nullable": 10,
-	  "text": "example",
-	  "vo1": "sub-object",
-	}
-	`);
+Object {
+  "nullable": 10,
+  "text": "example",
+  "vo1": Object {
+    "text": "sub-object",
+  },
+}
+`);
 
 		})
 		it('should transform on entity', () => {
@@ -674,11 +676,15 @@ describe('auto-mapper', () => {
 Object {
   "createdAt": ${date.toISOString()},
   "id": "8280c69f-be52-4918-ada9-f43d4703dbfe",
-  "level1": "sub-object",
+  "level1": Object {
+    "text": "sub-object",
+  },
   "level3": Object {
     "nullable": null,
     "text": "example",
-    "vo1": "sub-object",
+    "vo1": Object {
+      "text": "sub-object",
+    },
   },
   "nullable": null,
   "simple": "hey there",

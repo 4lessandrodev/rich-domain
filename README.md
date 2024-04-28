@@ -405,9 +405,9 @@ console.log(result.toObject());
 
 {
     "id": "d7fc98f5-9711-4ad8-aa16-70cb8a52244a",
-    "total": 347,
-    "discount": 170.50,
-    "fees": 17.50,
+    "total": { "amount": 347 },
+    "discount": { "amount": 170.50 },
+    "fees": { "amount": 17.50 },
     "createdAt":"2023-01-30T23:11:17.815Z",
     "updatedAt":"2023-01-30T23:11:17.815Z"
 }
@@ -1131,13 +1131,9 @@ console.log(name.get('value'));
 
 Once we have an instance of a value object, we can use some methods that the library makes available.
 
-By default setters are enabled
+Value Objects has only `get` method because instance is immutable
 
 ```ts
-
-// do not use set to change value object value. create a new instance instead.
-
-name.set('value').to('John');
 
 console.log(name.get('value'));
 
@@ -1153,24 +1149,18 @@ This property disables the set function of the value object.
 ```ts
 
 constructor(props: NameProps){
-	super(props, { disableSetters: true })
+	super(props, { disableGetters: true })
 }
 
 ```
 
-Now when trying to change the value using `set` or `change` it will not be modified.
+Now when trying to get the value using `get` throws an error.
 
 ```ts
 
 console.log(name.get('value'));
 
-> "John"
-
-name.set('value').to('James');
-
-console.log(name.get('value'));
-
-> "John"
+> Error
 
 ```
 

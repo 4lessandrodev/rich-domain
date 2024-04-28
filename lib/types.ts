@@ -212,14 +212,18 @@ export interface IValueObject<Props> {
 	toObject<T>(adapter?: IAdapter<this, T>): T extends {} ? T : ReadonlyDeep<AutoMapperSerializer<Props>>;
 }
 
-export interface IGettersAndSetters<Props> {
-	validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean;
-	get<Key extends keyof Props>(key: Key): Props[Key];
+export interface IEntityGettersAndSetters<Props> {
 	set<Key extends keyof Props>(key: Key): {
 		to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => boolean;
 	};
 	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean): boolean;
+	get<Key extends keyof Props>(key: Key): Readonly<Readonly<Props[Key]>>;
+	validation<Key extends keyof Props>(value: Props[Key], key: Props extends object ? Key : never): boolean;
+}
 
+export interface IBaseGettersAndSetters<Props> {
+	get<Key extends keyof Props>(key: Props extends object ? (Props extends { [k in Key]: Date } ? Key : 'value'): 'value'): Readonly<Props extends { [k in keyof Props]: Props[k] } ? Readonly<Props[Key]> : Readonly<Props>>
+	validation<Key extends keyof Props>(value: Props extends object ? Props[Key] : Props, key: Props extends object ? Key : never): boolean;
 	getRaw(): Props;
 }
 

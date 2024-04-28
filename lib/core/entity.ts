@@ -2,7 +2,7 @@ import { AutoMapperSerializer, EntityMapperPayload, EntityProps, IAdapter, IEnti
 import { ReadonlyDeep } from "../types-util";
 import { deepFreeze } from "../utils/deep-freeze.util";
 import AutoMapper from "./auto-mapper";
-import GettersAndSetters from "./getters-and-setters";
+import GettersAndSetters from "./entity-getters-and-setters";
 import ID from "./id";
 import Result from "./result";
 
