@@ -1,17 +1,17 @@
-import { AutoMapperSerializer, IAdapter, IResult, ISettings, IValueObject } from "../types";
+import { AutoMapperSerializer, IAdapter, IResult, IValueObject, IVoSettings } from "../types";
 import { ReadonlyDeep } from "../types-util";
 import { deepFreeze } from "../utils/deep-freeze.util";
 import AutoMapper from "./auto-mapper";
-import GettersAndSetters from "./getters-and-setters";
+import BaseGettersAndSetters from "./base-getters-and-setters";
 import Result from "./result";
 
 /**
  * @description ValueObject an attribute for entity and aggregate
  */
-export class ValueObject<Props> extends GettersAndSetters<Props> implements IValueObject<Props> {
+export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements IValueObject<Props> {
 	protected autoMapper: AutoMapper<Props>;
-	constructor(props: Props, config?: ISettings) {
-		super(props, 'ValueObject', config);
+	constructor(props: Props, config?: IVoSettings) {
+		super(props, config);
 		this.autoMapper = new AutoMapper();
 	}
 
@@ -55,31 +55,7 @@ export class ValueObject<Props> extends GettersAndSetters<Props> implements IVal
 
 		const serializedObject = this.autoMapper.valueObjectToObj(this) as ReadonlyDeep<AutoMapperSerializer<Props>>;
 		const frozenObject = deepFreeze<any>(serializedObject); 
-		return frozenObject
- 
-	}
-
-	/** 
-	 * @description use immutable value object.
-	 * @deprecated do not use `set` function to change `value-object` state. 
-	 * @access create a new instance instead
-	 * @method `set` function will be removed for `value-objects` in future version.
-	 * returns "true" if the value has changed and returns "false" if the value has not changed.
-	 */
-	set<Key extends keyof Props>(key: Key): { 
-		to: (value: Props[Key], validation?: ((value: Props[Key]) => boolean) | undefined) => boolean; 
-	} {
-		return super.set(key);
-	}
-
-	/** 
-	 * @description use immutable value object.
-	 * @deprecated do not use change function to modify `value-object` state.
-	 * @access create a new instance instead
-	 * @method `change` function will be removed for `value-objects` in future version.
-	 */
-	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: ((value: Props[Key]) => boolean) | undefined): boolean {
-		return super.change(key, value, validation);
+		return frozenObject;
 	}
 
 	/**

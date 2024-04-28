@@ -508,8 +508,8 @@ describe("entity", () => {
 			ent.value().change('foo', 'changed');
 			expect(ent.isOk()).toBeTruthy();
 
-			ent.value().change('id', 'changed');
-			expect(ent.value().id.value()).not.toBe('changed');
+			const throws = () => ent.value().change('id', 'changed');
+			expect(throws).toThrowError();
 		});
 
 		it('should set prototype', () => {
@@ -686,8 +686,9 @@ describe("entity", () => {
 
 			const object = orange.toObject();
 			expect(object.additionalInfo).toEqual(['from brazil']);
-			expect(object.name).toBe('orange');
+			expect(object.name).toEqual({ value: 'orange' });
 			expect(object.price).toBe(10);
+			expect(object.name.value).toBe('orange');
 		});
 	});
 });

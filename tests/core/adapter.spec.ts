@@ -1,7 +1,7 @@
 import { ValueObject, Entity, Result, Ok, Fail } from '../../lib/core';
 import { IAdapter, IResult } from '../../lib/types';
 
-describe('adpter', () => {
+describe('adapter', () => {
 
 	interface NameProps { value: string; };
 
@@ -50,7 +50,7 @@ describe('adpter', () => {
 		build(target: DomainUser): IResult<Model> {
 
 			return Result.Ok({
-				id: target.id.value(),
+				id: target.get('id'),
 				createdAt: target.get('createdAt') as Date,
 				updatedAt: target.get('updatedAt') as Date,
 				name: target.get('name').get('value')

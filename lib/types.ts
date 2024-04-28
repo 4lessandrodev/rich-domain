@@ -129,8 +129,11 @@ export interface IProxy<T, D> {
 	afterExecute?: <A extends D, B extends D>(data: A) => Promise<B>;
 }
 
-export interface ISettings {
+export interface IVoSettings {
 	disableGetters?: boolean;
+}
+
+export interface ISettings extends IVoSettings {
 	disableSetters?: boolean;
 }
 
@@ -212,14 +215,17 @@ export interface IValueObject<Props> {
 	toObject<T>(adapter?: IAdapter<this, T>): T extends {} ? T : ReadonlyDeep<AutoMapperSerializer<Props>>;
 }
 
-export interface IGettersAndSetters<Props> {
-	validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean;
-	get<Key extends keyof Props>(key: Key): Props[Key];
+export interface IEntityGettersAndSetters<Props> {
 	set<Key extends keyof Props>(key: Key): {
 		to: (value: Props[Key], validation?: (value: Props[Key]) => boolean) => boolean;
 	};
 	change<Key extends keyof Props>(key: Key, value: Props[Key], validation?: (value: Props[Key]) => boolean): boolean;
+	get<Key extends keyof Props>(key: Key): Readonly<Readonly<Props[Key]>>;
+	validation<Key extends keyof Props>(value: Props[Key], key: Props extends object ? Key : never): boolean;
+}
 
+export interface IBaseGettersAndSetters<Props> {
+	get<Key extends keyof Props>(key: Props extends object ? (Props extends { [k in Key]: Date } ? Key : 'value'): 'value'): Readonly<Props extends { [k in keyof Props]: Props[k] } ? Readonly<Props[Key]> : Readonly<Props>>
 	getRaw(): Props;
 }
 
@@ -266,7 +272,7 @@ export interface IAutoMapper<Props> {
 
 export interface IManyData {
 	class: any;
-	props: OBJ;
+	props: any;
 }
 
 export type ICreateManyDomain = Array<IManyData>;

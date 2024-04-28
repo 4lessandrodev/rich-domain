@@ -6,37 +6,61 @@ Object {
   "createdAt": 2022-11-27T22:39:58.897Z,
   "detail": "detail info",
   "id": "f25a30cb-294c-4269-8e8c-060403f3a971",
-  "item": "some-item",
+  "item": Object {
+    "name": "some-item",
+  },
   "lastSales": Array [
-    "some-item",
-    "some-item",
-    "some-item",
+    Object {
+      "name": "some-item",
+    },
+    Object {
+      "name": "some-item",
+    },
+    Object {
+      "name": "some-item",
+    },
   ],
-  "name": "jane",
+  "name": Object {
+    "value": "jane",
+  },
   "options": Array [
     "a",
     "b",
     "c",
   ],
-  "price": 20,
+  "price": Object {
+    "value": 20,
+  },
   "product": Object {
     "amount": 42,
     "createdAt": 2022-11-27T22:39:58.897Z,
     "detail": "detail info",
     "id": "f25a30cb-294c-4269-8e8c-060403f3a971",
-    "item": "some-item",
+    "item": Object {
+      "name": "some-item",
+    },
     "lastSales": Array [
-      "some-item",
-      "some-item",
-      "some-item",
+      Object {
+        "name": "some-item",
+      },
+      Object {
+        "name": "some-item",
+      },
+      Object {
+        "name": "some-item",
+      },
     ],
-    "name": "jane",
+    "name": Object {
+      "value": "jane",
+    },
     "options": Array [
       "a",
       "b",
       "c",
     ],
-    "price": 20,
+    "price": Object {
+      "value": 20,
+    },
     "updatedAt": 2022-11-27T22:39:58.897Z,
   },
   "updatedAt": 2022-11-27T22:39:58.897Z,
@@ -49,19 +73,31 @@ Object {
   "createdAt": 2022-11-27T22:39:58.897Z,
   "detail": "detail info",
   "id": "f25a30cb-294c-4269-8e8c-060403f3a971",
-  "item": "some-item",
+  "item": Object {
+    "name": "some-item",
+  },
   "lastSales": Array [
-    "some-item",
-    "some-item",
-    "some-item",
+    Object {
+      "name": "some-item",
+    },
+    Object {
+      "name": "some-item",
+    },
+    Object {
+      "name": "some-item",
+    },
   ],
-  "name": "jane",
+  "name": Object {
+    "value": "jane",
+  },
   "options": Array [
     "a",
     "b",
     "c",
   ],
-  "price": 20,
+  "price": Object {
+    "value": 20,
+  },
   "updatedAt": 2022-11-27T22:39:58.897Z,
 }
 `;

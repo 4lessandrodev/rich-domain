@@ -2,7 +2,7 @@ export * from './aggregate';
 export * from './auto-mapper';
 export * from './entity';
 export * from './events';
-export * from './getters-and-setters';
+export * from './base-getters-and-setters';
 export * from './id';
 export * from './iterator';
 export * from './result';
@@ -12,3 +12,4 @@ export * from './crypto';
 export * from './ok';
 export * from './fail';
 export * from './context';
+export * from './entity-getters-and-setters'
