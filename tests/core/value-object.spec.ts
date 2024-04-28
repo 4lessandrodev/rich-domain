@@ -1,5 +1,6 @@
 import { Class, Ok, Result, ValueObject } from "../../lib/core";
 import { ICommand, IResult } from "../../lib/types";
+import { Utils, Validator } from "../../lib/utils";
 
 describe('value-object', () => {
 
@@ -13,10 +14,42 @@ describe('value-object', () => {
 				super(props)
 			}
 
+			public tools(){
+				return {
+					staticValidator: GenericVo.validator,
+					validator: this.validator,
+					staticUtils: GenericVo.util,
+					utils: this.util
+				}
+			}
+
+			public static tools(){
+				return {
+					staticValidator: GenericVo.validator,
+					validator: this.validator,
+					staticUtils: GenericVo.util,
+					utils: this.util
+				}
+			}
+
+
 			public static create(props: Props): Result<GenericVo> {
 				return Ok(new GenericVo(props))
 			}
 		}
+
+		it('utils and validator must be available', () => {
+			const instance = new GenericVo({ value: 'hello' });
+			expect(instance.tools().staticUtils).toBeInstanceOf(Utils);
+			expect(instance.tools().utils).toBeInstanceOf(Utils);
+			expect(instance.tools().staticValidator).toBeInstanceOf(Validator);
+			expect(instance.tools().validator).toBeInstanceOf(Validator);
+
+			expect(GenericVo.tools().staticUtils).toBeInstanceOf(Utils);
+			expect(GenericVo.tools().utils).toBeInstanceOf(Utils);
+			expect(GenericVo.tools().staticValidator).toBeInstanceOf(Validator);
+			expect(GenericVo.tools().validator).toBeInstanceOf(Validator);
+		});
 
 		it('should return fails if provide a null value', () => {
 			const obj = GenericVo.create(null as any);
