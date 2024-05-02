@@ -1,5 +1,5 @@
 import { Entity, ValueObject } from "./core";
-import { ReadonlyDeep } from "./types-util";
+import { BuiltIns, ReadonlyDeep } from "./types-util";
 
 export type Event = { detail: any[] };
 
@@ -225,7 +225,22 @@ export interface IEntityGettersAndSetters<Props> {
 }
 
 export interface IBaseGettersAndSetters<Props> {
-	get<Key extends keyof Props>(key: Props extends object ? (Props extends { [k in Key]: Date } ? Key : 'value'): 'value'): Readonly<Props extends { [k in keyof Props]: Props[k] } ? Readonly<Props[Key]> : Readonly<Props>>
+	get<Key extends keyof Props>(
+		key: Props extends BuiltIns ?
+			'value' :
+			Props extends Symbol ?
+			'value' :
+			Props extends any[] ?
+			'value' :
+			Key
+	): Props extends BuiltIns ?
+		Props :
+		Props extends Symbol ?
+		string :
+		Props extends any[] ?
+		Readonly<Props> :
+		Props extends {} ?
+		Readonly<Props[Key]> : Props
 	getRaw(): Props;
 }
 
@@ -256,13 +271,13 @@ export type AutoMapperSerializer<Props> = {
 	? AutoMapperSerializer<SerializerEntityReturnType<Props[key]>> & EntityMapperPayload
 	: Props[key] extends Array<any>
 	? Array<
-			AutoMapperSerializer<ReturnType<Props[key][0]['getRaw']>> 
-			& (
-				Props[key][0] extends Entity<any> 
-				? EntityMapperPayload
-				: {}
-			)
-		> 
+		AutoMapperSerializer<ReturnType<Props[key][0]['getRaw']>>
+		& (
+			Props[key][0] extends Entity<any>
+			? EntityMapperPayload
+			: {}
+		)
+	>
 	: Props[key]
 }
 export interface IAutoMapper<Props> {

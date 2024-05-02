@@ -14,6 +14,9 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	protected autoMapper: AutoMapper<Props>;
 	constructor(props: Props, config?: ISettings) {
 		super(Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props }), 'Entity', config);
+		if (typeof props !== 'object' || (props instanceof Date) || Array.isArray(props)) {
+			throw new Error(`Props must be an 'object' for entities, but received: '${typeof props}' as props on Class '${this.constructor.name}'`);
+		};
 		const isID = this.validator.isID(props?.['id']);
 		const isStringOrNumber = this.validator.isString(props?.['id']) || this.validator.isNumber(props?.['id']);
 		this._id = isStringOrNumber ? ID.create(props?.['id']) : isID ? props?.['id'] : ID.create();
@@ -27,16 +30,19 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @returns true if props is equal and false if not.
 	*/
 	isEqual(other: this): boolean {
-		const currentProps = Object.assign({}, {}, { ...this?.props });
-		const providedProps = Object.assign({}, {}, { ...other?.props });
+		const currentProps = { ...this?.props };
+		const providedProps = { ...other?.props };
+	
 		delete currentProps?.['createdAt'];
 		delete currentProps?.['updatedAt'];
 		delete providedProps?.['createdAt'];
 		delete providedProps?.['updatedAt'];
-		const equalId = this.id.equal(other?.id);
+	
+		const equalId = this.id.isEqual(other?.id);
 		const serializedA = JSON.stringify(currentProps);
 		const serializedB = JSON.stringify(providedProps);
 		const equalSerialized = serializedA === serializedB;
+	
 		return equalId && equalSerialized;
 	}
 
@@ -47,7 +53,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	toObject<T>(adapter?: IAdapter<this, T>)
 		: T extends {}
 		? T & EntityMapperPayload
-		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload>  {
+		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload> {
 		if (adapter && typeof adapter?.build === 'function') return adapter.build(this).value() as any;
 
 		const serializedObject = this.autoMapper.entityToObj(this) as ReadonlyDeep<AutoMapperSerializer<Props>>;
@@ -91,12 +97,11 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @param props as optional Entity Props.
 	 * @returns new Entity instance.
 	 */
-	clone(props?: Partial<Props>): this {
-		const _props = props ? { ...this.props, ...props } : { ...this.props };
+	clone(props?: Props extends object ? Partial<Props> : never): this {
 		const instance = Reflect.getPrototypeOf(this);
+		const _props = props ? { ...this.props, ...props } : { ...this.props };
 		const args = [_props, this.config];
-		const entity = Reflect.construct(instance!.constructor, args);
-		return entity
+		return Reflect.construct(instance!.constructor, args);
 	}
 
 	/**

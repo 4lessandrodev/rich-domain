@@ -33,7 +33,7 @@ type ReadonlyObjectDeep<ObjectType extends object> = {
 	readonly [KeyType in keyof ObjectType]: ReadonlyDeep<ObjectType[KeyType]>
 };
 
-type Primitive =
+export type Primitive =
 	| null
 	| undefined
 	| string
@@ -41,7 +41,8 @@ type Primitive =
 	| boolean
 	| symbol
 	| bigint;
-type BuiltIns = Primitive | void | Date | RegExp;
+export type BuiltIns = Primitive | void | Date | RegExp;
+
 /**
  * @description Deeply readonly object.
  * @link https://github.com/sindresorhus/type-fest/blob/main/source/readonly-deep.d.ts
