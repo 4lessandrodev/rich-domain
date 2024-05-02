@@ -111,7 +111,7 @@ describe("entity", () => {
 			expect(personObjectName.concat('2')).toBe('John Doe2');
 			expect(personObjectName.includes('John')).toBeTruthy();
 			expect(personObjectName.indexOf('Doe')).toBe(5);
-			expect(personObjectName.lastIndexOf('Doe')).toBe(5); 
+			expect(personObjectName.lastIndexOf('Doe')).toBe(5);
 			expect(personObject.age.toExponential()).toBe('2e+1');
 			expect(personObject.age.toFixed()).toBe('20');
 			expect(personObject.age.toPrecision()).toBe('20');
@@ -120,7 +120,7 @@ describe("entity", () => {
 
 			expect(personObject.married.valueOf()).toBe(false);
 
- 
+
 
 		})
 	})
@@ -159,10 +159,10 @@ describe("entity", () => {
 			 */
 			const personObject = person.toObject();
 			expect(Object.isFrozen(personObject)).toBeTruthy();
-			expect(Object.isFrozen(personObject.fullname)).toBeTruthy(); 
-			expect(Object.isFrozen(personObject.skills)).toBeTruthy(); 
+			expect(Object.isFrozen(personObject.fullname)).toBeTruthy();
+			expect(Object.isFrozen(personObject.skills)).toBeTruthy();
 
-			
+
 			expect(() => (personObject as any).age = 22).toThrowError();
 			expect(() => (personObject as any).fullname = 'new value').toThrowError();
 			expect(() => (personObject as any).fullname.firstName = 'new value').toThrowError();
@@ -171,7 +171,7 @@ describe("entity", () => {
 			expect(() => (personObject as any).skills[0] = 'new value').toThrowError();
 			expect(() => (personObject as any).skills.push('PYTHON')).toThrowError();
 
- 
+
 		});
 	})
 	describe('toObject -> Entity with value objects of different types, arrays, dates, strings, objects, etc.', () => {
@@ -550,7 +550,7 @@ describe("entity", () => {
 
 		it("should to be equal", () => {
 
-			const props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
+			const props: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
 			const id = Id();
 
 			const a = EntityExample.create({ ...props, id }).value();
@@ -562,7 +562,7 @@ describe("entity", () => {
 		it("should to be equal", () => {
 
 			const id = Id();
-			const props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
+			const props: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
 
 			const a = EntityExample.create({ ...props, id }).value();
 			const b = a.clone();
@@ -573,7 +573,7 @@ describe("entity", () => {
 		it("should not to be equal if change state", () => {
 
 			const id = Id();
-			const props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
+			const props: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
 
 			const a = EntityExample.create({ ...props, id }).value();
 			const b = a.clone();
@@ -585,8 +585,8 @@ describe("entity", () => {
 		it("should not to be equal if state is different", () => {
 
 			const id = Id();
-			const propsA = { id, key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
-			const propsB = { id, key: 200, values: [{ name: 'abc' }, { name: 'dif' }] } satisfies Props;
+			const propsA: Props = { id, key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
+			const propsB: Props = { id, key: 200, values: [{ name: 'abc' }, { name: 'dif' }] };
 
 			const a = EntityExample.create(propsA).value();
 			const b = EntityExample.create(propsB).value();
@@ -596,8 +596,8 @@ describe("entity", () => {
 
 		it("should not to be equal if id is different", () => {
 
-			const propsA = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
-			const propsB = { key: 200, values: [{ name: 'abc' }, { name: 'dif' }] } satisfies Props;
+			const propsA: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] }
+			const propsB: Props = { key: 200, values: [{ name: 'abc' }, { name: 'dif' }] }
 
 			const a = EntityExample.create(propsA).value();
 			const b = EntityExample.create(propsB).value();
@@ -607,7 +607,7 @@ describe("entity", () => {
 
 		it("should compare null and undefined", () => {
 
-			const propsA = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] } satisfies Props;
+			const propsA: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
 			const a = EntityExample.create(propsA).value();
 			expect(a.isEqual(null as unknown as EntityExample)).toBeFalsy();
 			expect(a.isEqual(undefined as unknown as EntityExample)).toBeFalsy();
@@ -689,6 +689,106 @@ describe("entity", () => {
 			expect(object.name).toEqual({ value: 'orange' });
 			expect(object.price).toBe(10);
 			expect(object.name.value).toBe('orange');
+		});
+	});
+
+	describe('clone', () => {
+
+		interface Props {
+			id?: UID;
+			price: number;
+			additionalInfo: string[];
+			createdAt?: Date;
+			updatedAt?: Date;
+		};
+
+		class Product extends Entity<Props> {
+			private constructor(props: Props) {
+				super(props)
+			}
+			public static init(props: Props): Product {
+				return new Product(props);
+			}
+		}
+
+		class User extends Entity<string> {
+			private constructor(props: string) {
+				super(props)
+			}
+			public static init(name: string): User {
+				return new User(name);
+			}
+		}
+
+		it('should clone string with success', () => {
+			const product = Product.init({
+				additionalInfo: ['lorem'],
+				price: 20,
+				id: Id('c77ef877-7ce1-4fa0-9d98-394762d58ce8'),
+				createdAt: new Date('2024-05-01T19:07:45.698Z'),
+				updatedAt: new Date('2024-05-01T19:07:45.698Z')
+			});
+			const copy = product.clone({ price: 21 });
+			expect(copy.toObject()).toMatchInlineSnapshot(`
+Object {
+  "additionalInfo": Array [
+    "lorem",
+  ],
+  "createdAt": 2024-05-01T19:07:45.698Z,
+  "id": "c77ef877-7ce1-4fa0-9d98-394762d58ce8",
+  "price": 21,
+  "updatedAt": 2024-05-01T19:07:45.698Z,
+}
+`);
+		});
+
+		it('should clone string with success', () => {
+			const product = Product.init({
+				additionalInfo: ['lorem'],
+				price: 20,
+				id: Id('c77ef877-7ce1-4fa0-9d98-394762d58ce8'),
+				createdAt: new Date('2024-05-01T19:07:45.698Z'),
+				updatedAt: new Date('2024-05-01T19:07:45.698Z')
+			});
+			const copy = product.clone({ additionalInfo: ['TESTING...'] });
+			expect(copy.toObject()).toMatchInlineSnapshot(`
+Object {
+  "additionalInfo": Array [
+    "TESTING...",
+  ],
+  "createdAt": 2024-05-01T19:07:45.698Z,
+  "id": "c77ef877-7ce1-4fa0-9d98-394762d58ce8",
+  "price": 20,
+  "updatedAt": 2024-05-01T19:07:45.698Z,
+}
+`);
+		});
+
+		it('should clone string with success', () => {
+			const product = Product.init({
+				additionalInfo: ['lorem'],
+				price: 20,
+				id: Id('c77ef877-7ce1-4fa0-9d98-394762d58ce8'),
+				createdAt: new Date('2024-05-01T19:07:45.698Z'),
+				updatedAt: new Date('2024-05-01T19:07:45.698Z')
+			});
+			const copy = product.clone();
+			expect(copy.toObject()).toMatchInlineSnapshot(`
+Object {
+  "additionalInfo": Array [
+    "lorem",
+  ],
+  "createdAt": 2024-05-01T19:07:45.698Z,
+  "id": "c77ef877-7ce1-4fa0-9d98-394762d58ce8",
+  "price": 20,
+  "updatedAt": 2024-05-01T19:07:45.698Z,
+}
+`);
+		});
+
+		it('should throw an error if props is not object for entities', () => {
+			const build = () => User.init('Jane');
+			expect(build).toThrowError();
 		});
 	});
 });
