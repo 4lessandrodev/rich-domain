@@ -793,7 +793,7 @@ Primitive {
 			expect(copy.get('value')).toEqual(date);
 			expect(copy.toObject()).toEqual(date);
 			expect(copy.isEqual(dateVo)).toBeTruthy();
-			expect(copy.isEqual(DateVo.init(new Date()))).toBeFalsy();
+			expect(copy.isEqual(DateVo.init(new Date('2020-01-01')))).toBeFalsy();
 		});
 
 		// Test for ObjectVo

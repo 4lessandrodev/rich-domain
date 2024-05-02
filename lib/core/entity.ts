@@ -30,16 +30,19 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @returns true if props is equal and false if not.
 	*/
 	isEqual(other: this): boolean {
-		const currentProps = Object.assign({}, {}, { ...this?.props });
-		const providedProps = Object.assign({}, {}, { ...other?.props });
+		const currentProps = { ...this?.props };
+		const providedProps = { ...other?.props };
+	
 		delete currentProps?.['createdAt'];
 		delete currentProps?.['updatedAt'];
 		delete providedProps?.['createdAt'];
 		delete providedProps?.['updatedAt'];
-		const equalId = this.id.equal(other?.id);
+	
+		const equalId = this.id.isEqual(other?.id);
 		const serializedA = JSON.stringify(currentProps);
 		const serializedB = JSON.stringify(providedProps);
 		const equalSerialized = serializedA === serializedB;
+	
 		return equalId && equalSerialized;
 	}
 

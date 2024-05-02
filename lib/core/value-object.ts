@@ -23,21 +23,47 @@ export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements 
 	*/
 	isEqual(other: this): boolean {
 		const props = this.props;
-		if (this.validator.isString(props)) return this.validator.string(props as string).isEqual(other.props as string);
-		if (this.validator.isDate(props)) return (props as Date).getTime() === (other.props as Date)?.getTime();
-		if (this.validator.isArray(props) || typeof props === 'function') return JSON.stringify(props) === JSON.stringify(other.props);
-		if (this.validator.isBoolean(props)) return props === other.props;
-		if (this.validator.isID(props)) return (props as UID).value() === (other.props as UID)?.value();
-		if (this.validator.isNumber(props) || typeof props === 'bigint') return this.validator.number(props as number).isEqualTo(other.props as number);
-		if (this.validator.isUndefined(props) || this.validator.isNull(props)) return props === other.props;
-		if (this.validator.isSymbol(props)) return (props as Symbol).description === (other.props as Symbol)?.description;
-		const currentProps = Object.assign({}, {}, { ...this?.props });
-		const providedProps = Object.assign({}, {}, { ...other?.props });
-		delete currentProps?.['createdAt'];
-		delete currentProps?.['updatedAt'];
-		delete providedProps?.['createdAt'];
-		delete providedProps?.['updatedAt'];
-		return JSON.stringify(currentProps) === JSON.stringify(providedProps);
+		const otherProps = other?.props;
+
+		const stringifyAndOmit = (obj: any): string => {
+			if (!obj) return '';
+			const { createdAt, updatedAt, ...cleanedProps } = obj;
+			return JSON.stringify(cleanedProps);
+		};
+
+		if (this.validator.isString(props)) {
+			return this.validator.string(props as string).isEqual(otherProps as string);
+		}
+
+		if (this.validator.isDate(props)) {
+			return (props as Date).getTime() === (otherProps as Date)?.getTime();
+		}
+
+		if (this.validator.isArray(props) || this.validator.isFunction(props)) {
+			return JSON.stringify(props) === JSON.stringify(otherProps);
+		}
+
+		if (this.validator.isBoolean(props)) {
+			return props === otherProps;
+		}
+
+		if (this.validator.isID(props)) {
+			return (props as UID).value() === (otherProps as UID)?.value();
+		}
+
+		if (this.validator.isNumber(props) || typeof props === 'bigint') {
+			return this.validator.number(props as number).isEqualTo(otherProps as number);
+		}
+
+		if (this.validator.isUndefined(props) || this.validator.isNull(props)) {
+			return props === otherProps;
+		}
+
+		if (this.validator.isSymbol(props)) {
+			return (props as Symbol).description === (otherProps as Symbol)?.description;
+		}
+
+		return stringifyAndOmit(props) === stringifyAndOmit(otherProps);
 	}
 
 	/**
