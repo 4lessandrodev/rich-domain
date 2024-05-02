@@ -14,10 +14,9 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 	 * @returns an object or a value object value.
 	 */
 	valueObjectToObj(valueObject: IValueObject<Props>): AutoMapperSerializer<Props> {
-
 		// internal state
 		if (valueObject === null) return null as any;
-
+		if (this.validator.isSymbol(valueObject)) return (valueObject as unknown as Symbol).description as any;
 		if (this.validator.isID(valueObject)) return (valueObject as any)?.value();
 
 		let props = {} as { [key in keyof Props]: any };
@@ -27,7 +26,6 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 			this.validator.isString(valueObject) ||
 			this.validator.isObject(valueObject) || // primitive object
 			this.validator.isDate(valueObject);
-
 		if (isSimpleValue) return valueObject as AutoMapperSerializer<Props>
 
 		const isID = this.validator.isID(valueObject);
@@ -45,6 +43,8 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 			this.validator.isDate(voProps);
 
 		if (isSimp) return voProps;
+
+		if (this.validator.isSymbol(voProps)) return (voProps as unknown as Symbol).description as any;
 
 		const keys: Array<keyof Props> = Object.keys(voProps) as Array<keyof Props>;
 
@@ -161,6 +161,7 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 					this.validator.isString(props?.[key as any]) ||
 					this.validator.isObject(props?.[key as any]) ||
 					this.validator.isDate(props?.[key as any]) ||
+					this.validator.isSymbol(props) ||
 					props?.[key] === null;
 
 				const isEntity = this.validator.isEntity(props?.[key as any]);
