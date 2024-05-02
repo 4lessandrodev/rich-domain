@@ -1,4 +1,5 @@
 import { ICreateManyDomain, IBaseGettersAndSetters, ISettings, UID, IVoSettings } from "../types";
+import { BuiltIns } from "../types-util";
 import util, { Utils } from "../utils/util";
 import validator, { Validator } from "../utils/validator";
 import createManyDomainInstances from "./create-many-domain-instance";
@@ -56,7 +57,22 @@ export class BaseGettersAndSetters<Props> implements IBaseGettersAndSetters<Prop
      * @param key the property key you want to get
      * @returns the value of property
      */
-    get<Key extends keyof Props>(key: Props extends object ? (Props extends { [k in Key]: Date } ? Key : 'value') : 'value'): Readonly<Props extends { [k in keyof Props]: Props[k] } ? Readonly<Props[Key]> : Readonly<Props>> {
+    get<Key extends keyof Props>(
+        key: Props extends BuiltIns ?
+            'value' :
+            Props extends Symbol ?
+            'value' :
+            Props extends any[] ?
+            'value' :
+            Key
+    ): Props extends BuiltIns ?
+        Props :
+        Props extends Symbol ?
+        string :
+        Props extends any[] ?
+        Readonly<Props> :
+        Props extends {} ?
+        Readonly<Props[Key]> : Props {
         if (this.config.disableGetters) {
             const instance = Reflect.getPrototypeOf(this);
             throw new Error(`Trying to get key: "${String(key)}" but the getters are deactivated on ${instance?.constructor.name}`);
@@ -68,6 +84,8 @@ export class BaseGettersAndSetters<Props> implements IBaseGettersAndSetters<Prop
             const isSimpleValue = this.validator.isBoolean(this.props) ||
                 this.validator.isNumber(this.props) ||
                 this.validator.isString(this.props)
+
+            if (this.validator.isSymbol(this.props)) return (this.props as Symbol).description as any;
 
             if (isSimpleValue) return this.props as any;
 
