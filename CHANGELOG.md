@@ -15,6 +15,18 @@ All notable changes to this project will be documented in this file.
 ---
 
 
+### [1.23.1] - 2024-05-02
+
+#### Fix
+
+- Fix: Improved return typings in the `get` method of the value object.
+- Fix: Bug fix #152 when cloning an instance of a value object.
+- Fix: Ensure that properties of an entity or aggregate will always be an object.
+- Fix: Improved validations performed in the `isEqual` method of the value object.
+
+---
+
+
 ### [1.23.0] - 2024-04-28
 
 #### Changes
