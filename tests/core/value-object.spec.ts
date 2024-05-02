@@ -14,7 +14,7 @@ describe('value-object', () => {
 				super(props)
 			}
 
-			public tools(){
+			public tools() {
 				return {
 					staticValidator: GenericVo.validator,
 					validator: this.validator,
@@ -23,7 +23,7 @@ describe('value-object', () => {
 				}
 			}
 
-			public static tools(){
+			public static tools() {
 				return {
 					staticValidator: GenericVo.validator,
 					validator: this.validator,
@@ -664,6 +664,213 @@ Primitive {
   "validator": Validator {},
 }
 `);
+		});
+	});
+
+	describe('clone', () => {
+
+		class StringVo extends ValueObject<string> {
+			public static init(value: string): StringVo {
+				return new StringVo(value);
+			}
+		}
+
+		// Number class
+		class NumberVo extends ValueObject<number> {
+			public static init(value: number): NumberVo {
+				return new NumberVo(value);
+			}
+		}
+
+		// Array class
+		class ArrayVo extends ValueObject<any[]> {
+			public static init(value: any[]): ArrayVo {
+				return new ArrayVo(value);
+			}
+		}
+
+		// Symbol class
+		class SymbolVo extends ValueObject<Symbol> {
+			public static init(value: Symbol): SymbolVo {
+				return new SymbolVo(value);
+			}
+		}
+
+		// Date class
+		class DateVo extends ValueObject<Date> {
+			public static init(value: Date): DateVo {
+				return new DateVo(value);
+			}
+		}
+
+		// Object class
+		class ObjectVo extends ValueObject<{ value: string }> {
+			public static init(value: { value: string }): ObjectVo {
+				return new ObjectVo(value);
+			}
+		}
+
+		interface CProps {
+			items: ArrayVo;
+			name: StringVo;
+			type: SymbolVo;
+			profile: ObjectVo;
+			index: NumberVo;
+		};
+		class Complex extends ValueObject<CProps & {}> {
+			public static init(props: CProps): Complex {
+				return new Complex(props);
+			}
+			public static create(props: CProps): Result<Complex> {
+				return Ok(new Complex(props));
+			}
+		}
+
+		it('should clone string vo with success', () => {
+			const str = StringVo.init('sample');
+			expect(str.get('value')).toBe('sample');
+			expect(str.toObject()).toBe('sample');
+
+			const copy = str.clone();
+
+			expect(copy.get('value')).toBe('sample');
+			expect(copy.toObject()).toBe('sample');
+			expect(copy.isEqual(str)).toBeTruthy();
+			expect(copy.isEqual(StringVo.init('other'))).toBeFalsy();
+		});
+
+		// Test for NumberVo
+		it('should clone number vo with success', () => {
+			const num = NumberVo.init(42);
+			expect(num.get('value')).toBe(42);
+			expect(num.toObject()).toBe(42);
+
+			const copy = num.clone();
+
+			expect(copy.get('value')).toBe(42);
+			expect(copy.toObject()).toBe(42);
+			expect(copy.isEqual(num)).toBeTruthy();
+			expect(copy.isEqual(NumberVo.init(43))).toBeFalsy();
+		});
+
+		// Test for ArrayVo
+		it('should clone array vo with success', () => {
+			const arr = ArrayVo.init([1, 2, 3]);
+			expect(arr.get('value')).toEqual([1, 2, 3]);
+			expect(arr.toObject()).toEqual([1, 2, 3]);
+
+			const copy = arr.clone();
+
+			expect(copy.get('value')).toEqual([1, 2, 3]);
+			expect(copy.toObject()).toEqual([1, 2, 3]);
+			expect(copy.isEqual(arr)).toBeTruthy();
+			expect(copy.isEqual( ArrayVo.init([4, 5, 6]))).toBeFalsy();
+		});
+
+		// Test for SymbolVo
+		it('should clone symbol vo with success', () => {
+			const sym = SymbolVo.init(Symbol('test'));
+			expect(sym.get('value')).toBe('test');
+			expect(sym.toObject()).toBe('test');
+
+			const copy = sym.clone();
+
+			expect(copy.get('value')).toBe('test');
+			expect(copy.toObject()).toBe('test');
+			expect(copy.isEqual(sym)).toBeTruthy();
+			expect(copy.isEqual(SymbolVo.init(Symbol('other')))).toBeFalsy();
+		});
+
+		// Test for DateVo
+		it('should clone date vo with success', () => {
+			const date = new Date();
+			const dateVo = DateVo.init(date);
+			expect(dateVo.get('value')).toEqual(date);
+			expect(dateVo.toObject()).toEqual(date);
+
+			const copy = dateVo.clone();
+
+			expect(copy.get('value')).toEqual(date);
+			expect(copy.toObject()).toEqual(date);
+			expect(copy.isEqual(dateVo)).toBeTruthy();
+			expect(copy.isEqual(DateVo.init(new Date()))).toBeFalsy();
+		});
+
+		// Test for ObjectVo
+		it('should clone object vo with success', () => {
+			const obj = { value: 'sample' };
+			const objVo = ObjectVo.init(obj);
+			expect(objVo.get('value')).toEqual('sample');
+			expect(objVo.toObject()).toEqual(obj);
+
+			const copy = objVo.clone();
+
+			expect(copy.get('value')).toEqual('sample');
+			expect(copy.toObject()).toEqual(obj);
+			expect(copy.isEqual(objVo)).toBeTruthy();
+			expect(copy.isEqual(ObjectVo.init({ value: 'other' }))).toBeFalsy();
+		});
+
+		// Test for Complex
+		it('should clone object vo with success', () => {
+			const props: CProps = {
+				index: NumberVo.init(1),
+				items: ArrayVo.init([1, 2, 3]),
+				name: StringVo.init('sample'),
+				profile: ObjectVo.init({ value: 'Jane' }),
+				type: SymbolVo.init(Symbol('lorem'))
+			};
+			const objVo = Complex.init(props);
+			expect(objVo.toObject()).toMatchInlineSnapshot(`
+Object {
+  "index": 1,
+  "items": Array [
+    1,
+    2,
+    3,
+  ],
+  "name": "sample",
+  "profile": Object {
+    "value": "Jane",
+  },
+  "type": "lorem",
+}
+`);
+
+			expect(objVo.get('items').get('value'))
+			expect(objVo.get('type').get('value')).toBe('lorem');
+			// expect(objVo.get('value')).toEqual(props);
+			expect(objVo.toObject()).toEqual({
+				"index": 1,
+				"items": [
+					1,
+					2,
+					3,
+				],
+				"name": "sample",
+				"profile": {
+					"value": "Jane",
+				},
+				"type": "lorem",
+			});
+
+			const copy: Complex = objVo.clone();
+
+			expect(copy.toObject()).toEqual({
+				"index": 1,
+				"items": [
+					1,
+					2,
+					3,
+				],
+				"name": "sample",
+				"profile": {
+					"value": "Jane",
+				},
+				"type": "lorem",
+			});
+			expect(copy.isEqual(objVo)).toBeTruthy();
+			expect(copy.isEqual(Complex.init({ ...props, index: NumberVo.init(2) }))).toBeFalsy();
 		});
 	});
 });
