@@ -1107,6 +1107,10 @@ export class Name extends ValueObject<NameProps>{
 		super(props);
 	}
 
+    public static init(value: string): Name {
+        return new Name(value);
+    }
+
 	public static create(value: string): Result<Name> {
 		return Result.Ok(new Name({ value }));
 	}
@@ -1179,26 +1183,25 @@ A validator instance is available in the "Value Object" domain class.
 
 import { Result, Ok, Fail, ValueObject } from "rich-domain";
 
-export interface NameProps {
-	value: string;
-}
-
-export class Name extends ValueObject<NameProps>{
-	private constructor(props: NameProps) {
+export class Name extends ValueObject<string>{
+	private constructor(props: string) {
 		super(props);
 	}
 
-	public static isValidProps({ value }: NameProps): boolean {
-		const { string } = this.validator;
-		return string(value).hasLengthBetween(3, 30);
+	public static isValid(value: string): boolean {
+		const { string: Check } = this.validator;
+		return Check(value).hasLengthBetween(3, 30);
 	}
 
+    public static init(value: string): Name {
+        const isValid = this.isValid(value);
+        if(!isValid) throw new Error('invalid name');
+        return new Name(value);
+    }
+
 	public static create(value: string): Result<Name> {
-		const message = 'name must have length min 3 and max 30 char';
-
-		if (!this.isValidProps({ value })) return Fail(message);
-
-		return Ok(new Name({ value }));
+		if (!this.isValid(value)) return Fail('invalid name');
+		return Ok(new Name(value));
 	}
 }
 
@@ -1220,7 +1223,7 @@ console.log(result.isFail());
 
 console.log(result.error());
 
-> "name must have length min 3 and max 30 char"
+> "invalid name"
 
 console.log(result.value());
 
@@ -1228,99 +1231,19 @@ console.log(result.value());
 
 ```
 
-#### Validation before set
-
-The `isValidProps` Method validates properties when creating a new instance, but which method validates before modifying a value?
-For this there is the method `validation`
-
-The validation method takes two arguments, the first the `key` of props and the second the `value`.
-So when calling the `set` or `change` function, this method will be called automatically to validate the value, if it doesn't pass the validation, the value is not changed.
-
-> There must be a validation for each "props" key
+Alternatively you can init a new instance and receive a throw if provide invalid value.
 
 ```ts
 
-validation<Key extends keyof Props>(value: Props[Key], key: Key): boolean {
-	
-	const { number } = this.validator;
-
-	const options: IPropsValidation<Props> = {
-		value: (value: number) => number.isBetween(0, 130),
-	} 
-
-	return options[key](value);
-};
-
-```
-
-In case your value object has only one attribute you can simply use the already created static validation method.<br>
-Let's see a complete example as below
-
-```ts
-
-import { Result, Ok, Fail, ValueObject } from "rich-domain";
-
-export interface NameProps {
-	value: string;
-}
-
-export class Name extends ValueObject<NameProps>{
-	private constructor(props: NameProps) {
-		super(props);
-	}
-
-	validation(value: string): boolean {
-		return Name.isValidProps({ value });
-	}
-
-	public static isValidProps({ value }: NameProps): boolean {
-		const { string } = this.validator;
-		return string(value).hasLengthBetween(3, 30);
-	}
-
-	public static create(value: string): Result<Name> {
-		const message = 'name must have length min 3 and max 30 char';
-		const isValidProps = this.isValidProps({ value });
-		if (!isValidProps) return Fail(message);
-
-		return Ok(new Name({ value }));
-	}
-}
-
-export default Name;
-
-```
-
-Let's test the instance and the validation method.<br>
-Value is not modified if it does not pass validation.
-
-```ts
-
-const result = Name.create('Jane');
-
-console.log(result.isOk());
-
-> true
-
-const name = result.value();
+const name = Name.init('Jane');
 
 console.log(name.get('value'));
 
 > "Jane"
 
-const empty = '';
+const other = Name.init('');
 
-name.set('value').to(empty);
-
-console.log(name.get('value'));
-
-> "Jane"
-
-name.set('value').to("Jack");
-
-console.log(name.get('value'));
-
-> "Jack"
+> "throw error: invalid name"
 
 ```
 
@@ -1867,15 +1790,15 @@ How to adapt the data from persistence to domain or from domain to persistence.
 ```ts
 
 // from domain to data layer
-class MyAdapterToInfra implements IAdapter<DomainUser, DataUser>{
-	build(target: DomainUser): Result<DataUser> {
+class MyAdapterToInfra implements Adapter<DomainUser, DataUser>{
+	adaptOne(target: DomainUser): DataUser {
 		// ...
 	}
 }
 
 // from data layer to domain
-class MyAdapterToDomain implements IAdapter<DataUser, DomainUser>{
-	build(target: DataUser): Result<DomainUser> {
+class MyAdapterToDomain implements Adapter<DataUser, DomainUser>{
+	adaptOne(target: DataUser): DomainUser {
 		// ...
 	}
 }

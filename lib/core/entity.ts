@@ -1,4 +1,4 @@
-import { AutoMapperSerializer, EntityMapperPayload, EntityProps, IAdapter, IEntity, IResult, ISettings, UID } from "../types";
+import { Adapter, AutoMapperSerializer, EntityMapperPayload, EntityProps, IAdapter, IEntity, IResult, ISettings, UID } from "../types";
 import { ReadonlyDeep } from "../types-util";
 import { deepFreeze } from "../utils/deep-freeze.util";
 import AutoMapper from "./auto-mapper";
@@ -50,12 +50,16 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @description Get value as object from entity.
 	 * @returns object with properties.
 	 */
-	toObject<T>(adapter?: IAdapter<this, T>)
+	toObject<T>(adapter?: Adapter<this, T> | IAdapter<this, T>)
 		: T extends {}
 		? T & EntityMapperPayload
 		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload> {
-		if (adapter && typeof adapter?.build === 'function') return adapter.build(this).value() as any;
-
+		if(adapter && typeof (adapter as Adapter<this, T>)?.adaptOne === 'function') {
+			return (adapter as Adapter<this, T>).adaptOne(this) as any;
+		}
+		if (adapter && typeof (adapter as IAdapter<this, T>)?.build === 'function') {
+			return (adapter as IAdapter<this, T>).build(this).value() as any;
+		}
 		const serializedObject = this.autoMapper.entityToObj(this) as ReadonlyDeep<AutoMapperSerializer<Props>>;
 		const frozenObject = deepFreeze<any>(serializedObject);
 		return frozenObject
@@ -105,12 +109,32 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	}
 
 	/**
+	 * @description Method to validate value.
+	 * @param value to validate
+	 * @returns boolean
+	 */
+	public static isValid(value: any): boolean {
+		return this.isValidProps(value);
+	};
+
+	/**
 	 * @description Method to validate props. This method is used to validate props on create a instance.
 	 * @param props to validate
 	 * @returns true if props is valid and false if not.
 	 */
 	public static isValidProps(props: any): boolean {
 		return !this.validator.isUndefined(props) && !this.validator.isNull(props);
+	};
+
+	/**
+	 * @description method to create a new instance
+	 * @param value as props
+	 * @returns instance of Entity or throw an error.
+	 */
+	public static init(props: any): any {
+		throw new Error('method not implemented: init', {
+			cause: props
+		});
 	};
 
 	public static create(props: any): IResult<any, any, any>;

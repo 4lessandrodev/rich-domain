@@ -1,11 +1,11 @@
 import { ValueObject, Entity, Result, Ok, Fail } from '../../lib/core';
-import { IAdapter, IResult } from '../../lib/types';
+import { Adapter, IAdapter, IResult } from '../../lib/types';
 
-describe('adapter', () => {
+describe('adapter v1', () => {
 
 	interface NameProps { value: string; };
 
-	class DomainName extends ValueObject<NameProps>{
+	class DomainName extends ValueObject<NameProps> {
 		private constructor(props: NameProps) {
 			super(props);
 		}
@@ -18,7 +18,7 @@ describe('adapter', () => {
 
 	interface UserProps { id: string; name: DomainName; createdAt?: Date; updatedAt?: Date };
 
-	class DomainUser extends Entity<UserProps>{
+	class DomainUser extends Entity<UserProps> {
 		private constructor(props: UserProps) {
 			super(props)
 		}
@@ -35,7 +35,7 @@ describe('adapter', () => {
 		updatedAt: Date;
 	}
 
-	class DomainUserAdapter implements IAdapter<Model, DomainUser>{
+	class DomainUserAdapter implements IAdapter<Model, DomainUser> {
 		build(target: Model): IResult<DomainUser> {
 			return DomainUser.create({
 				id: target.id,
@@ -46,7 +46,7 @@ describe('adapter', () => {
 		}
 	}
 
-	class DataUserAdapter implements IAdapter<DomainUser, Model>{
+	class DataUserAdapter implements IAdapter<DomainUser, Model> {
 		build(target: DomainUser): IResult<Model> {
 
 			return Result.Ok({
@@ -103,7 +103,7 @@ describe('adapter', () => {
 		type Out = { b: string };
 		type Err = { err: string; stack?: string };
 
-		class CustomAdapter implements IAdapter<In, Out, Err>{
+		class CustomAdapter implements IAdapter<In, Out, Err> {
 			build(target: In): IResult<Out, Err> {
 				if (typeof target.a !== 'number') return Fail({ err: 'target.a is not a number' });
 				return Ok({ b: target.a.toString() });
@@ -122,6 +122,44 @@ describe('adapter', () => {
 			const result = adapter.build({ a: null as any });
 			expect(result.isFail()).toBeTruthy();
 			expect(result.error()).toEqual({ err: 'target.a is not a number' });
+		});
+	});
+});
+
+describe('adapter v2', () => {
+
+	describe('only one method', () => {
+		class AdapteV2 implements Adapter<number, string> {
+			adaptOne(item: number): string {
+				return item.toString();
+			}
+		}
+
+		it('should adapt one', () => {
+			const adapter = new AdapteV2();
+			const adapted = adapter.adaptOne(5);
+			expect(adapted).toBe('5');
+		});
+
+	});
+
+	describe('two methods', () => {
+		class AdapteV2 implements Adapter<number, string> {
+			adaptOne(item: number): string {
+				return item.toString();
+			}
+
+			adaptMany(itens: number[]): string[] {
+				return itens.map(this.adaptOne);
+			}
+
+		}
+
+		it('should adapt many', () => {
+
+			const adapter = new AdapteV2();
+			const values = adapter.adaptMany([1, 2, 3]);
+			expect(values).toEqual(['1', '2', '3'])
 		});
 	});
 });

@@ -199,6 +199,11 @@ export interface IAdapter<F, T, E = any, M = any> {
 	build(target: F): IResult<T, E, M>;
 }
 
+export interface Adapter<A = any, B = any> {
+	adaptOne(item: A): B;
+	adaptMany?(itens: Array<A>): Array<B>;
+}
+
 export interface IEntity<Props> {
 	toObject<T>(adapter?: IAdapter<IEntity<Props>, any>): T extends {}
 		? T & EntityMapperPayload

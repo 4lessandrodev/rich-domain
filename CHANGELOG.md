@@ -14,6 +14,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.23.2] - 2024-06-02
+
+#### Update
+
+- Adapter: added new type for adapter - Adapter
+- Init: added new method type to entity, value object and aggregates - init
+
+---
+
 
 ### [1.23.1] - 2024-05-02
 

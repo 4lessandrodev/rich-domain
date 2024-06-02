@@ -1,5 +1,5 @@
 import { Entity, Id, Ok, Result, ValueObject } from "../../lib/core";
-import { IResult, UID } from "../../lib/types";
+import { Adapter, IResult, UID } from "../../lib/types";
 
 describe("entity", () => {
 
@@ -790,5 +790,46 @@ Object {
 			const build = () => User.init('Jane');
 			expect(build).toThrowError();
 		});
+	});
+
+	describe('init', () => {
+		type Props = { name: string };
+		class User extends Entity<Props> {
+			private constructor(props: Props) {
+				super(props);
+			}
+
+			public static init(props: Props): User {
+				if (props.name.length < 2) throw new Error('invalid name');
+				return new User(props);
+			}
+		}
+
+		class UAdapter implements Adapter<User, Props> {
+			adaptOne(item: User): Props {
+				return { name: item.get('name') }
+			}
+		}
+
+		it('should init a new user', () => {
+			const user = User.init({ name: 'Jane' });
+			const model = user.toObject(new UAdapter());
+			expect(model).toEqual({ name: 'Jane' });
+		});
+
+		it('should throw an error', () => {
+			const init = () => User.init({ name: '' });
+			expect(init).toThrowError();
+		});
+	});
+
+	describe('native init', () => {
+		class User extends Entity<string> { };
+
+		it('should throw if method is not implemented', () => {
+			const init = () => User.init('Jane');
+			expect(init).toThrowError('method not implemented: init');
+		});
+
 	});
 });
