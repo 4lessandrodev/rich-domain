@@ -1,5 +1,5 @@
 import { Class, Ok, Result, ValueObject } from "../../lib/core";
-import { ICommand, IResult } from "../../lib/types";
+import { Adapter, ICommand, IResult } from "../../lib/types";
 import { Utils, Validator } from "../../lib/utils";
 
 describe('value-object', () => {
@@ -134,7 +134,7 @@ describe('value-object', () => {
 			expect(addressObject.street.toUpperCase()).toBe('5TH AVENUE');
 		});
 
-		it('should be imutable', () => {
+		it('should be immutable', () => {
 			const address = new Address({
 				city: new City('A'),
 				number: 123,
@@ -764,7 +764,7 @@ Primitive {
 			expect(copy.get('value')).toEqual([1, 2, 3]);
 			expect(copy.toObject()).toEqual([1, 2, 3]);
 			expect(copy.isEqual(arr)).toBeTruthy();
-			expect(copy.isEqual( ArrayVo.init([4, 5, 6]))).toBeFalsy();
+			expect(copy.isEqual(ArrayVo.init([4, 5, 6]))).toBeFalsy();
 		});
 
 		// Test for SymbolVo
@@ -871,6 +871,65 @@ Object {
 			});
 			expect(copy.isEqual(objVo)).toBeTruthy();
 			expect(copy.isEqual(Complex.init({ ...props, index: NumberVo.init(2) }))).toBeFalsy();
+		});
+	});
+
+	describe('init', () => {
+
+		class Name extends ValueObject<string> {
+			constructor(name: string) {
+				super(name);
+			}
+		};
+
+		it('should throw error if init is not implemented', () => {
+			const init = () => Name.init('Jane');
+			expect(init).toThrowError('method not implemented: init');
+		});
+
+		class Custom extends Name {
+			private constructor(name: string) {
+				super(name)
+			}
+
+			public static init(value: string): Custom {
+				return new Custom(value);
+			}
+		}
+
+		it('should init with success', () => {
+
+			const name = Custom.init('Jane');
+			expect(name.get('value')).toBe('Jane');
+
+		});
+
+		it('should adapt using adapter', () => {
+			class AdaptName implements Adapter<Custom, string> {
+				adaptOne(item: Custom): string {
+					return item.get('value') + ' Doe';
+				}
+			}
+			const name = Custom.init('Jane');
+			expect(name.toObject(new AdaptName())).toBe('Jane Doe');
+		});
+
+		it('should adapt many', () => {
+
+			class AdaptName implements Adapter<Custom, string> {
+				adaptOne(item: Custom): string {
+					return item.get('value') + ' Doe';
+				}
+
+				adaptMany(itens: Custom[]): string[] {
+					return itens.map(this.adaptOne);
+				}
+			}
+
+			const adapter = new AdaptName();
+			const names = ['Jane', 'John'].map(Custom.init)
+			const values = adapter.adaptMany(names);
+			expect(values).toEqual(['Jane Doe', 'John Doe']);
 		});
 	});
 });
