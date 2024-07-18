@@ -1,5 +1,5 @@
 import { Aggregate, Entity, ID, ValueObject } from "../core";
-
+import {stringify} from '../utils/stringify.util';
 export class Validator {
 	private static instance: Validator = null as unknown as Validator;
 	private constructor() { }
@@ -16,7 +16,7 @@ export class Validator {
 		return (
 			asciiCode >= 33 && asciiCode <= 47 ||
 			asciiCode >= 58 && asciiCode <= 64 ||
-			asciiCode >= 91 && asciiCode <= 96 || 
+			asciiCode >= 91 && asciiCode <= 96 ||
 			asciiCode >= 123 && asciiCode <= 126
 		);
 	}
@@ -34,10 +34,9 @@ export class Validator {
 		return props instanceof Date;
 	}
 	isObject(props: any): boolean {
-		delete props?._domainEvents;
 		const isObj = typeof props === 'object';
 		if (!isObj || props === null) return false;
-		if (JSON.stringify(props) === JSON.stringify({})) return true;
+		if (stringify(props) === stringify({})) return true;
 		const hasKeys = Object.keys(props).length > 0;
 		const isNotArray = !Validator.instance.isArray(props);
 		const isNotEntity = !Validator.instance.isEntity(props);
@@ -112,11 +111,11 @@ export class Validator {
 				(Validator.instance.isString(target) &&
 					target.trim() === ''),
 			match:(regex: RegExp): boolean => regex.test(target),
-			hasOnlyNumbers: (): boolean => Validator.instance.isString(target) && 
+			hasOnlyNumbers: (): boolean => Validator.instance.isString(target) &&
 				target.split('')
 				.map((n) => n.charCodeAt(0) >= 48 && n.charCodeAt(0) <= 57)
 				.every((v) => v === true),
-			hasOnlyLetters: (): boolean => Validator.instance.isString(target) && 
+			hasOnlyLetters: (): boolean => Validator.instance.isString(target) &&
 				target.toUpperCase()
 				.split('')
 				.map((n) => n.charCodeAt(0) >= 65 && n.charCodeAt(0) <= 90)

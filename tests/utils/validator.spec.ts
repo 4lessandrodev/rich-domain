@@ -20,8 +20,8 @@ describe('check-types', () => {
 			super(props)
 		}
 
-		public static create(): IResult<Entity<any>, string> {
-			return Result.Ok(new Ent({ value: 'hello' }));
+		public static create(props: any = { value: 'hello' }): IResult<Entity<any>, string> {
+			return Result.Ok(new Ent(props));
 		}
 	};
 
@@ -97,7 +97,7 @@ describe('check-types', () => {
 			const result = checker.isString(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isString(vo.value());
@@ -174,7 +174,7 @@ describe('check-types', () => {
 			const result = checker.isValueObject(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return true if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isValueObject(vo.value());
@@ -251,7 +251,7 @@ describe('check-types', () => {
 			const result = checker.isEntity(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isEntity(vo.value());
@@ -327,7 +327,7 @@ describe('check-types', () => {
 			const result = checker.isAggregate(agg.value());
 			expect(result).toBeTruthy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isAggregate(vo.value());
@@ -403,7 +403,7 @@ describe('check-types', () => {
 			const result = checker.isArray(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isArray(vo.value());
@@ -479,7 +479,7 @@ describe('check-types', () => {
 			const result = checker.isBoolean(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isBoolean(vo.value());
@@ -556,7 +556,7 @@ describe('check-types', () => {
 			const result = checker.isNumber(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isNumber(vo.value());
@@ -672,7 +672,7 @@ describe('check-types', () => {
 			const result = checker.isDate(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isDate(vo.value());
@@ -749,7 +749,7 @@ describe('check-types', () => {
 			const result = checker.isNull(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isNull(vo.value());
@@ -826,7 +826,7 @@ describe('check-types', () => {
 			const result = checker.isUndefined(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isUndefined(vo.value());
@@ -903,7 +903,7 @@ describe('check-types', () => {
 			const result = checker.isFunction(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isFunction(vo.value());
@@ -980,7 +980,7 @@ describe('check-types', () => {
 			const result = checker.isObject(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isObject(vo.value());
@@ -990,6 +990,20 @@ describe('check-types', () => {
 		it('should return false if is Entity', () => {
 			const ent = Ent.create();
 			const result = checker.isObject(ent.value());
+			expect(result).toBeFalsy();
+		});
+
+		it('should return false if is Entity with Circular Reference', () => {
+			const ent1 = Ent.create();
+			const ent2 = Ent.create({ value: ent1 });
+			console.log('should return false if is Entity with Circular Reference')
+			console.log(ent2.toObject())
+			const result = checker.isObject(ent2.value());
+			expect(result).toBeFalsy();
+		});
+
+		it('should return false if is string', () => {
+			const result = checker.isObject("lorem ipsum");
 			expect(result).toBeFalsy();
 		});
 	});
@@ -1068,7 +1082,7 @@ describe('check-types', () => {
 			const result = checker.isID(agg.value());
 			expect(result).toBeFalsy();
 		});
-		
+
 		it('should return false if is ValueObject', () => {
 			const vo = Vo.create();
 			const result = checker.isID(vo.value());
