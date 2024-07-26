@@ -14,6 +14,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.23.3] - 2024-06-26
+
+#### Fix
+
+- Fix: replace JSON.stringify method on validator using a helper util function.
+
+---
+
 ### [1.23.2] - 2024-06-02
 
 #### Update
