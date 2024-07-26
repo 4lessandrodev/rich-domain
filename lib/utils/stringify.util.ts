@@ -46,6 +46,8 @@ const set = (known, input, value) => {
  * Converts a JS value into a specialized flatted string.
  * @param {any} value
  * @returns {string}
+ * @summary Do not use this function to stringify values you will use in future.
+ * @todo test implementation with different scenarios
  */
 export const stringify = (value: any): string => {
 	const $ = noop;
