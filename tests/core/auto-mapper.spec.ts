@@ -255,7 +255,7 @@ describe('auto-mapper', () => {
 						value1: 'value1',
 						value2: 'value1',
 						value3: 100,
-						value4: new Date(),
+						value4: new Date('2020-01-01 00:00:00'),
 						value5: ['value', 'foo', 'bar']
 					}
 				] }
@@ -279,7 +279,7 @@ describe('auto-mapper', () => {
 				value1: 'value1',
 				value2: 'value1',
 				value3: 100,
-				value4: new Date(),
+				value4: new Date('2020-01-01 00:00:00'),
 				value5: ['value', 'foo', 'bar']
 			}]);
 
