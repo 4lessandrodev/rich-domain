@@ -228,6 +228,13 @@ describe('auto-mapper', () => {
 				name: NameVo;
 				age: AgeVo;
 				notes: Array<number>;
+				arraySimpleObject: Array<{
+					value1: string;
+					value2: string;
+					value3: number;
+					value4: Date;
+					value5: string[];
+				}>
 			}
 
 			class SimpleEntity extends Entity<Props>{
@@ -238,7 +245,21 @@ describe('auto-mapper', () => {
 
 			const age = AgeVo.create({ value: 21 }).value();
 			const name = NameVo.create({ value: 'some value' }).value();
-			const agg = SimpleEntity.create({ id: "1519cb69-9904-4f2b-84e1-e6e95431cf24", age, name, notes: [1, 2, 3] });
+			const agg = SimpleEntity.create({
+				id: "1519cb69-9904-4f2b-84e1-e6e95431cf24",
+				age,
+				name,
+				notes: [1, 2, 3],
+				arraySimpleObject: [
+					{
+						value1: 'value1',
+						value2: 'value1',
+						value3: 100,
+						value4: new Date('2020-01-01 00:00:00'),
+						value5: ['value', 'foo', 'bar']
+					}
+				] }
+			);
 
 			const user = agg.value();
 
@@ -254,6 +275,13 @@ describe('auto-mapper', () => {
 			expect(obj.createdAt).toBeInstanceOf(Date);
 			expect(obj.updatedAt).toBeInstanceOf(Date);
 			expect(obj.notes).toEqual([1, 2, 3]);
+			expect(obj.arraySimpleObject).toEqual([{
+				value1: 'value1',
+				value2: 'value1',
+				value3: 100,
+				value4: new Date('2020-01-01 00:00:00'),
+				value5: ['value', 'foo', 'bar']
+			}]);
 
 		});
 
@@ -669,7 +697,7 @@ Object {
 				simple: 'hey there',
 				id: Id('8280c69f-be52-4918-ada9-f43d4703dbfe'),
 				createdAt: date,
-				 updatedAt: date
+				updatedAt: date
 			}).value();
 
 			expect(sample.toObject()).toMatchInlineSnapshot(`
