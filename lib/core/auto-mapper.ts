@@ -119,6 +119,7 @@ export class AutoMapper<Props> implements IAutoMapper<Props> {
 			this.validator.isNumber(entity) ||
 			this.validator.isString(entity) ||
 			this.validator.isDate(entity) ||
+			this.validator.isObject(entity) ||
 			entity === null;
 
 		if (isSimpleValue) return entity as any;
