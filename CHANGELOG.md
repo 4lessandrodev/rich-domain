@@ -14,6 +14,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.23.4] - 2024-09-22
+
+#### Fix
+
+Fixed an issue where arrays of simple objects in an entity were being returned as empty objects ({}) by the AutoMapper when using the toObject method.
+Updated the valueObjectToObj method to correctly handle arrays of simple objects by adding this.validator.isObject(entity) to the condition for isSimpleValue.
+[#183](https://github.com/4lessandrodev/rich-domain/pull/184) Special thanks and credits to @GaetanCottrez
+
+### Updates
+
+---
+
 ### [1.23.3] - 2024-06-26
 
 #### Fix
