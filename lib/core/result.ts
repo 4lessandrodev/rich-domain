@@ -29,7 +29,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns instance of Result<void>.
 	 */
 	public static Ok(): Result<void>;
-	
+
 	/**
 	 * @description Create an instance of Result as success state.
 	 * @returns instance of Result<void>.
@@ -42,7 +42,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	 public static Ok<T, M = {}, D = string>(data: T, metaData?: M): Result<T, D, M>;
+	public static Ok<T, M = {}, D = string>(data: T, metaData?: M): Result<T, D, M>;
 
 	/**
 	 * @description Create an instance of Result as success state with data and metadata to payload.
@@ -51,7 +51,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @returns instance of Result.
 	 */
 	public static Ok<T, M = {}, D = string>(data: T, metaData?: M): IResult<T, D, M>;
-	
+
 	/**
 	 * @description Create an instance of Result as success state with data and metadata to payload.
 	 * @param data as T to payload.
@@ -70,7 +70,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 * @param metaData as M to state.
 	 * @returns instance of Result.
 	 */
-	 public static fail<D = string, M = {}, T = void>(error?: D, metaData?: M): Result<T, D, M>;
+	public static fail<D = string, M = {}>(error?: D, metaData?: M): Result<null, D, M>;
 
 	/**
 	 * @description Create an instance of Result as failure state with error and metadata to payload.
@@ -100,7 +100,7 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 */
 	public static combine<A = any, B = any, M = any>(results: Array<IResult<any, any, any>>): IResult<A, B, M> {
 		const iterator = Result.iterate(results);
-		if (iterator.isEmpty()) return Result.fail('No results provided on combine param' as B) as IResult<A, B, M>;
+		if (iterator.isEmpty()) return Result.fail('No results provided on combine param' as B) as unknown as IResult<A, B, M>;
 		while (iterator.hasNext()) {
 			const currentResult = iterator.next();
 			if (currentResult.isFail()) return currentResult as IResult<A, B, M>;
@@ -166,6 +166,27 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	 */
 	isFail(): boolean {
 		return this.#isFail;
+	}
+	/**
+	 * @description Determines if the result instance contains a `null` value.
+	 * This method is particularly useful when dealing with dynamically typed results,
+	 * allowing developers to validate and refine types based on the state of the result.
+	 * 
+	 * @returns {boolean} 
+	 * - `true` if the result instance holds a `null` value. 
+	 * - `false` otherwise.
+	 * 
+	 * @example
+	 * const result = Result.Ok(null);
+	 * 
+	 * if (result.isNull()) {
+	 *     console.log("The result value is null");
+	 * } else {
+	 *     console.log("The result value is not null:", result.value());
+	 * }
+	 */
+	isNull(): boolean {
+		return this.#data === null || this.#isFail;
 	}
 
 	/**

@@ -16,7 +16,7 @@ import Result from "./result";
  * @argument P generic type for payload.
  * @default void as no state.
  */
- function Fail(): Result<string, string, {}>;
+ function Fail(): Result<null, string, {}>;
 
 /**
  * @description Create an instance of Result as failure state.
@@ -33,7 +33,7 @@ import Result from "./result";
  * @argument P generic type for payload.
  * @default void as no state.
  */
-function Fail(): IResult<string, string, {}>;
+function Fail(): IResult<null, string, {}>;
 
 /**
  * @description Create an instance of Result as failure state.
@@ -50,7 +50,7 @@ function Fail(): IResult<string, string, {}>;
  * @argument P generic type for payload.
  * @default void as no state.
  */
- function Fail<E, M extends {} = {}, P = void>(error: E extends void ? null : E, metaData?: M): Result<P, E extends void ? string : E, M>;
+ function Fail<E, M extends {} = {}>(error: E extends void ? null : E, metaData?: M): Result<null, E extends void ? string : E, M>;
 
 
 /**
@@ -68,7 +68,7 @@ function Fail(): IResult<string, string, {}>;
  * @argument P generic type for payload.
  * @default void as no state.
  */
-function Fail<E, M extends {} = {}, P = void>(error: E extends void ? null : E, metaData?: M): IResult<P, E extends void ? string : E, M>;
+function Fail<E, M extends {} = {}>(error: E extends void ? null : E, metaData?: M): IResult<null, E extends void ? string : E, M>;
 
 /**
  * @description Create an instance of Result as failure state.
@@ -85,7 +85,7 @@ function Fail<E, M extends {} = {}, P = void>(error: E extends void ? null : E, 
  * @argument P generic type for payload.
  * @default void as no state.
  */
-function Fail<E = string, M extends {} = {}, P = void>(error?: E extends void ? null : E, metaData?: M): IResult<P, E extends void ? string : E, M> {
+function Fail<E = string, M extends {} = {}>(error?: E extends void ? null : E, metaData?: M): IResult<null, E extends void ? string : E, M> {
 	const _error = (typeof error !== 'undefined' && error !== null) ? error : 'void error. no message!';
 	return Result.fail(_error as any, metaData);
 }

@@ -1,4 +1,4 @@
-import { Entity, Id, Ok, Result, ValueObject } from "../../lib/core";
+import { Entity, Fail, Id, Ok, Result, ValueObject } from "../../lib/core";
 import { Adapter, IResult, UID } from "../../lib/types";
 
 describe("entity", () => {
@@ -16,7 +16,8 @@ describe("entity", () => {
 				return value !== undefined;
 			}
 
-			public static create(props: Props): IResult<EntitySample> {
+			public static create(props: Props): IResult<EntitySample | null> {
+				if(!props) return Fail('props is required')
 				return Result.Ok(new EntitySample(props))
 			}
 		}
@@ -24,7 +25,7 @@ describe("entity", () => {
 		it('should get prototype', () => {
 			const ent = EntitySample.create({ foo: 'bar' });
 
-			ent.value().change('foo', 'changed');
+			ent.value()?.change('foo', 'changed');
 			expect(ent.isOk()).toBeTruthy();
 		});
 	});
@@ -630,7 +631,7 @@ describe("entity", () => {
 				return this.util.string(this.props.foo).removeSpaces();
 			}
 
-			public static create(props: Props): IResult<ValSamp> {
+			public static create(props: Props): IResult<ValSamp | null> {
 				const isValid = this.isValidProps(props.foo);
 				if (!isValid) return Result.fail('Erro');
 				return Result.Ok(new ValSamp(props))
@@ -645,7 +646,7 @@ describe("entity", () => {
 		it('should remove space from value', () => {
 			const ent = ValSamp.create({ foo: ' Some Value With Spaces ' });
 			expect(ent.isOk()).toBeTruthy();
-			expect(ent.value().RemoveSpace()).toBe('SomeValueWithSpaces');
+			expect(ent.value()?.RemoveSpace()).toBe('SomeValueWithSpaces');
 		});
 	});
 

@@ -328,7 +328,7 @@ describe('value-object', () => {
 				return isValidAge && isValidDate;
 			}
 
-			public static create(props: Props1): IResult<HumanAge> {
+			public static create(props: Props1): IResult<HumanAge | null> {
 				if (!HumanAge.isValidProps(props)) return Result.fail('Invalid props');
 				return Result.Ok(new HumanAge(props));
 			}

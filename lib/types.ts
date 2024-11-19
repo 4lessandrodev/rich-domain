@@ -31,6 +31,7 @@ export interface IResult<T, D = string, M = {}> {
 	value(): T;
 	error(): D;
 	isFail(): boolean;
+	isNull(): boolean;
 	isOk(): boolean;
 	metaData(): M;
 	toObject(): IResultObject<T, D, M>;
@@ -196,7 +197,7 @@ export interface IPublicHistory<Props> {
 export type IPropsValidation<T> = { [P in keyof Required<T>]: (value: T[P]) => boolean };
 
 export interface IAdapter<F, T, E = any, M = any> {
-	build(target: F): IResult<T, E, M>;
+	build(target: F): IResult<T | null, E, M>;
 }
 
 export interface Adapter<A = any, B = any> {
