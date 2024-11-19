@@ -114,7 +114,7 @@ describe('aggregate', () => {
 				return this.validator.number(value).isBetween(0, 130);
 			}
 
-			public static create(props: Props): IResult<ValueObject<Props>> {
+			public static create(props: Props): IResult<ValueObject<Props> | null> {
 				if (!this.isValidValue(props.value)) return Result.fail('Invalid value');
 				return Result.Ok(new AgeVo(props));
 			}
@@ -142,14 +142,14 @@ describe('aggregate', () => {
 				super(props);
 			}
 
-			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
+			public static create(props: AggProps): Result<Aggregate<AggProps> | null> {
 				return Result.Ok(new UserAgg(props));
 			}
 		}
 
 		it('should create a user with success', () => {
 
-			const age = AgeVo.create({ value: 21 }).value();
+			const age = AgeVo.create({ value: 21 }).value() as AgeVo;
 			const user = UserAgg.create({ age });
 
 			expect(user.isOk()).toBeTruthy();
@@ -158,10 +158,10 @@ describe('aggregate', () => {
 
 		it('should get value from age with success', () => {
 
-			const age = AgeVo.create({ value: 21 }).value();
+			const age = AgeVo.create({ value: 21 }).value() as AgeVo;
 			const user = UserAgg.create({ age }).value();
 
-			const result = user
+			const result = (user as Aggregate<AggProps>)
 				.get('age')
 				.get('value');
 

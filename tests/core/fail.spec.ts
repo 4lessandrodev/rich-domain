@@ -97,11 +97,7 @@ describe('fail', () => {
 			arg: string;
 		}
 
-		interface Payload {
-			user: any;
-		}
-
-		const result = Fail<Generic, MetaData, Payload>({ message: 'invalid email' }, { arg: 'invalid@mail.com' });
+		const result = Fail<Generic, MetaData>({ message: 'invalid email' }, { arg: 'invalid@mail.com' });
 		expect(result.isOk()).toBeFalsy();
 		expect(result.isFail()).toBeTruthy();
 		expect(result.toObject()).toEqual({
@@ -116,7 +112,6 @@ describe('fail', () => {
 	describe('generic types', () => {
 
 		type Error = { message: string };
-		type Payload = { data: { status: number } };
 		type MetaData = { args: number };
 
 		it('should fail generate the same payload as result', () => {
@@ -125,10 +120,10 @@ describe('fail', () => {
 			const metaData: MetaData = { args: status };
 			const error: Error = { message: 'something went wrong!' };
 
-			const resultInstance = Result.fail<Error, MetaData, Payload>(error, metaData);
-			const okInstance = Fail<Error, MetaData, Payload>(error, metaData);
+			const resultInstance = Result.fail<Error, MetaData>(error, metaData);
+			const failInstance = Fail<Error, MetaData>(error, metaData);
 
-			expect(resultInstance.toObject()).toEqual(okInstance.toObject());
+			expect(resultInstance.toObject()).toEqual(failInstance.toObject());
 
 		});
 
