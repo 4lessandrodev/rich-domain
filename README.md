@@ -282,7 +282,7 @@ export default class Money extends ValueObject<Props> {
     }
 
     // factory method to create an instance and validate value.
-    public static create(amount: number): Result<Money> {
+    public static create(amount: number): Result<Money | null> {
 
         const isValid = this.isValidProps({ amount });
         if(!isValid) return Fail("Invalid amount for money");
@@ -307,7 +307,7 @@ console.log(resA.isOk());
 
 
 // money instance
-const moneyA = resA.value();
+const moneyA = resA.value() as Money;
 
 moneyA.get("amount"); 
 
@@ -318,7 +318,7 @@ moneyA.isGt(Money.zero());
 
 // > true
 
-const moneyB = Money.create(100).value();
+const moneyB = Money.create(100).value() as Money;
 
 const moneyC = moneyA.sum(moneyB);
 
@@ -386,7 +386,7 @@ How to use entity instance
 ```ts
 
 // operation result
-const total = Money.create(500).value();
+const total = Money.create(500).value() as Money;
 const discount = Money.zero();
 const fees = Money.zero();
 
@@ -394,8 +394,8 @@ const fees = Money.zero();
 const payment = Payment.create({ total, discount, fees }).value();
 
 // create fee and discount
-const fee = Money.create(17.50).value();
-const disc = Money.create(170.50).value();
+const fee = Money.create(17.50).value() as Money;
+const disc = Money.create(170.50).value() as Money;
 
 // apply fee and discount
 const result = payment.applyFees(fee).applyDiscount(disc);
@@ -683,7 +683,7 @@ So let's implement that on a simple function.
 
 ```ts
 
-const isEven = (value: number): Result<Data, Err, Meta> => {
+const isEven = (value: number): Result<Data | null, Err, Meta> => {
 
 	const isEvenValue = value % 2 === 0;
 	const metaData: Meta = { arg: value };
@@ -762,7 +762,7 @@ Let's see the same example using void.
 
 ```ts
 
-const checkEven = (value: number): Result<void> => {
+const checkEven = (value: number): Result<void | null> => {
 
 	const isEven = value % 2 === 0;
 
@@ -1199,7 +1199,7 @@ export class Name extends ValueObject<string>{
         return new Name(value);
     }
 
-	public static create(value: string): Result<Name> {
+	public static create(value: string): Result<Name | null> {
 		if (!this.isValid(value)) return Fail('invalid name');
 		return Ok(new Name(value));
 	}
@@ -1253,9 +1253,9 @@ This method is useful for cases where you have value objects inside other value 
 
 ```ts
 
-const street = Street.create('Dom Juan').value();
+const street = Street.create('Dom Juan').value() as Street;
 
-const complement = Complement.create('n42').value();
+const complement = Complement.create('n42').value() as Complement;
 
 const result = Address.create({ street, complement });
 
@@ -1276,7 +1276,7 @@ This method creates a new instance with the same properties as the current value
 
 ```ts
 
-const result = Name.create('Sammy');
+const result = Name.create('Sammy') as Name;
 
 const originalName = result.value();
 
