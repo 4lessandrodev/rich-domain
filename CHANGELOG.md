@@ -6,13 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### [1.23.5] - 2024-10-18
+
+## Released
+
+---
+
+
+### [1.24.0] - 2024-11-28
 
 #### Fix
 
-## Changelog for `1.23.5-beta.0`
-
-### **Changes**
 - **Explicit Typing for Failures**: `Result.fail` now explicitly returns `Result<null, ...>`, ensuring that values are always `null` in failure states.
 - **New `isNull` Method**: Added to simplify validation of `null` values or failure states, improving readability and type safety.
 - **Adjusted Creation Methods**: Methods like `create` and adapters now return `Result<T | null>` where applicable for better consistency and error handling.
@@ -23,10 +26,6 @@ These changes improve type safety, make failure handling more explicit, and enco
 Feedback is welcome! 🚀
 
 [issue](https://github.com/4lessandrodev/rich-domain/issues/194)
-
-## Released
-
----
 
 ### Updates
 
