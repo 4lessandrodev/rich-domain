@@ -289,6 +289,15 @@ export default class Money extends ValueObject<Props> {
 
         return Ok(new Money({ amount }));
     }
+
+    // try initialize an instance. throw erro if provide an invalid value
+    public static init(amount: number): Money {
+
+        const isValid = this.isValidProps({ amount });
+        if(!isValid) throw new Error("Invalid amount for money");
+
+        return new Money({ amount });
+    }
 }
 
 ```
@@ -376,6 +385,10 @@ export default class Payment extends Entity<Props> {
     // factory method to create a instance. Value must be positive.
     public static create(props: Props): Result<Payment> {
         return Ok(new Payment(props));
+    }
+
+    public static init(props: Props): Payment {
+        return new Payment(props);
     }
 }
 
@@ -512,6 +525,10 @@ export default class Order extends Aggregate<Props> {
     // if creation is successful.
     public static create(props: Props): Result<Order> {
         return Ok(new Order(props));
+    }
+
+    public static init(props: Props): Order {
+        return new Order(props);
     }
 }
 
