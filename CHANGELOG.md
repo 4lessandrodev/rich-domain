@@ -11,6 +11,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.24.1] - 2024-11-29
+
+#### Fix
+
+- Fix event payload when contain "*" in pattern
+
+[issue](https://github.com/4lessandrodev/rich-domain/issues/199)
+
+---
 
 ### [1.24.0] - 2024-11-28
 
