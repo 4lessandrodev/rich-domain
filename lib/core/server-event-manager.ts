@@ -57,7 +57,7 @@ export default class ServerEventManager implements EventManager {
                 const localEventName = this.events[i].eventName;
                 const match = regex.test(localEventName);
                 if (match) {
-                    this.emitter.emit(localEventName, args);
+                    this.emitter.emit(localEventName, { detail: args || [] });
                 }
                 i++;
             }
