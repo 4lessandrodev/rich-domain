@@ -1,4 +1,4 @@
-import { Adapter, AutoMapperSerializer, IAdapter, IResult, IValueObject, IVoSettings, UID } from "../types";
+import { Adapter, AutoMapperSerializer, _Adapter, _Result, _ValueObject, _VoSettings, UID } from "../types";
 import { ReadonlyDeep } from "../types-util";
 import { deepFreeze } from "../utils/deep-freeze.util";
 import AutoMapper from "./auto-mapper";
@@ -6,21 +6,37 @@ import BaseGettersAndSetters from "./base-getters-and-setters";
 import Result from "./result";
 
 /**
- * @description ValueObject an attribute for entity and aggregate
+ * @description A `ValueObject` represents a domain object characterized by its properties rather than a unique identifier.
+ * Commonly used in domain-driven design, value objects are immutable and should be structurally equal 
+ * (two value objects with the same properties are considered equal). 
+ * This class provides functionalities to:
+ * - Validate properties
+ * - Compare equality between value objects
+ * - Convert the value object into a plain object representation
+ * - Clone the value object
  */
-export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements IValueObject<Props> {
+export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements _ValueObject<Props> {
 	protected autoMapper: AutoMapper<Props>;
-	constructor(props: Props, config?: IVoSettings) {
+
+	/**
+	 * @description Initializes a new ValueObject instance.
+	 * @param props Properties that define the ValueObject.
+	 * @param config Optional configuration settings for getter/setter behavior.
+	 */
+	constructor(props: Props, config?: _VoSettings) {
 		super(props, config);
 		this.autoMapper = new AutoMapper();
 	}
 
 	/** 
-	 * @description Check if value object instance props is equal another provided instance props.
-	 * @param createdAt is not considered on compare
-	 * @param updatedAt is not considered on compare
-	 * @returns true if props is equal and false if not.
-	*/
+	 * @description Determines if the current value object is equal to another value object of the same type.
+	 * Equality is defined by comparing properties, excluding `createdAt` and `updatedAt`.
+	 * Primitive values (strings, numbers, booleans), dates, arrays, and IDs are compared by value.
+	 * Complex object structures are compared by their JSON-serialized form (excluding `createdAt` and `updatedAt`).
+	 * 
+	 * @param other The value object to compare against.
+	 * @returns `true` if all considered properties are equal; `false` otherwise.
+	 */
 	isEqual(other: this): boolean {
 		const props = this.props;
 		const otherProps = other?.props;
@@ -67,12 +83,15 @@ export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements 
 	}
 
 	/**
-	 * @description Get an instance copy.
-	 * @returns a new instance of value object.
+	 * @description Creates a new instance of the value object, optionally overriding properties.
+	 * Deep cloning is performed for object-based props, ensuring immutability of value objects.
+	 * 
+	 * @param props Optional partial properties to override in the cloned instance.
+	 * @returns A new ValueObject instance with updated properties.
 	 */
 	clone(props?: Props extends object ? Partial<Props> : never): this {
 		const instance = Reflect.getPrototypeOf(this);
-		if (typeof this.props === 'object' && !(this.props instanceof Date) && !(Array.isArray(this.props))) {
+		if (typeof this.props === 'object' && !(this.props instanceof Date) && !Array.isArray(this.props)) {
 			const _props = props ? { ...this.props, ...props } : { ...this.props };
 			const args = [_props, this.config];
 			return Reflect.construct(instance!.constructor, args);
@@ -82,18 +101,19 @@ export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements 
 	}
 
 	/**
-	 * @description Get value from value object.
-	 * @returns value as string, number or any type defined.
+	 * @description Converts the value object into a plain object or a format defined by the given adapter.
+	 * If no adapter is provided, the object is serialized using an `AutoMapper` and frozen to ensure immutability.
+	 * 
+	 * @param adapter Optional adapter to transform the value object into a custom format.
+	 * @returns A deeply frozen, plain object representation of the value object properties.
 	 */
-	toObject<T>(adapter?: Adapter<this, T> | IAdapter<this, T>)
-		: T extends {}
-		? T
-		: ReadonlyDeep<AutoMapperSerializer<Props>> {
+	toObject<T>(adapter?: Adapter<this, T> | _Adapter<this, T>)
+		: T extends {} ? T : ReadonlyDeep<AutoMapperSerializer<Props>> {
 		if (adapter && typeof (adapter as Adapter<this, T>)?.adaptOne === 'function') {
 			return (adapter as Adapter<this, T>).adaptOne(this) as any;
 		}
-		if (adapter && typeof (adapter as IAdapter<this, T>)?.build === 'function') {
-			return (adapter as IAdapter<this, T>).build(this).value() as any;
+		if (adapter && typeof (adapter as _Adapter<this, T>)?.build === 'function') {
+			return (adapter as _Adapter<this, T>).build(this).value() as any;
 		}
 		const serializedObject = this.autoMapper.valueObjectToObj(this) as ReadonlyDeep<AutoMapperSerializer<Props>>;
 		const frozenObject = deepFreeze<any>(serializedObject);
@@ -101,44 +121,47 @@ export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements 
 	}
 
 	/**
-	 * @description Method to validate value.
-	 * @param value to validate
-	 * @returns boolean
+	 * @description Checks if a given value is considered valid for creating a ValueObject instance.
+	 * Subclasses can override this to apply additional validation logic.
+	 * @param value The value to validate.
+	 * @returns `true` if valid; `false` otherwise.
 	 */
 	public static isValid(value: any): boolean {
 		return this.isValidProps(value);
-	};
+	}
 
 	/**
-	 * @description Method to validate prop value.
-	 * @param props to validate
+	 * @description Validates the provided properties before creating a new value object instance.
+	 * @param props The properties to validate.
+	 * @returns `true` if the properties are valid; `false` otherwise.
 	 */
 	public static isValidProps(props: any): boolean {
 		return !this.validator.isUndefined(props) && !this.validator.isNull(props);
-	};
+	}
 
 	/**
-	 * @description method to create a new instance
-	 * @param value as props
-	 * @returns instance of Value Object or throw an error.
+	 * @description Intended to initialize a new value object instance with a given value.
+	 * This method should be implemented by subclasses as needed.
+	 * @param value The initial value or properties.
+	 * @throws An error indicating the method is not implemented.
 	 */
 	public static init(value: any): any {
 		throw new Error('method not implemented: init', {
 			cause: value
 		});
-	};
+	}
 
-	public static create(props: any): IResult<any, any, any>;
+	public static create(props: any): _Result<any, any, any>;
 	/**
-	 * 
-	 * @param props params as Props
-	 * @returns instance of result with a new Value Object on state if success.
-	 * @summary result state will be `null` case failure.
+	 * @description Creates a new ValueObject instance wrapped inside a `Result`.
+	 * Returns a failure `Result` if the provided properties are invalid.
+	 * @param props The properties needed to create the value object.
+	 * @returns A `Result` containing the new ValueObject on success, or a failure `Result` on invalid properties.
 	 */
 	public static create(props: {}): Result<any, any, any> {
 		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
 		return Result.Ok(new this(props));
-	};
+	}
 }
 
 export default ValueObject;
