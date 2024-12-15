@@ -1,5 +1,5 @@
 import { Entity, Fail, Id, Ok, Result, ValueObject } from "../../lib/core";
-import { Adapter, IResult, UID } from "../../lib/types";
+import { Adapter, _Result, UID } from "../../lib/types";
 
 describe("entity", () => {
 
@@ -16,7 +16,7 @@ describe("entity", () => {
 				return value !== undefined;
 			}
 
-			public static create(props: Props): IResult<EntitySample | null> {
+			public static create(props: Props): Result<EntitySample | null> {
 				if(!props) return Fail('props is required')
 				return Result.Ok(new EntitySample(props))
 			}
@@ -498,7 +498,7 @@ describe("entity", () => {
 				return value !== undefined;
 			}
 
-			public static create(props: Props): IResult<EntitySample> {
+			public static create(props: Props): Result<EntitySample> {
 				return Result.Ok(new EntitySample(props))
 			}
 		}
@@ -631,7 +631,7 @@ describe("entity", () => {
 				return this.util.string(this.props.foo).removeSpaces();
 			}
 
-			public static create(props: Props): IResult<ValSamp | null> {
+			public static create(props: Props): Result<ValSamp | null> {
 				const isValid = this.isValidProps(props.foo);
 				if (!isValid) return Result.fail('Erro');
 				return Result.Ok(new ValSamp(props))
