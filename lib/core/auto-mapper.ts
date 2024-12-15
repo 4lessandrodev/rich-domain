@@ -1,180 +1,218 @@
-import { AutoMapperSerializer, EntityMapperPayload, IAutoMapper, IEntity, IValueObject } from "../types";
+import { AutoMapperSerializer, EntityMapperPayload, _AutoMapper, _Entity, _ValueObject } from "../types";
 import { Validator } from "../utils";
 import ID from "./id";
 
 /**
- * @description Auto Mapper transform a domain resource into object.
+ * @description The AutoMapper class is responsible for transforming domain resources (entities, value objects) 
+ * into plain objects or primitive values. It provides methods to recursively process nested value objects, IDs, 
+ * entities, and arrays, ensuring all complex data structures are serialized into a consistent object format.
  */
-export class AutoMapper<Props> implements IAutoMapper<Props> {
+export class AutoMapper<Props> implements _AutoMapper<Props> {
 	private validator: Validator = Validator.create();
 
 	/**
-	 * @description Transform a value object into a simple value.
-	 * @param valueObject as instance.
-	 * @returns an object or a value object value.
+	 * @description Converts a value object into a plain object or a primitive value. 
+	 * This method handles multiple scenarios, including:
+	 * - Null values
+	 * - Symbol values
+	 * - ID values
+	 * - Simple data types (strings, numbers, booleans, dates, objects)
+	 * - Nested value objects
+	 * - Arrays containing complex data
+	 * @param valueObject An instance representing a value object to be transformed.
+	 * @returns A plain object, primitive value, or serialized structure derived from the given value object.
 	 */
-	valueObjectToObj(valueObject: IValueObject<Props>): AutoMapperSerializer<Props> {
-		// internal state
+	valueObjectToObj(valueObject: _ValueObject<Props>): AutoMapperSerializer<Props> {
+		// Handle null or special cases
 		if (valueObject === null) return null as any;
+		if (typeof valueObject === 'undefined') return undefined as any;
 		if (this.validator.isSymbol(valueObject)) return (valueObject as unknown as Symbol).description as any;
 		if (this.validator.isID(valueObject)) return (valueObject as any)?.value();
 
-		let props = {} as { [key in keyof Props]: any };
-
+		// Check if the object is a simple value (e.g., boolean, number, string, date)
 		const isSimpleValue = this.validator.isBoolean(valueObject) ||
 			this.validator.isNumber(valueObject) ||
 			this.validator.isString(valueObject) ||
-			this.validator.isObject(valueObject) || // primitive object
 			this.validator.isDate(valueObject);
-		if (isSimpleValue) return valueObject as AutoMapperSerializer<Props>
 
-		const isID = this.validator.isID(valueObject);
+		const isSimpleObject = this.validator.isObject(valueObject);
+		// check each object key-value
+		if (isSimpleObject) {
+			let result = {};
+			const keys = Object.keys(valueObject);
+			keys.forEach((key) => {
+				const value = this.entityToObj(valueObject[key]);
+				result = { ...result, [key]: value };
+			});
+			return result as any;
+		}
 
-		const id: ID<any> = valueObject as unknown as ID<any>;
+		if (isSimpleValue) return valueObject as AutoMapperSerializer<Props>;
 
-		if (isID) return id?.value() as any;
-
-		// props
+		// At this point, treat it as a potential value object with props
 		const voProps = valueObject?.['props'];
 
-		const isSimp = this.validator.isBoolean(voProps) ||
+		const isSimpleProp = this.validator.isBoolean(voProps) ||
 			this.validator.isNumber(voProps) ||
 			this.validator.isString(voProps) ||
 			this.validator.isDate(voProps);
 
-		if (isSimp) return voProps;
+		if (isSimpleProp) return voProps;
 
-		if (this.validator.isSymbol(voProps)) return (voProps as unknown as Symbol).description as any;
+		if (this.validator.isSymbol(voProps)) {
+			return (voProps as unknown as Symbol).description as any;
+		}
 
-		const keys: Array<keyof Props> = Object.keys(voProps) as Array<keyof Props>;
+		if (this.validator.isArray(valueObject)) {
+			const result = Object.keys(valueObject).map((key) => {
+				return this.valueObjectToObj(valueObject[key])
+			});
+			return result as any;
+		}
 
-		const values = keys.map((key) => {
+		// If voProps is an object, recursively convert each property
+		if (this.validator.isObject(voProps)) {
 
-			const isVo = this.validator.isValueObject(voProps?.[key]);
+			const keys: Array<keyof Props> = Object.keys(voProps) as Array<keyof Props>;
+			const values = keys.map((key) => {
+				const isVo = this.validator.isValueObject(voProps?.[key]);
+				if (isVo) return this.valueObjectToObj(voProps?.[key] as any);
 
-			if (isVo) return this.valueObjectToObj(voProps?.[key] as any);
+				const isSimpleValue = this.validator.isBoolean(voProps?.[key]) ||
+					this.validator.isNumber(voProps?.[key]) ||
+					this.validator.isString(voProps?.[key]) ||
+					this.validator.isObject(voProps?.[key]) ||
+					this.validator.isDate(voProps?.[key]) ||
+					voProps?.[key] === null;
 
-			const isSimpleValue = this.validator.isBoolean(voProps?.[key]) ||
-				this.validator.isNumber(voProps?.[key]) ||
-				this.validator.isString(voProps?.[key]) ||
-				this.validator.isObject(voProps?.[key]) ||
-				this.validator.isDate(voProps?.[key]) ||
-				voProps?.[key] === null;
+				if (isSimpleValue) return voProps?.[key];
+				if (this.validator.isSymbol(voProps?.[key])) return (voProps?.[key] as Symbol)?.description;
 
-			if (isSimpleValue) return voProps?.[key];
+				const isID = this.validator.isID(voProps?.[key]);
+				if (isID) return (voProps?.[key] as ID<string>).value();
 
-			const isID = this.validator.isID(voProps?.[key]);
+				const isArray = this.validator.isArray(voProps?.[key]);
+				if (isArray) {
+					const arr: Array<any> = voProps?.[key] as Array<any>;
+					const results: Array<any> = [];
+					arr.forEach((data) => {
+						const result = this.valueObjectToObj(data);
+						results.push(result);
+					});
+					return results;
+				}
+			});
 
-			const id: ID<string> = voProps?.[key] as unknown as ID<string>;
+			// If props are array-like, return as an array of values; otherwise, rebuild as an object
+			if (this.validator.isArray(voProps)) return values as any;
 
-			if (isID) return id.value();
+			let props = {} as { [key in keyof Props]: any };
+			values.forEach((value, i) => {
+				props = Object.assign({}, { ...props }, { [keys[i]]: value });
+			});
 
-			const isArray = this.validator.isArray(voProps?.[key]);
-
-			if (isArray) {
-				let arr: Array<any> = voProps?.[key] as unknown as Array<any>;
-				const results: Array<any> = [];
-
-				arr.forEach((data) => {
-					const result = this.valueObjectToObj(data);
-					results.push(result);
-				});
-
-				return results;
-			}
-
-		});
-
-
-		if (this.validator.isArray(voProps)) return values as any;
-		props = {} as { [key in keyof Props]: any };
-
-		values.forEach((value, i) => {
-			props = Object.assign({}, { ...props }, { [keys[i]]: value })
-		});
-
-		return props as any;
+			return props as any;
+		}
+		return this.entityToObj(voProps);
 	}
 
 	/**
-	 * @description Transform a entity into a simple object.
-	 * @param entity instance.
-	 * @returns a simple object.
+	 * @description Transforms an entity into a plain object, including its associated meta properties 
+	 * (`id`, `createdAt`, `updatedAt`). This method:
+	 * - Resolves IDs to their primitive value forms.
+	 * - Recursively converts nested entities, aggregates, and value objects to plain objects.
+	 * - Preserves arrays and transforms their elements as needed.
+	 * @param entity The entity instance to be transformed into a plain object.
+	 * @returns A plain object representing the entity, including its metadata and serialized properties.
 	 */
-	entityToObj(entity: IEntity<Props>): AutoMapperSerializer<Props> & EntityMapperPayload {
-
+	entityToObj(entity: _Entity<Props>): AutoMapperSerializer<Props> & EntityMapperPayload {
 		if (this.validator.isID(entity)) return (entity as any)?.value();
+		if (this.validator.isSymbol(entity)) return (entity as unknown as Symbol)?.description as any;
 
 		let result = {} as { [key in keyof Props]: any };
 
 		const isEntity = this.validator.isEntity(entity);
-
 		const isAggregate = this.validator.isAggregate(entity);
-
 		const props = entity?.['props'] ?? {};
-
 		const isValueObject = this.validator.isValueObject(entity);
+
+		// If it's a value object return calling conversion
+		if (isValueObject) return this.valueObjectToObj(entity as any) as any;
 
 		const isSimpleValue = this.validator.isBoolean(entity) ||
 			this.validator.isNumber(entity) ||
 			this.validator.isString(entity) ||
 			this.validator.isDate(entity) ||
-			this.validator.isObject(entity) ||
 			entity === null;
 
+		// If it's a simple value or a value object, directly convert
 		if (isSimpleValue) return entity as any;
 
-		if (isValueObject) return this.valueObjectToObj(entity as any) as any;
+		const isSimpleObject = this.validator.isObject(entity);
+		// check each object key-value
+		if (isSimpleObject) {
+			let result = {};
+			const keys = Object.keys(entity);
+			keys.forEach((key) => {
+				const value = this.entityToObj(entity[key]);
+				result = { ...result, [key]: value };
+			});
+			return result as any;
+		}
 
+		if (this.validator.isArray(entity)) {
+
+			const result = Object.keys(entity).map((key) => {
+				return this.valueObjectToObj(entity[key])
+			});
+			return result as any;
+		}
+
+		// If it's an entity or an aggregate, extract meta properties and iterate over its props
 		if (isEntity || isAggregate) {
-
 			const id = entity?.id?.value();
-
 			const createdAt = entity['props']['createdAt'];
-
 			const updatedAt = entity['props']['updatedAt'];
 
 			result = Object.assign({}, { ...result }, { id, createdAt, updatedAt });
 
 			const keys: Array<keyof Props> = Object.keys(props) as Array<keyof Props>;
-
 			keys.forEach((key) => {
+				const value = props[key as any];
+				const isArray = this.validator.isArray(value);
 
-				const isArray = this.validator.isArray(props?.[key as any]);
-
-				if (this.validator.isID(props?.[key as any])) {
-					result = Object.assign({}, { ...result }, { [key]: props[key]?.value() });
+				// Handle IDs
+				if (this.validator.isID(value)) {
+					result = Object.assign({}, { ...result }, { [key]: value?.value() });
 				}
 
+				// Handle arrays
 				if (isArray) {
-					const arr: Array<any> = props?.[key as any] as unknown as Array<any> ?? [];
-
-					const subProps = arr.map(
-						(item) => this.entityToObj(item as any)
-					);
-
+					const arr: Array<any> = value as Array<any> ?? [];
+					const subProps = arr.map((item) => this.entityToObj(item as any));
 					result = Object.assign({}, { ...result }, { [key]: subProps });
 				}
 
-				const isSimple = this.validator.isValueObject(props?.[key as any]) ||
-					this.validator.isBoolean(props?.[key as any]) ||
-					this.validator.isNumber(props?.[key as any]) ||
-					this.validator.isString(props?.[key as any]) ||
-					this.validator.isObject(props?.[key as any]) ||
-					this.validator.isDate(props?.[key as any]) ||
-					this.validator.isSymbol(props) ||
-					props?.[key] === null;
+				// Check if it's simple or a nested entity/value object
+				const isSimple = this.validator.isValueObject(value) ||
+					this.validator.isBoolean(value) ||
+					this.validator.isNumber(value) ||
+					this.validator.isString(value) ||
+					this.validator.isObject(value) ||
+					this.validator.isDate(value) ||
+					value === null;
 
-				const isEntity = this.validator.isEntity(props?.[key as any]);
+				const isEntity = this.validator.isEntity(value);
 
 				if (isEntity) {
-					const data = this.entityToObj(props[key as any] as any);
-
+					const data = this.entityToObj(value as any);
 					result = Object.assign({}, { ...result }, { [key]: data });
 				} else if (isSimple) {
-					const data = this.valueObjectToObj(props[key as any] as any);
-
+					const data = this.valueObjectToObj(value as any);
 					result = Object.assign({}, { ...result }, { [key]: data });
+				} else if (this.validator.isSymbol(props)) {
+					const description = (props as Symbol)?.description ?? '';
+					result = { ...result, [key]: description }
 				}
 			});
 		}
