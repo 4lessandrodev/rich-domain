@@ -1,4 +1,4 @@
-import { Adapter, AutoMapperSerializer, EntityMapperPayload, EntityProps, IAdapter, IEntity, IResult, ISettings, UID } from "../types";
+import { Adapter, AutoMapperSerializer, EntityMapperPayload, EntityProps, _Adapter, _Entity, _Result, Settings, UID } from "../types";
 import { ReadonlyDeep } from "../types-util";
 import { deepFreeze } from "../utils/deep-freeze.util";
 import AutoMapper from "./auto-mapper";
@@ -7,12 +7,14 @@ import ID from "./id";
 import Result from "./result";
 
 /**
- * @description Entity identified by an id
+ * @description Represents a domain entity identified by a unique identifier (ID). 
+ * Extends basic entity functionalities, ensuring the presence of `createdAt` and `updatedAt` timestamps and providing 
+ * utility methods such as equality checks, object transformations, and instance creation.
  */
-export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> implements IEntity<Props> {
+export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> implements _Entity<Props> {
 	protected _id: UID<string>;
 	protected autoMapper: AutoMapper<Props>;
-	constructor(props: Props, config?: ISettings) {
+	constructor(props: Props, config?: Settings) {
 		super(Object.assign({}, { createdAt: new Date(), updatedAt: new Date() }, { ...props }), 'Entity', config);
 		if (typeof props !== 'object' || (props instanceof Date) || Array.isArray(props)) {
 			throw new Error(`Props must be an 'object' for entities, but received: '${typeof props}' as props on Class '${this.constructor.name}'`);
@@ -24,14 +26,13 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	}
 
 	/** 
-	 * @description Check if entity instance props is equal another provided instance props.
-	 * @param createdAt is not considered on compare
-	 * @param updatedAt is not considered on compare
-	 * @returns true if props is equal and false if not.
-	*/
+	 * @description Determines if the current entity has the same properties (except `createdAt` and `updatedAt`) and the same ID as another entity.
+	 * @param other The entity instance to compare against.
+	 * @returns `true` if both entities have identical properties and IDs; otherwise, `false`.
+	 */
 	isEqual(other: this): boolean {
-		const currentProps = { ...this?.props };
-		const providedProps = { ...other?.props };
+		const currentProps = { ...this?.props, id: null };
+		const providedProps = { ...other?.props, id: null };
 	
 		delete currentProps?.['createdAt'];
 		delete currentProps?.['updatedAt'];
@@ -39,6 +40,7 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		delete providedProps?.['updatedAt'];
 	
 		const equalId = this.id.isEqual(other?.id);
+
 		const serializedA = JSON.stringify(currentProps);
 		const serializedB = JSON.stringify(providedProps);
 		const equalSerialized = serializedA === serializedB;
@@ -47,18 +49,20 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	}
 
 	/**
-	 * @description Get value as object from entity.
-	 * @returns object with properties.
+	 * @description Converts the current entity instance into a plain object representation.
+	 * @param adapter An optional adapter or builder that transforms the entity into another object format.
+	 * @returns If an adapter is provided, returns the adapted object. Otherwise, returns a deeply frozen object 
+	 * representing the entity properties along with entity metadata (`AutoMapperSerializer<Props> & EntityMapperPayload`).
 	 */
-	toObject<T>(adapter?: Adapter<this, T> | IAdapter<this, T>)
+	toObject<T>(adapter?: Adapter<this, T> | _Adapter<this, T>)
 		: T extends {}
 		? T & EntityMapperPayload
 		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload> {
 		if(adapter && typeof (adapter as Adapter<this, T>)?.adaptOne === 'function') {
 			return (adapter as Adapter<this, T>).adaptOne(this) as any;
 		}
-		if (adapter && typeof (adapter as IAdapter<this, T>)?.build === 'function') {
-			return (adapter as IAdapter<this, T>).build(this).value() as any;
+		if (adapter && typeof (adapter as _Adapter<this, T>)?.build === 'function') {
+			return (adapter as _Adapter<this, T>).build(this).value() as any;
 		}
 		const serializedObject = this.autoMapper.entityToObj(this) as ReadonlyDeep<AutoMapperSerializer<Props>>;
 		const frozenObject = deepFreeze<any>(serializedObject);
@@ -66,20 +70,18 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	}
 
 	/**
-	 * @description Get id as ID instance
-	 * @returns ID instance
+	 * @description Retrieves the unique identifier (ID) of the entity.
+	 * @returns An instance of `UID<string>` representing the entity's ID.
 	 */
 	get id(): UID<string> {
 		return this._id;
 	}
 
 	/**
-	 * @description Get hash to identify the entity.
-	 * @returns Entity hash as ID instance.
-	 * @example 
-	 * `[Entity@ClassName]:UUID`
-	 * 
-	 * @summary className is defined on constructor config param
+	 * @description Generates a "hash code" like identifier for the entity, combining its class name and ID.
+	 * @summary The format is `[Entity@ClassName]:UUID`. The ClassName is derived from the entity's prototype. 
+	 * This helps uniquely identify the entity instance in logs or debugging.
+	 * @returns A `UID<string>` representing the hash code of the entity.
 	 */
 	hashCode(): UID<string> {
 		const name = Reflect.getPrototypeOf(this);
@@ -87,19 +89,18 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	}
 
 	/**
-	 * @description Check if an entity is a new instance.
-	 * @returns `true` if entity is a new instance generated and `false` if not.
-	 * @summary new instance: not saved on database yet.
+	 * @description Checks if the entity is newly created and not yet persisted or saved externally (e.g., to a database).
+	 * @returns `true` if the entity is considered new (ID marked as new); otherwise, `false`.
 	 */
 	isNew(): boolean {
 		return this.id.isNew();
 	}
 
 	/**
-	 * @description Get a new instanced based on current Entity.
-	 * @summary if not provide an id a new one will be generated.
-	 * @param props as optional Entity Props.
-	 * @returns new Entity instance.
+	 * @description Creates a new entity instance based on the current entity. 
+	 * Allows overriding some properties. If no `id` is provided in the new props, a new one will be generated.
+	 * @param props Optional partial properties to override when creating the new entity instance.
+	 * @returns A new instance of the entity with updated properties.
 	 */
 	clone(props?: Props extends object ? Partial<Props> : never): this {
 		const instance = Reflect.getPrototypeOf(this);
@@ -109,27 +110,29 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	}
 
 	/**
-	 * @description Method to validate value.
-	 * @param value to validate
-	 * @returns boolean
+	 * @description Validates if a given value is suitable for creating or representing an entity.
+	 * @param value The value to validate.
+	 * @returns `true` if the value is considered valid for the entity; otherwise, `false`.
 	 */
 	public static isValid(value: any): boolean {
 		return this.isValidProps(value);
 	};
 
 	/**
-	 * @description Method to validate props. This method is used to validate props on create a instance.
-	 * @param props to validate
-	 * @returns true if props is valid and false if not.
+	 * @description Validates the provided properties to check if they can be used to create a valid entity instance.
+	 * @param props The properties object to validate.
+	 * @returns `true` if the props are valid; `false` otherwise.
 	 */
 	public static isValidProps(props: any): boolean {
 		return !this.validator.isUndefined(props) && !this.validator.isNull(props);
 	};
 
 	/**
-	 * @description method to create a new instance
-	 * @param value as props
-	 * @returns instance of Entity or throw an error.
+	 * @description Initializes a new entity instance from the given properties.
+	 * @summary This method should be implemented in subclasses. By default, it throws an error.
+	 * @param props The properties to initialize the entity.
+	 * @returns The newly created entity instance or throws an error if not implemented.
+	 * @throws An error indicating the method is not implemented.
 	 */
 	public static init(props: any): any {
 		throw new Error('method not implemented: init', {
@@ -137,13 +140,13 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		});
 	};
 
-	public static create(props: any): IResult<any, any, any>;
+	public static create(props: any): Result<any, any, any>;
 	/**
-	 * 
-	 * @param props params as Props
-	 * @param id optional uuid as string in props. If not provided on props a new one will be generated.
-	 * @returns instance of result with a new Entity on state if success.
-	 * @summary result state will be `null` case failure.
+	 * @description Creates a new entity instance wrapped inside a `Result` object.
+	 * @param props The properties to create the entity with. Must be valid properties.
+	 * @param id (Optional) A UUID to assign to the entity. If not provided, a new one will be generated.
+	 * @returns A `Result` instance containing the new entity if successfully created; otherwise, a failure `Result`.
+	 * @summary If the properties are invalid, the result will be a failure with `null` state.
 	 */
 	public static create(props: {}): Result<any, any, any> {
 		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
