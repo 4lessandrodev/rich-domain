@@ -1,10 +1,11 @@
-import { IIterator, ITeratorConfig } from "../types";
+import { _Iterator, ITeratorConfig } from "../types";
 
 /**
- * @description Iterator allows sequential traversal through a complex data structure without exposing its internal details.
- * Make any array an iterator using this class.
+ * @description The Iterator class provides a way to traverse through a collection of items sequentially,
+ * without exposing the underlying data structure. It supports both forward and backward traversal,
+ * optional looping behavior, and methods to manipulate the underlying collection.
  */
- export class Iterator<T> implements IIterator<T> {
+export class Iterator<T> implements _Iterator<T> {
 	private currentIndex: number;
 	private readonly items: Array<T>;
 	private lastCommand: 'next' | 'prev' | 'none';
@@ -20,28 +21,26 @@ import { IIterator, ITeratorConfig } from "../types";
 	}
 
 	/**
-	 * initialData?: Array<T>;
-    returnCurrentOnReversion?: boolean;
-    restartOnFinish?: boolean;
-	 */
-
-	/**
+	 * @description Creates a new Iterator instance from the provided configuration.
+	 * @param config Optional configuration object.
+	 * @param config.initialData An initial array of items to iterate over.
+	 * @param config.returnCurrentOnReversion If `true`, when switching iteration direction (from `next` to `prev` or vice versa), 
+	 * the current item will be returned again before moving on.
+	 * @param config.restartOnFinish If `true`, when reaching the end of the items (`next` beyond last item or `prev` before first item),
+	 * iteration continues from the opposite end, effectively looping the iteration indefinitely.
 	 * 
-	 * @param config Iterator setup as object.
-	 * @param config.initialData the initial state as Array<T> to turn iterable.
-	 * @param config.returnCurrentOnReversion this setting allows you to return the current element when you are iterating in one direction and decide to change the iteration to the other direction.
-	 * @param config.restartOnFinish this configuration turns the iteration into an infinite loop, as when reaching the last element, the iteration starts over from the first element.
-	 * @returns instance of Iterator.
+	 * @returns A new Iterator instance.
 	 */
 	public static create<U>(config?: ITeratorConfig<U>): Iterator<U> {
 		return new Iterator<U>(config);
 	}
 
 	/**
-	 * @description Remove one item if found
-	 * @param item to be removed
+	 * @description Removes a specific item from the iterator's collection.
+	 * If the item is found and removed, the current index is adjusted accordingly.
+	 * @param item The item to be removed.
 	 */
-	removeItem(item: T) : void {
+	removeItem(item: T): void {
 		const index = this.items.findIndex((value) => JSON.stringify(item) === JSON.stringify(value));
 		if (index !== -1) {
 			this.items.splice(index, 1);
@@ -50,91 +49,98 @@ import { IIterator, ITeratorConfig } from "../types";
 	}
 
 	/**
-	 * @description This method check if has some elements after current position.
-	 * @returns boolean `true` if has next element and `false` if not.
+	 * @description Checks if there is another item after the current position.
+	 * @returns `true` if another item is available after the current index, otherwise `false`.
 	 */
 	hasNext(): boolean {
 		if (this.isEmpty()) return false;
 		return (this.currentIndex + 1) < this.items.length;
 	}
+
 	/**
-	 * @description This method check if has some elements before current position.
-	 * @returns boolean `true` if has next element and `false` if not.
+	 * @description Checks if there is another item before the current position.
+	 * @returns `true` if another item is available before the current index, otherwise `false`.
 	 */
 	hasPrev(): boolean {
 		if (this.isEmpty()) return false;
 		return (this.currentIndex - 1) >= 0;
 	}
+
 	/**
-	 * @description This method check if current data state is empty.
-	 * @returns boolean `true` if is empty and `false` if not.
+	 * @description Checks if the iterator has no items.
+	 * @returns `true` if there are no items, otherwise `false`.
 	 */
 	isEmpty(): boolean {
 		return this.total() === 0;
 	}
 
 	/**
-	 * @description This method get the element on current position. Alway start on first element.
-	 * @returns element on current position and update cursor to the next element.
+	 * @description Moves the iterator forward and returns the next item.
+	 * If `restartOnFinish` is `true` and the end is reached, iteration restarts from the beginning.
+	 * If `restartOnFinish` is `false` and the end is reached, returns `null`.
 	 * 
-	 * @access if param `config.restartOnFinish` is set to `true` and cursor is on last element the next one will be the first element on state, case value is set to `false` the next element will be `null`.
+	 * @returns The next item, or `null` if no next item exists and looping is disabled.
 	 */
 	next(): T {
 		if (this.hasNext()) {
+			// If we were going backward and now go forward from the start, return current item before moving on.
 			if (this.lastCommand === 'prev' && this.currentIndex === 0) {
 				this.lastCommand = 'next';
 				return this.items[this.currentIndex];
 			}
-			const next = (this.currentIndex + 1);
-			this.currentIndex = next;
+			const nextIndex = this.currentIndex + 1;
+			this.currentIndex = nextIndex;
 			this.lastCommand = this.returnCurrentOnReversion ? 'next' : 'none';
-			return this.items[next];
-		};
+			return this.items[nextIndex];
+		}
 		if (!this.restartOnFinish) return null as unknown as T;
 		this.toFirst();
 		return this.first();
 	}
+
 	/**
-	 * @description This method get the element on current position. Alway start on first element.
-	 * @returns element on current position and update cursor to the previous element.
+	 * @description Moves the iterator backward and returns the previous item.
+	 * If `restartOnFinish` is `true` and the beginning is reached, iteration continues from the end.
+	 * If `restartOnFinish` is `false` and the beginning is reached, returns `null`.
 	 * 
-	 * @access if param `config.restartOnFinish` is set to `true` and cursor is on first element the previous one will be the last element on state, case value is set to `false` the previous element will be `null`.
+	 * @returns The previous item, or `null` if no previous item exists and looping is disabled.
 	 */
 	prev(): T {
 		if (this.hasPrev()) {
+			// If we were going forward and now go backward from the end, return current item before moving on.
 			if (this.lastCommand === 'next' && this.currentIndex === this.total() - 1) {
 				this.lastCommand = 'prev';
 				return this.items[this.currentIndex];
 			}
-			const prev = (this.currentIndex - 1);
-			this.currentIndex = prev;
+			const prevIndex = this.currentIndex - 1;
+			this.currentIndex = prevIndex;
 			this.lastCommand = this.returnCurrentOnReversion ? 'prev' : 'none';
-			return this.items[prev];
-		};
+			return this.items[prevIndex];
+		}
 		if (!this.restartOnFinish) return null as unknown as T;
 		this.toLast();
 		return this.last();
 	}
 
 	/**
-	 * @description Get element.
-	 * @returns the first element on state.
+	 * @description Returns the first item in the collection without changing the current index.
+	 * @returns The first item, or `undefined` if empty.
 	 */
 	first(): T {
 		return this.items.at(0) as T;
 	}
 
 	/**
-	 * @description Get element.
-	 * @returns the last element on state.
+	 * @description Returns the last item in the collection without changing the current index.
+	 * @returns The last item, or `undefined` if empty.
 	 */
 	last(): T {
 		return this.items.at(-1) as T;
 	}
 
 	/**
-	 * @description Update cursor to the first element on state.
-	 * @returns instance of iterator.
+	 * @description Moves the internal cursor to the start of the collection.
+	 * @returns The current Iterator instance.
 	 */
 	toFirst(): Iterator<T> {
 		if (this.currentIndex === 0 || this.currentIndex === -1) {
@@ -146,8 +152,8 @@ import { IIterator, ITeratorConfig } from "../types";
 	}
 
 	/**
-	 * @description Update cursor to the last element on state.
-	 * @returns instance of iterator.
+	 * @description Moves the internal cursor to the end of the collection.
+	 * @returns The current Iterator instance.
 	 */
 	toLast(): Iterator<T> {
 		if (this.currentIndex === this.total() - 1 || this.currentIndex === -1) {
@@ -159,19 +165,19 @@ import { IIterator, ITeratorConfig } from "../types";
 	}
 
 	/**
-	 * @description Delete state. Remove all elements on state 
-	 * @returns instance of iterator.
+	 * @description Removes all items from the collection.
+	 * @returns The current Iterator instance.
 	 */
 	clear(): Iterator<T> {
-		this.items.splice(0, this.total())
+		this.items.splice(0, this.total());
 		this.currentIndex = -1;
 		return this;
 	}
 
 	/**
-	 * @description Add new element to state after last position.
-	 * @param data as element.
-	 * @returns instance of iterator.
+	 * @description Adds a new item to the end of the collection.
+	 * @param data The item to add.
+	 * @returns The current Iterator instance.
 	 */
 	addToEnd(data: T): Iterator<T> {
 		this.items.push(data);
@@ -179,18 +185,18 @@ import { IIterator, ITeratorConfig } from "../types";
 	}
 
 	/**
-	 * @description Add new element to state after last position.
-	 * @param data as element.
-	 * @returns instance of iterator.
+	 * @description Alias for `addToEnd` - adds a new item to the end of the collection.
+	 * @param data The item to add.
+	 * @returns The current Iterator instance.
 	 */
 	add(data: T): Iterator<T> {
 		return this.addToEnd(data);
 	}
 
 	/**
-	 * @description Add new element to state before first position.
-	 * @param data as element.
-	 * @returns instance of iterator.
+	 * @description Adds a new item to the start of the collection and resets the cursor to before the first element.
+	 * @param data The item to add.
+	 * @returns The current Iterator instance.
 	 */
 	addToStart(data: T): Iterator<T> {
 		this.currentIndex = -1;
@@ -199,8 +205,8 @@ import { IIterator, ITeratorConfig } from "../types";
 	}
 
 	/**
-	 * @description Remove the last element from state.
-	 * @returns instance of iterator.
+	 * @description Removes the last item from the collection.
+	 * @returns The current Iterator instance.
 	 */
 	removeLast(): Iterator<T> {
 		if (this.currentIndex >= this.total()) this.currentIndex -= 1;
@@ -209,8 +215,8 @@ import { IIterator, ITeratorConfig } from "../types";
 	}
 
 	/**
-	 * @description remove the first element from state.
-	 * @returns instance of iterator.
+	 * @description Removes the first item from the collection.
+	 * @returns The current Iterator instance.
 	 */
 	removeFirst(): Iterator<T> {
 		if (this.currentIndex > 0) this.currentIndex -= 1;
@@ -219,31 +225,32 @@ import { IIterator, ITeratorConfig } from "../types";
 	}
 
 	/**
-	 * @description Create a new instance of Iterator and keep current state.
-	 * @returns a new instance of Iterator with state.
+	 * @description Creates a new Iterator instance with the same configuration and current state as the existing one.
+	 * @returns A cloned Iterator instance.
 	 */
-	clone(): IIterator<T> {
+	clone(): _Iterator<T> {
 		return Iterator.create({
 			initialData: this.toArray(),
 			restartOnFinish: this.restartOnFinish,
 			returnCurrentOnReversion: this.returnCurrentOnReversion
-		})
+		});
 	}
+
 	/**
-	 * @description Get elements on state as array.
-	 * @returns array of items on state.
+	 * @description Returns all items in the iterator as an array.
+	 * @returns A copy of the internal array of items.
 	 */
 	toArray(): Array<T> {
 		return [...this.items];
 	}
 
 	/**
-	 * @description Count total of items on state.
-	 * @returns total of items on state.
+	 * @description Returns the total number of items in the iterator.
+	 * @returns The count of items in the underlying collection.
 	 */
 	total(): number {
 		return this.items.length;
 	}
- }
+}
 
 export default Iterator;
