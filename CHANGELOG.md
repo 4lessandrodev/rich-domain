@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### [1.25.beta-0] - 2024-12-15
+### [1.25.0-beta] - 2024-12-15
 
 #### Feat
 
