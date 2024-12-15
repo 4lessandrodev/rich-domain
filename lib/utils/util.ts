@@ -10,10 +10,17 @@ import IncrementTime from "./increment-time.util";
 import DecrementTime from "./decrement-time.util";
 import { CalcOpt } from "../types";
 
+/**
+ * @description Utility class providing various helper methods for date, number, and string manipulations.
+ */
 export class Utils {
     private static instance: Utils;
     private static validator: Validator = validator;
 
+    /**
+     * @description Creates a singleton instance of the Utils class.
+     * @returns {Utils} An instance of the Utils class.
+    */
     public static create(): Utils {
         if (!Utils.instance) {
             Utils.instance = new Utils();
@@ -21,6 +28,11 @@ export class Utils {
         return Utils.instance;
     }
 
+    /**
+     * @description Provides date manipulation utilities for adding or removing units of time.
+     * @param target The date to manipulate.
+     * @returns An object with methods for adding or removing units of time (days, hours, etc.).
+     */
     date(target: Date) {
         return ({
             add: (value: number) => ({
@@ -90,6 +102,11 @@ export class Utils {
         })
     }
 
+    /**
+     * @description Provides number manipulation utilities, including mathematical operations.
+     * @param target The number to manipulate.
+     * @returns An object with methods for multiplication, division, subtraction, and addition.
+     */
     number(target: number) {
         return {
             /**
@@ -131,6 +148,11 @@ export class Utils {
         }
     }
 
+    /**
+     * @description Provides string manipulation utilities, including removing or replacing characters.
+     * @param target The string to manipulate.
+     * @returns An object with methods for character removal, space removal, and replacement.
+     */
     string(target: string) {
         return {
             /**
