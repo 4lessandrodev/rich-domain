@@ -505,8 +505,9 @@ describe('aggregate', () => {
 			constructor() { super({ eventName: 'event' }) };
 
 			dispatch(product: Product, args_1: [DEvent<Product>, any[]]): void | Promise<void> {
-				const model = product.toObject();
-				const [event, args] = args_1;
+				const _model = product.toObject();
+				const [_event, _args] = args_1;
+				console.log(_model);
 			}
 
 		}
