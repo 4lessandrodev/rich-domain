@@ -1,5 +1,5 @@
 import { Aggregate, ID, Ok, Result, TsEvents, ValueObject } from "../../lib/core";
-import { DEvent, EventHandler, IResult, ISettings, UID } from "../../lib/types";
+import { DEvent, EventHandler, _Result, Settings, UID } from "../../lib/types";
 
 describe('aggregate', () => {
 
@@ -11,7 +11,7 @@ describe('aggregate', () => {
 		}
 
 		class AggregateErr extends Aggregate<Props> {
-			private constructor(props: Props, config?: ISettings) {
+			private constructor(props: Props, config?: Settings) {
 				super(props, config)
 			}
 		}
@@ -114,7 +114,7 @@ describe('aggregate', () => {
 				return this.validator.number(value).isBetween(0, 130);
 			}
 
-			public static create(props: Props): IResult<ValueObject<Props> | null> {
+			public static create(props: Props): Result<ValueObject<Props> | null> {
 				if (!this.isValidValue(props.value)) return Result.fail('Invalid value');
 				return Result.Ok(new AgeVo(props));
 			}
@@ -184,7 +184,7 @@ describe('aggregate', () => {
 				super(props);
 			}
 
-			public static create(props: AggProps): IResult<Aggregate<AggProps>> {
+			public static create(props: AggProps): Result<Aggregate<AggProps>> {
 				return Result.Ok(new UserAgg(props));
 			}
 		}
@@ -322,7 +322,7 @@ describe('aggregate', () => {
 					super(props)
 				}
 
-				public static create(props: Props): IResult<Product> {
+				public static create(props: Props): Result<Product> {
 					return Result.Ok(new Product(props));
 				}
 			}
@@ -507,12 +507,6 @@ describe('aggregate', () => {
 			dispatch(product: Product, args_1: [DEvent<Product>, any[]]): void | Promise<void> {
 				const model = product.toObject();
 				const [event, args] = args_1;
-
-				console.log(model);
-				console.log(event);
-				console.log(event.eventName);
-				console.log(event.options);
-				console.log(args);
 			}
 
 		}
