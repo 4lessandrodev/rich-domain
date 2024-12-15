@@ -1,14 +1,31 @@
-import { ICommand, IIterator, IResult, IResultExecute, IResultHook, IResultObject, IResultOptions } from "../types";
+import { ICommand, _Iterator, _Result, ResultExecute, ResultHook, ResultObject, IResultOptions } from "../types";
 import Iterator from "./iterator";
 
 /**
- * @summary The result is used to returns a operation result instead the own value.
- * @interface IResult<T, D, M>;
- * @classdesc on `T` refer to type of the value and `D` type of the error and `M` metaData type.
- * @default D is string.
- * @default M is empty object {}.
+ * @description The `Result` class represents the outcome of an operation, encapsulating both the success or failure state.
+ * A `Result` instance can contain a payload (`data`), an error, and optional metadata for additional context.
+ * This pattern encourages explicit handling of operation success or failure, making your code more robust and expressive.
+ * 
+ * @typeParam T - The type of the payload when the result is successful.
+ * @typeParam D - The type of the error when the result is a failure. Defaults to `string`.
+ * @typeParam M - The type of the metadata object. Defaults to an empty object `{}`.
+ * 
+ * @example
+ * ```typescript
+ * // Creating a success result with data
+ * const successResult = Result.Ok({ name: "Alice" });
+ * if (successResult.isOk()) {
+ *   console.log("Success data:", successResult.value());
+ * }
+ * 
+ * // Creating a failure result with a custom error message
+ * const failResult = Result.fail("An error occurred");
+ * if (failResult.isFail()) {
+ *   console.error("Error:", failResult.error());
+ * }
+ * ```
  */
-export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
+export class Result<T = void, D = string, M = {}> implements _Result<T, D, M> {
 
 	#isOk: Readonly<boolean>;
 	#isFail: Readonly<boolean>;
@@ -25,117 +42,74 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	}
 
 	/**
-	 * @description Create an instance of Result as success state.
-	 * @returns instance of Result<void>.
+	 * @description Creates a success `Result` instance, optionally containing data and metadata.
+	 * 
+	 * @returns A `Result` instance representing success.
 	 */
 	public static Ok(): Result<void>;
-
-	/**
-	 * @description Create an instance of Result as success state.
-	 * @returns instance of Result<void>.
-	 */
-	public static Ok(): IResult<void>;
-
-	/**
-	 * @description Create an instance of Result as success state with data and metadata to payload.
-	 * @param data as T to payload.
-	 * @param metaData as M to state.
-	 * @returns instance of Result.
-	 */
+	public static Ok(): _Result<void>;
 	public static Ok<T, M = {}, D = string>(data: T, metaData?: M): Result<T, D, M>;
-
-	/**
-	 * @description Create an instance of Result as success state with data and metadata to payload.
-	 * @param data as T to payload.
-	 * @param metaData as M to state.
-	 * @returns instance of Result.
-	 */
-	public static Ok<T, M = {}, D = string>(data: T, metaData?: M): IResult<T, D, M>;
-
-	/**
-	 * @description Create an instance of Result as success state with data and metadata to payload.
-	 * @param data as T to payload.
-	 * @param metaData as M to state.
-	 * @returns instance of Result.
-	 */
-	public static Ok<T, M = {}, D = string>(data?: T, metaData?: M): IResult<T, D, M> {
+	public static Ok<T, M = {}, D = string>(data: T, metaData?: M): _Result<T, D, M>;
+	public static Ok<T, M = {}, D = string>(data?: T, metaData?: M): _Result<T, D, M> {
 		const _data = typeof data === 'undefined' ? null : data;
-		const ok = new Result(true, _data, null, metaData) as unknown as IResult<T, D, M>;
-		return Object.freeze(ok) as IResult<T, D, M>;
+		const ok = new Result(true, _data, null, metaData) as unknown as _Result<T, D, M>;
+		return Object.freeze(ok) as _Result<T, D, M>;
 	}
 
 	/**
-	 * @description Create an instance of Result as failure state with error and metadata to payload.
-	 * @param error as D to payload.
-	 * @param metaData as M to state.
-	 * @returns instance of Result.
+	 * @description Creates a failure `Result` instance, optionally containing an error and metadata.
+	 * 
+	 * @returns A `Result` instance representing failure.
 	 */
 	public static fail<D = string, M = {}>(error?: D, metaData?: M): Result<null, D, M>;
-
-	/**
-	 * @description Create an instance of Result as failure state with error and metadata to payload.
-	 * @param error as D to payload.
-	 * @param metaData as M to state.
-	 * @returns instance of Result.
-	 */
-	public static fail<D = string, M = {}, T = void>(error?: D, metaData?: M): IResult<T, D, M> {
-		const _error = typeof error !== 'undefined' && error !== null ? error : 'void error. no message!';
-		const fail = new Result(false, null, _error, metaData) as unknown as IResult<T, D, M>;
-		return Object.freeze(fail) as IResult<T, D, M>;
-	}
-	/**
-	 * @description Create an instance of Iterator with array of Results on state.
-	 * @param results as array of Results
-	 * @returns instance of Iterator.
-	 */
-	public static iterate<A, B, M>(results?: Array<IResult<A, B, M>>): IIterator<IResult<A, B, M>> {
-		return Iterator.create<IResult<A, B, M>>({ initialData: results, returnCurrentOnReversion: true });
+	public static fail<D = string, M = {}, T = void>(error?: D, metaData?: M): _Result<T, D, M> {
+		const _error = (typeof error !== 'undefined' && error !== null) ? error : 'void error. no message!';
+		const fail = new Result(false, null, _error, metaData) as unknown as _Result<T, D, M>;
+		return Object.freeze(fail) as _Result<T, D, M>;
 	}
 
 	/**
-	 * @description Check all results instances status. Returns the first failure or returns the first success one.
-	 * @param results arrays with results instance.
-	 * @returns instance of result.
-	 * @default returns failure if provide a empty array.
+	 * @description Creates an iterator over a collection of `Result` instances. This allows sequential processing of multiple results.
+	 * @param results An array of `Result` instances.
+	 * @returns An iterator over the provided results.
 	 */
-	public static combine<A = any, B = any, M = any>(results: Array<IResult<any, any, any>>): IResult<A, B, M> {
+	public static iterate<A, B, M>(results?: Array<_Result<A, B, M>>): _Iterator<_Result<A, B, M>> {
+		return Iterator.create<_Result<A, B, M>>({ initialData: results, returnCurrentOnReversion: true });
+	}
+
+	/**
+	 * @description Combines multiple `Result` instances into a single `Result`. 
+	 * If any of the provided results is a failure, the combined `Result` is a failure.
+	 * If all results are successful, the combined `Result` is considered a success.
+	 * 
+	 * @param results An array of `Result` instances to combine.
+	 * @returns A `Result` instance representing the combined outcome.
+	 */
+	public static combine<A = any, B = any, M = any>(results: Array<_Result<any, any, any>>): _Result<A, B, M> {
 		const iterator = Result.iterate(results);
-		if (iterator.isEmpty()) return Result.fail('No results provided on combine param' as B) as unknown as IResult<A, B, M>;
+		if (iterator.isEmpty()) return Result.fail('No results provided on combine param' as B) as unknown as _Result<A, B, M>;
 		while (iterator.hasNext()) {
 			const currentResult = iterator.next();
-			if (currentResult.isFail()) return currentResult as IResult<A, B, M>;
+			if (currentResult.isFail()) return currentResult as _Result<A, B, M>;
 		}
-		return iterator.first() as IResult<A, B, M>;
+		return iterator.first() as _Result<A, B, M>;
 	}
 
 	/**
-	 * @description Execute any command on fail or success.
-	 * @param command instance of command that implements ICommand interface.
-	 * @returns Command result as payload.
+	 * @description Executes a command based on the result state. You can specify whether the command executes on success, failure, or both.
+	 * Optionally, you can provide data to the command if required.
+	 * 
+	 * @param command An object implementing `ICommand` interface.
+	 * @returns An object with methods to configure command execution based on the `Result` state.
 	 */
-	execute<X, Y>(command: ICommand<X | void, Y>): IResultExecute<X, Y> {
+	execute<X, Y>(command: ICommand<X | void, Y>): ResultExecute<X, Y> {
 		return {
-			/**
-			 * @description Use this option the command does not require arguments.
-			 * @param option `Ok` or `fail`
-			 * @returns command payload or undefined.
-			 */
 			on: (option: IResultOptions): Y | undefined => {
 				if (option === 'Ok' && this.isOk()) return command.execute();
 				if (option === 'fail' && this.isFail()) return command.execute();
 			},
-			/**
-			 * @description Use this option the command require arguments.
-			 * @param data the same type your command require.
-			 * @returns on function.
-			 */
-			withData: (data: X): IResultHook<Y> => {
+			withData: (data: X): ResultHook<Y> => {
 				return {
-					/**
-					 * @description Use this option the command does not require arguments.
-					 * @param option `Ok` or `fail`
-					 * @returns command payload or undefined.
-					 */
 					on: (option: IResultOptions): Y | undefined => {
 						if (option === 'Ok' && this.isOk()) return command.execute(data);
 						if (option === 'fail' && this.isFail()) return command.execute(data);
@@ -146,60 +120,49 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	}
 
 	/**
-	 * @description Get the instance value.
-	 * @returns `data` T or `null` case result is failure.
+	 * @description Retrieves the payload of the `Result`. If the `Result` is a failure, `value()` returns `null`.
+	 * @returns The payload `T` or `null` if the result is a failure.
 	 */
 	value(): T {
 		return this.#data as T;
 	}
+
 	/**
-	 * @description Get the instance error.
-	 * @returns `error` D or `null` case result is success.
+	 * @description Retrieves the error of the `Result`. If the `Result` is a success, `error()` returns `null`.
+	 * @returns The error `D` or `null` if the result is a success.
 	 */
 	error(): D {
 		return this.#error as D;
 	}
 
 	/**
-	 * @description Check if result instance is failure.
-	 * @returns `true` case result instance failure or `false` case is success one.
+	 * @description Determines if the `Result` represents a failure state.
+	 * @returns `true` if the result is a failure, `false` if it is a success.
 	 */
 	isFail(): boolean {
 		return this.#isFail;
 	}
+
 	/**
-	 * @description Determines if the result instance contains a `null` value.
-	 * This method is particularly useful when dealing with dynamically typed results,
-	 * allowing developers to validate and refine types based on the state of the result.
-	 * 
-	 * @returns {boolean} 
-	 * - `true` if the result instance holds a `null` value. 
-	 * - `false` otherwise.
-	 * 
-	 * @example
-	 * const result = Result.Ok(null);
-	 * 
-	 * if (result.isNull()) {
-	 *     console.log("The result value is null");
-	 * } else {
-	 *     console.log("The result value is not null:", result.value());
-	 * }
+	 * @description Checks if the `Result` payload is `null`. 
+	 * This can be useful for confirming the presence or absence of a value before proceeding.
+	 * @returns `true` if the payload is `null`, `false` otherwise.
 	 */
 	isNull(): boolean {
 		return this.#data === null || this.#isFail;
 	}
 
 	/**
-	 * @description Check if result instance is success.
-	 * @returns `true` case result instance success or `false` case is failure one.
+	 * @description Determines if the `Result` represents a success state.
+	 * @returns `true` if the result is a success, `false` if it is a failure.
 	 */
 	isOk(): boolean {
 		return this.#isOk;
 	}
 
 	/**
-	 * @description Get the instance metadata.
-	 * @returns `metadata` M or `{}` result in case of empty object has no metadata value.
+	 * @description Retrieves the metadata associated with the `Result`.
+	 * @returns The metadata object `M`, or `{}` if no metadata was provided.
 	 */
 	metaData(): M {
 		const metaData = this.#metaData;
@@ -207,18 +170,10 @@ export class Result<T = void, D = string, M = {}> implements IResult<T, D, M> {
 	}
 
 	/**
-	 * @description Get result state as object.
-	 * @returns result state.
-	 * @example 
-	 * {
-	 * 	isOk: boolean;
-	 * 	isFail: boolean;
-	 * 	data: T | null;
-	 * 	error: D | null;
-	 * 	metaData: M | {};
-	 * }
+	 * @description Converts the `Result` instance into a plain object for easier logging or serialization.
+	 * @returns An object containing `isOk`, `isFail`, `data`, `error`, and `metaData`.
 	 */
-	toObject(): IResultObject<T, D, M> {
+	toObject(): ResultObject<T, D, M> {
 		const metaData = {
 			isOk: this.#isOk,
 			isFail: this.#isFail,
