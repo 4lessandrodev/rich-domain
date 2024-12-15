@@ -630,7 +630,7 @@ What is Result:
 
 ```ts
 
-IResult<P, E, M>;
+Result<P, E, M>;
 
 ```
 
@@ -1534,7 +1534,7 @@ export class User extends Entity<UserProps>{
 		return isValidName && isValidAge;
 	}
 
-	public static create(props: UserProps): IResult<User> {
+	public static create(props: UserProps): Result<User> {
 
 		const isValidRules = this.isValidProps(props);
 		if(!isValidRules) return Result.fail('invalid props');
