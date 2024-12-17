@@ -6,7 +6,12 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-### [1.25.beta-0] - 2024-12-15
+
+## Released
+
+---
+
+### [1.25.0] - 2024-12-17
 
 #### Feat
 
@@ -18,10 +23,6 @@ All notable changes to this project will be documented in this file.
     - `IResult` renamed to `Result` or `_Result`
     - `IAdapter` renamed to `Adapter` or `_Adapter`
     - `ICommand` renamed to `Command`
-
-
-
-## Released
 
 ---
 
