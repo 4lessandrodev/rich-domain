@@ -11,6 +11,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.25.0] - 2024-12-17
+
+#### Feat
+
+- Improve auto mapper when handling an array of objects containing entity or value object.
+- Improve auto mapper when handling symbols or objects containing symbols.
+- Enhance class method comments for better documentation.
+- Rename several interfaces for consistency:
+    - `IUseCase` renamed to `UseCase`
+    - `IResult` renamed to `Result` or `_Result`
+    - `IAdapter` renamed to `Adapter` or `_Adapter`
+    - `ICommand` renamed to `Command`
+
+---
+
 ### [1.24.1] - 2024-11-29
 
 #### Fix

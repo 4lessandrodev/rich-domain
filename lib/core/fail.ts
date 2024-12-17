@@ -1,91 +1,91 @@
-import { IResult } from "../types";
+import { _Result } from "../types";
 import Result from "./result";
 
 /**
- * @description Create an instance of Result as failure state.
- * @param error generic type E
- * @param metaData generic type M
- * @returns instance of Result as failure state
+ * @description Creates a `Result` instance representing a failure state.
  * 
- * @augments E generic type for error.
- * @default string.
+ * The `Fail` function returns a result indicating that an operation has failed,
+ * and can optionally include an error message and additional metadata.
  * 
- * @argument M generic type for metaData.
- * @default Object empty object {}.
+ * @typeParam E - The error type. Defaults to `string`.
+ * @typeParam M - The metadata type. Defaults to an empty object `{}`.
  * 
- * @argument P generic type for payload.
- * @default void as no state.
+ * @param error The error information. If not provided, defaults to a generic error message.
+ * @param metaData Optional metadata providing additional context about the error.
+ * 
+ * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * types are inferred from the provided arguments.
  */
  function Fail(): Result<null, string, {}>;
 
 /**
- * @description Create an instance of Result as failure state.
- * @param error generic type E
- * @param metaData generic type M
- * @returns instance of Result as failure state
+ * @description Creates a `Result` instance representing a failure state.
  * 
- * @augments E generic type for error.
- * @default string.
+ * The `Fail` function returns a result indicating that an operation has failed,
+ * and can optionally include an error message and additional metadata.
  * 
- * @argument M generic type for metaData.
- * @default Object empty object {}.
+ * @typeParam E - The error type. Defaults to `string`.
+ * @typeParam M - The metadata type. Defaults to an empty object `{}`.
  * 
- * @argument P generic type for payload.
- * @default void as no state.
+ * @param error The error information. If not provided, defaults to a generic error message.
+ * @param metaData Optional metadata providing additional context about the error.
+ * 
+ * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * types are inferred from the provided arguments.
  */
-function Fail(): IResult<null, string, {}>;
+function Fail(): _Result<null, string, {}>;
 
 /**
- * @description Create an instance of Result as failure state.
- * @param error generic type E
- * @param metaData generic type M
- * @returns instance of Result as failure state
+ * @description Creates a `Result` instance representing a failure state.
  * 
- * @augments E generic type for error.
- * @default string.
+ * The `Fail` function returns a result indicating that an operation has failed,
+ * and can optionally include an error message and additional metadata.
  * 
- * @argument M generic type for metaData.
- * @default Object empty object {}.
+ * @typeParam E - The error type. Defaults to `string`.
+ * @typeParam M - The metadata type. Defaults to an empty object `{}`.
  * 
- * @argument P generic type for payload.
- * @default void as no state.
+ * @param error The error information. If not provided, defaults to a generic error message.
+ * @param metaData Optional metadata providing additional context about the error.
+ * 
+ * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * types are inferred from the provided arguments.
  */
  function Fail<E, M extends {} = {}>(error: E extends void ? null : E, metaData?: M): Result<null, E extends void ? string : E, M>;
 
 
 /**
- * @description Create an instance of Result as failure state.
- * @param error generic type E
- * @param metaData generic type M
- * @returns instance of Result as failure state
+ * @description Creates a `Result` instance representing a failure state.
  * 
- * @augments E generic type for error.
- * @default string.
+ * The `Fail` function returns a result indicating that an operation has failed,
+ * and can optionally include an error message and additional metadata.
  * 
- * @argument M generic type for metaData.
- * @default Object empty object {}.
+ * @typeParam E - The error type. Defaults to `string`.
+ * @typeParam M - The metadata type. Defaults to an empty object `{}`.
  * 
- * @argument P generic type for payload.
- * @default void as no state.
+ * @param error The error information. If not provided, defaults to a generic error message.
+ * @param metaData Optional metadata providing additional context about the error.
+ * 
+ * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * types are inferred from the provided arguments.
  */
-function Fail<E, M extends {} = {}>(error: E extends void ? null : E, metaData?: M): IResult<null, E extends void ? string : E, M>;
+function Fail<E, M extends {} = {}>(error: E extends void ? null : E, metaData?: M): _Result<null, E extends void ? string : E, M>;
 
 /**
- * @description Create an instance of Result as failure state.
- * @param error generic type E
- * @param metaData generic type M
- * @returns instance of Result as failure state
+ * @description Creates a `Result` instance representing a failure state.
  * 
- * @augments E generic type for error.
- * @default string.
+ * The `Fail` function returns a result indicating that an operation has failed,
+ * and can optionally include an error message and additional metadata.
  * 
- * @argument M generic type for metaData.
- * @default Object empty object {}.
+ * @typeParam E - The error type. Defaults to `string`.
+ * @typeParam M - The metadata type. Defaults to an empty object `{}`.
  * 
- * @argument P generic type for payload.
- * @default void as no state.
+ * @param error The error information. If not provided, defaults to a generic error message.
+ * @param metaData Optional metadata providing additional context about the error.
+ * 
+ * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * types are inferred from the provided arguments.
  */
-function Fail<E = string, M extends {} = {}>(error?: E extends void ? null : E, metaData?: M): IResult<null, E extends void ? string : E, M> {
+function Fail<E = string, M extends {} = {}>(error?: E extends void ? null : E, metaData?: M): _Result<null, E extends void ? string : E, M> {
 	const _error = (typeof error !== 'undefined' && error !== null) ? error : 'void error. no message!';
 	return Result.fail(_error as any, metaData);
 }

@@ -1,5 +1,5 @@
 import { Class, Ok, Result, ValueObject } from "../../lib/core";
-import { Adapter, ICommand, IResult } from "../../lib/types";
+import { Adapter, ICommand, _Result } from "../../lib/types";
 import { Utils, Validator } from "../../lib/utils";
 
 describe('value-object', () => {
@@ -158,7 +158,7 @@ describe('value-object', () => {
 				super(props);
 			}
 
-			public static create(props: Props): IResult<StringVo> {
+			public static create(props: Props): _Result<StringVo> {
 				return Result.Ok(new StringVo(props));
 			}
 		}
@@ -182,7 +182,7 @@ describe('value-object', () => {
 				super(props);
 			}
 
-			public static create(props: Props): IResult<StringVo> {
+			public static create(props: Props): _Result<StringVo> {
 				return Result.Ok(new StringVo(props));
 			}
 		}
@@ -213,7 +213,7 @@ describe('value-object', () => {
 				super(props, { disableGetters: true });
 			}
 
-			public static create(props: Props): IResult<StringVo> {
+			public static create(props: Props): _Result<StringVo> {
 				return Result.Ok(new StringVo(props));
 			}
 		}
@@ -328,7 +328,7 @@ describe('value-object', () => {
 				return isValidAge && isValidDate;
 			}
 
-			public static create(props: Props1): IResult<HumanAge | null> {
+			public static create(props: Props1): _Result<HumanAge | null> {
 				if (!HumanAge.isValidProps(props)) return Result.fail('Invalid props');
 				return Result.Ok(new HumanAge(props));
 			}
@@ -350,7 +350,7 @@ describe('value-object', () => {
 				super(props);
 			}
 
-			public static create(props: Props3): IResult<Sample> {
+			public static create(props: Props3): _Result<Sample> {
 				return Result.Ok(new Sample(props));
 			}
 		};
@@ -393,7 +393,7 @@ describe('value-object', () => {
 				}
 			]);
 
-			expect(payload.result.error()).toBe('there is no static method create in undefined class')
+			expect(payload.result.error()).toBe(`No static 'create' method found in class undefined.`)
 			expect(payload.result.isFail()).toBeTruthy();
 			expect(payload.data.total()).toBe(3);
 		});
@@ -408,9 +408,9 @@ describe('value-object', () => {
 			expect(result.isOk()).toBeTruthy();
 			expect(data.total()).toBe(3);
 
-			const age = data.next() as IResult<HumanAge>;
-			const generic = data.next() as IResult<GenericVo>;
-			const sample = data.next() as IResult<Sample>;
+			const age = data.next() as _Result<HumanAge>;
+			const generic = data.next() as _Result<GenericVo>;
+			const sample = data.next() as _Result<Sample>;
 
 			expect(age.isOk()).toBeTruthy();
 			expect(generic.isOk()).toBeTruthy();
@@ -530,7 +530,7 @@ describe('value-object', () => {
 				super(props)
 			}
 
-			public static create(props: Props): IResult<Simple> {
+			public static create(props: Props): _Result<Simple> {
 				return Result.Ok(new Simple(props));
 			}
 		}

@@ -1,5 +1,5 @@
 import { ValueObject, Entity, Result, Ok, Fail } from '../../lib/core';
-import { Adapter, IAdapter, IResult } from '../../lib/types';
+import { Adapter, _Adapter, _Result } from '../../lib/types';
 
 describe('adapter v1', () => {
 
@@ -10,7 +10,7 @@ describe('adapter v1', () => {
 			super(props);
 		}
 
-		public static create(props: NameProps): IResult<DomainName> {
+		public static create(props: NameProps): _Result<DomainName> {
 			return Result.Ok(new DomainName(props));
 		}
 	}
@@ -23,7 +23,7 @@ describe('adapter v1', () => {
 			super(props)
 		}
 
-		public static create(props: UserProps): IResult<DomainUser> {
+		public static create(props: UserProps): Result<DomainUser> {
 			return Result.Ok(new DomainUser(props));
 		}
 	}
@@ -35,8 +35,8 @@ describe('adapter v1', () => {
 		updatedAt: Date;
 	}
 
-	class DomainUserAdapter implements IAdapter<Model, DomainUser> {
-		build(target: Model): IResult<DomainUser> {
+	class DomainUserAdapter implements _Adapter<Model, DomainUser> {
+		build(target: Model): _Result<DomainUser> {
 			return DomainUser.create({
 				id: target.id,
 				name: DomainName.create({ value: target.name }).value(),
@@ -46,8 +46,8 @@ describe('adapter v1', () => {
 		}
 	}
 
-	class DataUserAdapter implements IAdapter<DomainUser, Model> {
-		build(target: DomainUser): IResult<Model> {
+	class DataUserAdapter implements _Adapter<DomainUser, Model> {
+		build(target: DomainUser): _Result<Model> {
 
 			return Result.Ok({
 				id: target.get('id'),
@@ -103,8 +103,8 @@ describe('adapter v1', () => {
 		type Out = { b: string };
 		type Err = { err: string; stack?: string };
 
-		class CustomAdapter implements IAdapter<In, Out, Err> {
-			build(target: In): IResult<Out | null, Err> {
+		class CustomAdapter implements _Adapter<In, Out, Err> {
+			build(target: In): _Result<Out | null, Err> {
 				if (typeof target.a !== 'number') return Fail({ err: 'target.a is not a number' });
 				return Ok({ b: target.a.toString() });
 			}

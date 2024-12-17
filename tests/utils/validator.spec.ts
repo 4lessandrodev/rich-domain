@@ -1,5 +1,5 @@
 import { Aggregate, Entity, id, Id, ID, Result, ValueObject } from "../../lib/core";
-import { IResult } from "../../lib/types";
+import { _Result } from "../../lib/types";
 import { Validator } from "../../lib/utils";
 
 describe('check-types', () => {
@@ -10,7 +10,7 @@ describe('check-types', () => {
 			super(props)
 		}
 
-		public static create(): IResult<Aggregate<any>, string> {
+		public static create(): Result<Aggregate<any>, string> {
 			return Result.Ok(new Agg({ value: 'hello' }));
 		}
 	};
@@ -20,7 +20,7 @@ describe('check-types', () => {
 			super(props)
 		}
 
-		public static create(props: any = { value: 'hello' }): IResult<Entity<any>, string> {
+		public static create(props: any = { value: 'hello' }): Result<Entity<any>, string> {
 			return Result.Ok(new Ent(props));
 		}
 	};
@@ -30,7 +30,7 @@ describe('check-types', () => {
 			super(props)
 		}
 
-		public static create(): IResult<ValueObject<any>, string> {
+		public static create(): _Result<ValueObject<any>, string> {
 			return Result.Ok(new Vo('hello'));
 		}
 	};
