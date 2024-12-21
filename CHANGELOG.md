@@ -6,8 +6,57 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-
 ## Released
+
+---
+
+### [1.25.1] - 2024-12-20  
+
+#### **Feat**  
+
+- **Dynamic Typing in `Result` Made Optional**:  
+  - Developers can now choose between `Result<T>` (non-nullable) and `Result<T | null>` (nullable), based on their specific use case.  
+  - This update allows greater flexibility for explicit `null` handling without forcing unnecessary complexity in scenarios where nullability is not required.  
+
+#### **Examples**  
+
+1. **Explicit Null Handling**:  
+   Use `Result<T | null>` to manage nullable states explicitly:  
+   ```typescript
+   class SampleNullish {
+       public static create(props: Props): Result<SampleNullish | null> {
+           if (!props.name || props.name.trim() === '') {
+               return Fail('name is required');
+           }
+           return Ok(new SampleNullish(props));
+       }
+   }
+   ```
+
+2. **Non-Nullable Values**:  
+   Use `Result<T>` for cases where null handling is unnecessary:  
+   ```typescript
+   class Sample {
+       public static create(props: Props): Result<Sample> {
+           if (!props.name || props.name.trim() === '') {
+               return Fail('name is required');
+           }
+           return Ok(new Sample(props));
+       }
+   }
+   ```
+
+#### **Fix**  
+
+- Enhanced backward compatibility by making nullable typing optional, ensuring existing integrations using `Result<T>` remain unaffected.  
+
+#### **Impact**  
+
+- **Improved Flexibility**:  
+  Developers can adapt the `Result` type to suit their needs, supporting nullable and non-nullable use cases seamlessly.  
+
+- **Enhanced Clarity**:  
+  Provides explicit type inference, ensuring safer and more intuitive code handling for nullable scenarios.
 
 ---
 

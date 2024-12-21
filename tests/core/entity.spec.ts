@@ -17,7 +17,7 @@ describe("entity", () => {
 			}
 
 			public static create(props: Props): Result<EntitySample | null> {
-				if(!props) return Fail('props is required')
+				if (!props) return Fail('props is required')
 				return Result.Ok(new EntitySample(props))
 			}
 		}
@@ -833,4 +833,104 @@ Object {
 		});
 
 	});
+
+	describe('Sample and SampleNullish Entity Tests', () => {
+		type Props = { name: string };
+	
+		class SampleNullish extends Entity<Props> {
+			private constructor(props: Props) {
+				super(props);
+			}
+	
+			public static create(props: Props): Result<SampleNullish | null> {
+				// Explicit typing allows the programmer to handle `null` as a valid case
+				if (!props.name || props.name.trim() === '') {
+					return Fail('name is required');
+				}
+				return Ok(new SampleNullish(props));
+			}
+		}
+	
+		class Sample extends Entity<Props> {
+			private constructor(props: Props) {
+				super(props);
+			}
+	
+			public static create(props: Props): Result<Sample> {
+				// Without `null` as a possibility, the programmer does not need to handle optional cases
+				if (!props.name || props.name.trim() === '') {
+					return Fail('name is required');
+				}
+				return Ok(new Sample(props));
+			}
+		}
+	
+		describe('SampleNullish.create', () => {
+			it('should return a result with a nullish value when name is empty', () => {
+				// Arrange
+				const invalidProps = { name: '' };
+	
+				// Act
+				const result = SampleNullish.create(invalidProps);
+	
+				// Assert
+				expect(result.isFail()).toBe(true);
+				expect(result.error()).toBe('name is required');
+	
+				// The Developer must explicitly handle the possibility of `null`
+				const value = result.value();
+				expect(value).toBeNull(); // Explicitly null due to failure
+			});
+	
+			it('should return a valid instance when name is provided', () => {
+				// Arrange
+				const validProps = { name: 'Valid Name' };
+	
+				// Act
+				const result = SampleNullish.create(validProps);
+	
+				// Assert
+				expect(result.isOk()).toBe(true);
+	
+				// The Developer must handle the value as potentially null
+				const value = result.value();
+				expect(value?.get('name')).toBe('Valid Name'); // Safe access with optional chaining
+			});
+		});
+	
+		describe('Sample.create', () => {
+			it('should return a failure result when name is empty', () => {
+				// Arrange
+				const invalidProps = { name: '' };
+	
+				// Act
+				const result = Sample.create(invalidProps);
+	
+				// Assert
+				expect(result.isFail()).toBe(true);
+				expect(result.error()).toBe('name is required');
+	
+				// With no possibility of `null`, the Developer does not need to handle it
+				const value = result.value();
+				expect(value).toBeNull(); // Since the result is a failure
+			});
+	
+			it('should return a valid instance when name is provided', () => {
+				// Arrange
+				const validProps = { name: 'Valid Name' };
+	
+				// Act
+				const result = Sample.create(validProps);
+	
+				// Assert
+				expect(result.isOk()).toBe(true);
+	
+				// Developer does not need to use optional chaining
+				const value = result.value();
+				expect(value.get('name')).toBe('Valid Name'); // Confident non-null access
+			});
+		});
+	});
+	
+
 });

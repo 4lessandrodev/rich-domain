@@ -13,10 +13,10 @@ import Result from "./result";
  * @param error The error information. If not provided, defaults to a generic error message.
  * @param metaData Optional metadata providing additional context about the error.
  * 
- * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * @returns A `Result` instance with error payload or (`null`) and an error state. The `error` and `metaData` 
  * types are inferred from the provided arguments.
  */
- function Fail(): Result<null, string, {}>;
+ function Fail(): Result<string, string, {}>;
 
 /**
  * @description Creates a `Result` instance representing a failure state.
@@ -30,10 +30,10 @@ import Result from "./result";
  * @param error The error information. If not provided, defaults to a generic error message.
  * @param metaData Optional metadata providing additional context about the error.
  * 
- * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * @returns A `Result` instance with error payload or (`null`) and an error state. The `error` and `metaData` 
  * types are inferred from the provided arguments.
  */
-function Fail(): _Result<null, string, {}>;
+function Fail(): _Result<string, string, {}>;
 
 /**
  * @description Creates a `Result` instance representing a failure state.
@@ -47,10 +47,10 @@ function Fail(): _Result<null, string, {}>;
  * @param error The error information. If not provided, defaults to a generic error message.
  * @param metaData Optional metadata providing additional context about the error.
  * 
- * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * @returns A `Result` instance with error payload or (`null`) and an error state. The `error` and `metaData` 
  * types are inferred from the provided arguments.
  */
- function Fail<E, M extends {} = {}>(error: E extends void ? null : E, metaData?: M): Result<null, E extends void ? string : E, M>;
+ function Fail<E, M extends {} = {}, P = void>(error: E extends void ? null : E, metaData?: M): Result<P, E extends void ? string : E, M>;
 
 
 /**
@@ -65,10 +65,10 @@ function Fail(): _Result<null, string, {}>;
  * @param error The error information. If not provided, defaults to a generic error message.
  * @param metaData Optional metadata providing additional context about the error.
  * 
- * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * @returns A `Result` instance with error payload or (`null`) and an error state. The `error` and `metaData` 
  * types are inferred from the provided arguments.
  */
-function Fail<E, M extends {} = {}>(error: E extends void ? null : E, metaData?: M): _Result<null, E extends void ? string : E, M>;
+function Fail<E, M extends {} = {}, P = void>(error: E extends void ? null : E, metaData?: M): _Result<P, E extends void ? string : E, M>;
 
 /**
  * @description Creates a `Result` instance representing a failure state.
@@ -82,10 +82,10 @@ function Fail<E, M extends {} = {}>(error: E extends void ? null : E, metaData?:
  * @param error The error information. If not provided, defaults to a generic error message.
  * @param metaData Optional metadata providing additional context about the error.
  * 
- * @returns A `Result` instance with no payload (`null`) and an error state. The `error` and `metaData` 
+ * @returns A `Result` instance with error payload or (`null`) and an error state. The `error` and `metaData` 
  * types are inferred from the provided arguments.
  */
-function Fail<E = string, M extends {} = {}>(error?: E extends void ? null : E, metaData?: M): _Result<null, E extends void ? string : E, M> {
+function Fail<E = string, M extends {} = {}, P = void>(error?: E extends void ? null : E, metaData?: M): _Result<P, E extends void ? string : E, M> {
 	const _error = (typeof error !== 'undefined' && error !== null) ? error : 'void error. no message!';
 	return Result.fail(_error as any, metaData);
 }
