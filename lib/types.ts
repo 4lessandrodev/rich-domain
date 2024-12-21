@@ -325,7 +325,7 @@ export type PropsValidation<T> = {
  */
 export interface _Adapter<F, T, E = any, M = any> {
 	/** Builds the target type from the input type. */
-	build(target: F): _Result<T | null, E, M>;
+	build(target: F): _Result<T, E, M>;
 }
 
 export type IAdapter<F, T, E = any, M = any> = _Adapter<F, T, E, M>;
