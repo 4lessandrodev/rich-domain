@@ -61,7 +61,7 @@ export class Result<T = void, D = string, M = {}> implements _Result<T, D, M> {
 	 * 
 	 * @returns A `Result` instance representing failure.
 	 */
-	public static fail<D = string, M = {}>(error?: D, metaData?: M): Result<null, D, M>;
+	public static fail<D = string, M = {}, P = void>(error?: D, metaData?: M): Result<P, D, M>;
 	public static fail<D = string, M = {}, T = void>(error?: D, metaData?: M): _Result<T, D, M> {
 		const _error = (typeof error !== 'undefined' && error !== null) ? error : 'void error. no message!';
 		const fail = new Result(false, null, _error, metaData) as unknown as _Result<T, D, M>;
