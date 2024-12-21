@@ -104,7 +104,7 @@ describe('adapter v1', () => {
 		type Err = { err: string; stack?: string };
 
 		class CustomAdapter implements _Adapter<In, Out, Err> {
-			build(target: In): _Result<Out | null, Err> {
+			build(target: In): _Result<Out, Err> {
 				if (typeof target.a !== 'number') return Fail({ err: 'target.a is not a number' });
 				return Ok({ b: target.a.toString() });
 			}
