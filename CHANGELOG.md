@@ -10,6 +10,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [1.26.0] - 2025-01-27  
+
+#### **Feat**  
+
+- **Nodejs Version**:
+  - Added support for nodejs v23
+
+---
+
 ### [1.25.1] - 2024-12-20  
 
 #### **Feat**  

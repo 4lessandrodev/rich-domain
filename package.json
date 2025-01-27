@@ -1,6 +1,6 @@
 {
 	"name": "rich-domain",
-	"version": "1.25.1",
+	"version": "1.26.0",
 	"description": "This package provide utils file and interfaces to assistant build a complex application with domain driving design",
 	"main": "index.js",
 	"types": "index.d.ts",
@@ -15,7 +15,7 @@
 	"homepage": "https://github.com/4lessandrodev/rich-domain",
 	"license": "MIT",
 	"engines": {
-		"node": ">=16.x <=22"
+		"node": ">=16.x <=23.x"
 	},
 	"devDependencies": {
 		"@types/jest": "^28.1.8",
