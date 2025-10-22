@@ -1,5 +1,5 @@
-import { Aggregate, ID, Ok, Result, TsEvents, ValueObject } from "../../lib/core";
-import { DEvent, EventHandler, _Result, Settings, UID } from "../../lib/types";
+import { Aggregate, ID, TsEvents, ValueObject } from "../../lib/core";
+import { DEvent, EventHandler, Settings, UID } from "../../lib/types";
 
 describe('aggregate', () => {
 
@@ -16,21 +16,21 @@ describe('aggregate', () => {
 			}
 		}
 
-		it('should return fails if provide a null value', () => {
-			const obj = AggregateErr.create(null);
-			expect(obj.isFail()).toBeTruthy();
+		it('should return fails if provide a null value', async () => {
+			const obj = await AggregateErr.create(null);
+			expect(obj).toBeNull();
 		});
 
-		it('should return fails if provide an undefined value', () => {
-			const obj = AggregateErr.create(undefined);
-			expect(obj.isFail()).toBeTruthy();
+		it('should return fails if provide an undefined value', async () => {
+			const obj = await AggregateErr.create(undefined);
+			expect(obj).toBeNull();
 		});
 
-		it('should create a valid aggregate', () => {
-			const obj = AggregateErr.create({ id: '23366cbf-86cd-4de3-874a-5a11b4fe5dac', name: 'Jane' });
-			expect(obj.isFail()).toBeFalsy();
-			expect(obj.value().get('name')).toBe('Jane');
-			expect(obj.value().hashCode().value()).toBe('[Aggregate@AggregateErr]:23366cbf-86cd-4de3-874a-5a11b4fe5dac')
+		it('should create a valid aggregate', async () => {
+			const obj = await AggregateErr.create({ id: '23366cbf-86cd-4de3-874a-5a11b4fe5dac', name: 'Jane' });
+			expect(obj).not.toBeNull();
+			expect(obj?.get('name')).toBe('Jane');
+			expect(obj?.hashCode().value()).toBe('[Aggregate@AggregateErr]:23366cbf-86cd-4de3-874a-5a11b4fe5dac')
 		});
 	});
 
@@ -47,57 +47,57 @@ describe('aggregate', () => {
 				super(props)
 			}
 
-			public static create(props: Props): Result<BasicAggregate> {
-				return Result.Ok(new BasicAggregate(props));
+			public static create(props: Props): Promise<BasicAggregate | null> {
+				return Promise.resolve(new BasicAggregate(props));
 			}
 		}
 
-		it('should create a basic aggregate with success', () => {
+		it('should create a basic aggregate with success', async () => {
 
-			const agg = BasicAggregate.create({ name: 'Jane Doe', age: 21 });
+			const agg = await BasicAggregate.create({ name: 'Jane Doe', age: 21 });
 
-			expect(agg.value().id).toBeDefined();
+			expect(agg?.id).toBeDefined();
 
-			expect(agg.value().isNew()).toBeTruthy();
+			expect(agg?.isNew()).toBeTruthy();
 
-			expect(agg.value().get('name')).toBe('Jane Doe');
+			expect(agg?.get('name')).toBe('Jane Doe');
 
 		});
 
-		it('should create a basic aggregate with a provided id', () => {
-			const agg = BasicAggregate.create({
+		it('should create a basic aggregate with a provided id', async () => {
+			const agg = await BasicAggregate.create({
 				id: '8b51a5a2-d47a-4431-884a-4c7d77e1a201',
 				name: 'Jane Doe',
 				age: 18
 			});
 
-			expect(agg.value().isNew()).toBeFalsy();
+			expect(agg?.isNew()).toBeFalsy();
 
-			expect(agg.value().hashCode().value())
+			expect(agg?.hashCode().value())
 				.toBe('[Aggregate@BasicAggregate]:8b51a5a2-d47a-4431-884a-4c7d77e1a201');
 		});
 
-		it('should change attributes values with default function', () => {
-			const agg = BasicAggregate.create({ name: 'Jane Doe', age: 23 });
+		it('should change attributes values with default function', async () => {
+			const agg = await BasicAggregate.create({ name: 'Jane Doe', age: 23 });
 
-			expect(agg.value().id.value()).toBeDefined();
+			expect(agg?.id.value()).toBeDefined();
 
-			expect(agg.value().get('name')).toBe('Jane Doe');
-			expect(agg.value().get('age')).toBe(23);
+			expect(agg?.get('name')).toBe('Jane Doe');
+			expect(agg?.get('age')).toBe(23);
 
-			const setAge = agg.value().set('age').to(18);
-			const setName = agg.value().set('name').to('Anne');
+			const setAge = agg?.set('age').to(18);
+			const setName = agg?.set('name').to('Anne');
 			expect(setAge).toBeTruthy();
 			expect(setName).toBeTruthy();
-			expect(agg.value().get('age')).toBe(18);
-			expect(agg.value().get('name')).toBe('Anne');
+			expect(agg?.get('age')).toBe(18);
+			expect(agg?.get('name')).toBe('Anne');
 
-			const changedAge = agg.value().change('age', 21);
-			const changedName = agg.value().change('name', 'Louse');
+			const changedAge = agg?.change('age', 21);
+			const changedName = agg?.change('name', 'Louse');
 			expect(changedName).toBeTruthy();
 			expect(changedAge).toBeTruthy();
-			expect(agg.value().get('age')).toBe(21);
-			expect(agg.value().get('name')).toBe('Louse');
+			expect(agg?.get('age')).toBe(21);
+			expect(agg?.get('name')).toBe('Louse');
 		});
 	});
 
@@ -114,9 +114,9 @@ describe('aggregate', () => {
 				return this.validator.number(value).isBetween(0, 130);
 			}
 
-			public static create(props: Props): Result<ValueObject<Props> | null> {
-				if (!this.isValidValue(props.value)) return Result.fail('Invalid value');
-				return Result.Ok(new AgeVo(props));
+			public static create(props: Props): Promise<ValueObject<Props> | null> {
+				if (!this.isValidValue(props.value)) return Promise.resolve(null);
+				return Promise.resolve(new AgeVo(props));
 			}
 		}
 
@@ -142,24 +142,24 @@ describe('aggregate', () => {
 				super(props);
 			}
 
-			public static create(props: AggProps): Result<Aggregate<AggProps> | null> {
-				return Result.Ok(new UserAgg(props));
+			public static create(props: AggProps): Promise<Aggregate<AggProps> | null> {
+				return Promise.resolve(new UserAgg(props));
 			}
 		}
 
-		it('should create a user with success', () => {
+		it('should create a user with success', async () => {
 
-			const age = AgeVo.create({ value: 21 }).value() as AgeVo;
-			const user = UserAgg.create({ age });
+			const age = await AgeVo.create({ value: 21 }) as AgeVo;
+			const user = await UserAgg.create({ age });
 
-			expect(user.isOk()).toBeTruthy();
+			expect(user).not.toBeNull();
 
 		});
 
-		it('should get value from age with success', () => {
+		it('should get value from age with success', async () => {
 
-			const age = AgeVo.create({ value: 21 }).value() as AgeVo;
-			const user = UserAgg.create({ age }).value();
+			const age = await AgeVo.create({ value: 21 }) as AgeVo;
+			const user = await UserAgg.create({ age });
 
 			const result = (user as Aggregate<AggProps>)
 				.get('age')
@@ -184,131 +184,133 @@ describe('aggregate', () => {
 				super(props);
 			}
 
-			public static create(props: AggProps): Result<Aggregate<AggProps>> {
-				return Result.Ok(new UserAgg(props));
+			public static create(props: AggProps): Promise<Aggregate<AggProps> | null> {
+				return Promise.resolve(new UserAgg(props));
 			}
 		}
-		it('should create a new date if props are defined on props', () => {
-			const agg = UserAgg.create({ name: 'Leticia' });
+		it('should create a new date if props are defined on props', async () => {
+			const agg = await UserAgg.create({ name: 'Leticia' });
 
-			expect(agg.value().get('createdAt')).toBeDefined();
-			expect(agg.value().get('createdAt')).toBeDefined();
-			expect(agg.value().toObject().name).toBe('Leticia');
+			expect(agg?.get('createdAt')).toBeDefined();
+			expect(agg?.get('createdAt')).toBeDefined();
+			const obj = await agg!.toObject();
+			expect(obj.name).toBe('Leticia');
 		});
 
-		it('should create a date from props if provide value', () => {
+		it('should create a date from props if provide value', async () => {
 			process.env.TZ = 'UTC';
 			const createdAt = new Date('2022-01-01T03:00:00.000Z');
 			const updatedAt = new Date('2022-01-01T03:00:00.000Z');
-			const agg = UserAgg.create({ name: 'Leticia', createdAt, updatedAt });
+			const agg = await UserAgg.create({ name: 'Leticia', createdAt, updatedAt });
 
-			expect(agg.value().get('createdAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
-			expect(agg.value().get('updatedAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
+			expect(agg?.get('createdAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
+			expect(agg?.get('updatedAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
 		});
 
-		it('should update a the value of updatedAt if change some prop', () => {
+		it('should update a the value of updatedAt if change some prop', async () => {
 			process.env.TZ = 'UTC';
 			const createdAt = new Date('2022-01-01T03:00:00.000Z');
 			const updatedAt = new Date('2022-01-01T03:00:00.000Z');
-			const agg = UserAgg.create({ name: 'Leticia', createdAt, updatedAt });
-			expect(agg.value().get('updatedAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
-			agg.value().set('name').to('Lana');
-			expect(agg.value().get('updatedAt')).not.toEqual(new Date('2022-01-01T03:00:00.000Z'));
+			const agg = await UserAgg.create({ name: 'Leticia', createdAt, updatedAt });
+			expect(agg?.get('updatedAt')).toEqual(new Date('2022-01-01T03:00:00.000Z'));
+			agg?.set('name').to('Lana');
+			expect(agg?.get('updatedAt')).not.toEqual(new Date('2022-01-01T03:00:00.000Z'));
 		});
 
 		it('should add domain event [3]', async () => {
-			const agg = UserAgg.create({ name: 'Jane' }).value();
+			const agg = await UserAgg.create({ name: 'Jane' });
 
-			agg.addEvent('someEvent', () => {
+			agg?.addEvent('someEvent', () => {
 				console.log('event');
 			});
 
-			expect(agg.eventsMetrics.current).toBe(1);
-			agg.deleteEvent('someEvent');
-			expect(agg.eventsMetrics.current).toBe(0);
+			expect(agg?.eventsMetrics.current).toBe(1);
+			agg?.deleteEvent('someEvent');
+			expect(agg?.eventsMetrics.current).toBe(0);
 		});
 
 
 		it('should dispatch domain event from aggregate', async () => {
-			const agg = UserAgg.create({ name: 'Jane' }).value();
+			const agg = await UserAgg.create({ name: 'Jane' });
 
-			agg.addEvent('hello', (agg) => {
+			agg?.addEvent('hello', (agg) => {
 				console.log(agg.get('name'));
 			});
 
-			expect(agg.eventsMetrics.total).toBe(1);
+			expect(agg?.eventsMetrics.total).toBe(1);
 
-			await agg.dispatchEvent("hello");
+			await agg?.dispatchEvent("hello");
 
-			expect(agg.eventsMetrics.current).toBe(0);
+			expect(agg?.eventsMetrics.current).toBe(0);
 		});
 
 		it('should dispatch all domain events from aggregate', async () => {
-			const agg = UserAgg.create({ name: 'Jane' }).value();
+			const agg = await UserAgg.create({ name: 'Jane' });
 
-			agg.addEvent('event1', () => { });
-			agg.addEvent('event2', () => { });
+			agg?.addEvent('event1', () => { });
+			agg?.addEvent('event2', () => { });
 
-			expect(agg.eventsMetrics.current).toBe(2);
+			expect(agg?.eventsMetrics.current).toBe(2);
 
-			await agg.dispatchAll();
+			await agg?.dispatchAll();
 
-			expect(agg.eventsMetrics.current).toBe(0);
-			expect(agg.eventsMetrics.dispatch).toBe(2);
+			expect(agg?.eventsMetrics.current).toBe(0);
+			expect(agg?.eventsMetrics.dispatch).toBe(2);
 		});
 
 		it('should add domain event [1] with the same name', async () => {
 
-			const agg = UserAgg.create({ name: 'Jane' }).value();
+			const agg = await UserAgg.create({ name: 'Jane' });
 
-			agg.addEvent('unique', () => { });
-			agg.addEvent('unique', () => { });
+			agg?.addEvent('unique', () => { });
+			agg?.addEvent('unique', () => { });
 
-			expect(agg.eventsMetrics.current).toBe(1);
-			await agg.dispatchAll();
-			expect(agg.eventsMetrics.current).toBe(0);
+			expect(agg?.eventsMetrics.current).toBe(1);
+			await agg?.dispatchAll();
+			expect(agg?.eventsMetrics.current).toBe(0);
 		});
 
-		it('should change id', () => {
-			const agg = UserAgg.create({
+		it('should change id', async () => {
+			const agg = await UserAgg.create({
 				name: 'James Stuart',
 				id: 'valid_id'
 			});
 
-			const user = agg.value();
-			expect(user.id.value()).toBe('valid_id');
-			expect(user.get('id')).toBe('valid_id');
+			const user = agg;
+			expect(user?.id.value()).toBe('valid_id');
+			expect(user?.get('id')).toBe('valid_id');
 
-			user.set('id').to('changed_id');
-			expect(user.id.value()).toBe('changed_id');
-			expect(user.get('id')).toBe("changed_id");
+			user?.set('id').to('changed_id');
+			expect(user?.id.value()).toBe('changed_id');
+			expect(user?.get('id')).toBe("changed_id");
 
-			expect(user.toObject().id).toBe('changed_id');
+			const obj = await user!.toObject();
+			expect(obj.id).toBe('changed_id');
 
-			user.change('id', 'new_changed_id');
+			user?.change('id', 'new_changed_id');
 
-			expect(user.id.value()).toBe('new_changed_id');
-			expect(user.get('id')).toBe("new_changed_id");
+			expect(user?.id.value()).toBe('new_changed_id');
+			expect(user?.get('id')).toBe("new_changed_id");
 
-			user.change('id', ID.create('new uuid') as any);
+			user?.change('id', ID.create('new uuid') as any);
 
-			expect(user.get('id')).toBe("new uuid");
+			expect(user?.get('id')).toBe("new uuid");
 
-			user.set('id').to(ID.create('new uuid2') as any);
+			user?.set('id').to(ID.create('new uuid2') as any);
 
-			expect(user.get('id')).toBe("new uuid2");
+			expect(user?.get('id')).toBe("new uuid2");
 
-			user.change('id', 9887822939 as any);
-			expect(user.get('id')).toBe("9887822939");
+			user?.change('id', 9887822939 as any);
+			expect(user?.get('id')).toBe("9887822939");
 
-			user.set('id').to(7454 as any);
-			expect(user.get('id')).toBe("7454");
+			user?.set('id').to(7454 as any);
+			expect(user?.get('id')).toBe("7454");
 		})
 	});
 
 	describe('aggregate with domain id', () => {
 
-		it('should be success if define id as UID', () => {
+		it('should be success if define id as UID', async () => {
 
 			interface Props {
 				id: UID;
@@ -322,23 +324,24 @@ describe('aggregate', () => {
 					super(props)
 				}
 
-				public static create(props: Props): Result<Product> {
-					return Result.Ok(new Product(props));
+				public static create(props: Props): Promise<Product | null> {
+					return Promise.resolve(new Product(props));
 				}
 			}
 
-			const result = Product.create({
+			const result = await Product.create({
 				id: ID.create('fd15df0c-af60-45ce-9976-33c6197e5ca0'),
 				name: 'James',
 				createdAt: new Date(),
 				updatedAt: new Date()
 			});
 
-			const id = result.value().toObject().id;
+			const obj = await result!.toObject();
+			const id = obj.id;
 
 			expect(id).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
-			expect(result.value().id.value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
-			expect(result.value().get('id').value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
+			expect(result?.id.value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
+			expect(result?.get('id').value()).toBe('fd15df0c-af60-45ce-9976-33c6197e5ca0');
 		})
 	});
 
@@ -348,15 +351,15 @@ describe('aggregate', () => {
 			class Agg extends Aggregate<{ key: string }> { };
 			const spy = jest.fn();
 
-			const agg = Agg.create({ key: 'some' }).value();
-			agg.addEvent('event', spy);
+			const agg = await Agg.create({ key: 'some' });
+			agg?.addEvent('event', spy);
 
-			expect(agg.eventsMetrics.current).toBe(1);
-			expect(agg.eventsMetrics.dispatch).toBe(0);
+			expect(agg?.eventsMetrics.current).toBe(1);
+			expect(agg?.eventsMetrics.dispatch).toBe(0);
 
-			await agg.dispatchAll();
-			expect(agg.eventsMetrics.current).toBe(0);
-			expect(agg.eventsMetrics.dispatch).toBe(1);
+			await agg?.dispatchAll();
+			expect(agg?.eventsMetrics.current).toBe(0);
+			expect(agg?.eventsMetrics.dispatch).toBe(1);
 
 			expect(spy).toHaveBeenCalled();
 
@@ -366,30 +369,30 @@ describe('aggregate', () => {
 
 			class Agg extends Aggregate<{ key: string }> { };
 
-			const agg = Agg.create({ key: 'some' }).value();
-			agg.addEvent('event', () => { }, { priority: 1 });
+			const agg = await Agg.create({ key: 'some' });
+			agg?.addEvent('event', () => { }, { priority: 1 });
 
-			expect(agg.eventsMetrics.current).toBe(1);
-			expect(agg.eventsMetrics.dispatch).toBe(0);
+			expect(agg?.eventsMetrics.current).toBe(1);
+			expect(agg?.eventsMetrics.dispatch).toBe(0);
 
-			agg.clearEvents({ resetMetrics: true });
+			agg?.clearEvents({ resetMetrics: true });
 
-			expect(agg.eventsMetrics.current).toBe(0);
-			expect(agg.eventsMetrics.dispatch).toBe(0);
+			expect(agg?.eventsMetrics.current).toBe(0);
+			expect(agg?.eventsMetrics.dispatch).toBe(0);
 
-			const aggB = Agg.create({ key: 'some' }).value();
+			const aggB = await Agg.create({ key: 'some' });
 
-			aggB.addEvent('event1', () => { });
-			aggB.dispatchEvent('event1');
-			expect(aggB.eventsMetrics.dispatch).toBe(1);
+			aggB?.addEvent('event1', () => { });
+			aggB?.dispatchEvent('event1');
+			expect(aggB?.eventsMetrics.dispatch).toBe(1);
 
-			aggB.addEvent('event2', () => { });
-			expect(aggB.eventsMetrics.current).toBe(1);
-			expect(aggB.eventsMetrics.dispatch).toBe(1);
+			aggB?.addEvent('event2', () => { });
+			expect(aggB?.eventsMetrics.current).toBe(1);
+			expect(aggB?.eventsMetrics.dispatch).toBe(1);
 
-			aggB.clearEvents({ resetMetrics: false });
-			expect(aggB.eventsMetrics.current).toBe(0);
-			expect(aggB.eventsMetrics.dispatch).toBe(1);
+			aggB?.clearEvents({ resetMetrics: false });
+			expect(aggB?.eventsMetrics.current).toBe(0);
+			expect(aggB?.eventsMetrics.dispatch).toBe(1);
 		});
 
 		it('should clone aggregate with events', async () => {
@@ -397,34 +400,34 @@ describe('aggregate', () => {
 
 			interface Props { key: string };
 			class Agg extends Aggregate<Props> {
-				public static create(props: Props): Result<Agg> {
-					return Result.Ok(new Agg(props))
+				public static create(props: Props): Promise<Agg | null> {
+					return Promise.resolve(new Agg(props))
 				}
 			};
 
 
 
-			const agg = Agg.create({ key: 'some' }).value();
+			const agg = await Agg.create({ key: 'some' });
 
-			agg.addEvent('eventA', () => { });
-			agg.addEvent('eventB', () => { });
+			agg?.addEvent('eventA', () => { });
+			agg?.addEvent('eventB', () => { });
 
-			expect(agg.eventsMetrics.current).toBe(2);
-			expect(agg.eventsMetrics.dispatch).toBe(0);
+			expect(agg?.eventsMetrics.current).toBe(2);
+			expect(agg?.eventsMetrics.dispatch).toBe(0);
 
-			const copy = agg.clone({ copyEvents: true, key: 'changed' });
+			const copy = agg?.clone({ copyEvents: true, key: 'changed' });
 
-			expect(copy.eventsMetrics.current).toBe(2);
-			expect(copy.eventsMetrics.dispatch).toBe(0);
-			expect(copy.get('key')).toBe('changed');
+			expect(copy?.eventsMetrics.current).toBe(2);
+			expect(copy?.eventsMetrics.dispatch).toBe(0);
+			expect(copy?.get('key')).toBe('changed');
 
-			const clean = copy.clone({ copyEvents: false });
-			expect(clean.eventsMetrics.current).toBe(0);
-			expect(clean.eventsMetrics.dispatch).toBe(0);
+			const clean = copy?.clone({ copyEvents: false });
+			expect(clean?.eventsMetrics.current).toBe(0);
+			expect(clean?.eventsMetrics.dispatch).toBe(0);
 
-			const none = copy.clone();
-			expect(none.eventsMetrics.current).toBe(0);
-			expect(none.eventsMetrics.dispatch).toBe(0);
+			const none = copy?.clone();
+			expect(none?.eventsMetrics.current).toBe(0);
+			expect(none?.eventsMetrics.dispatch).toBe(0);
 		});
 	});
 
@@ -436,8 +439,8 @@ describe('aggregate', () => {
 					super(props)
 				}
 
-				public static create(value: string): Result<Name> {
-					return Ok(new Name({ value }));
+				public static create(value: string): Promise<Name | null> {
+					return Promise.resolve(new Name({ value }));
 				}
 			}
 
@@ -454,26 +457,26 @@ describe('aggregate', () => {
 				private constructor(props: Props) {
 					super(props)
 				}
-				public static create(props: Props): Result<Product> {
-					return Ok(new Product(props));
+				public static create(props: Props): Promise<Product | null> {
+					return Promise.resolve(new Product(props));
 				}
 			}
 
-			const name = Name.create('orange').value();
-			const props: Props = { name, additionalInfo: ['from brazil'], price: 10 };
-			const orange = Product.create(props).value();
+			const name = await Name.create('orange');
+			const props: Props = { name: name!, additionalInfo: ['from brazil'], price: 10 };
+			const orange = await Product.create(props);
 
-			orange.addEvent('create', () => {
+			orange?.addEvent('create', () => {
 				console.log('make a juice');
 			})
 
-			orange.addEvent('save', () => {
+			orange?.addEvent('save', () => {
 				console.log('make a juice');
 			}, { priority: 1 })
 
-			await orange.dispatchAll();
+			await orange?.dispatchAll();
 
-			const object = orange.toObject();
+			const object = await orange!.toObject();
 			expect(object.additionalInfo).toEqual(['from brazil']);
 			expect(object.name).toEqual({ value: 'orange' });
 			expect(object.price).toBe(10);
@@ -493,13 +496,13 @@ describe('aggregate', () => {
 			private constructor(props: Props) {
 				super(props)
 			}
-			public static create(props: Props): Result<Product> {
-				return Ok(new Product(props));
+			public static create(props: Props): Promise<Product | null> {
+				return Promise.resolve(new Product(props));
 			}
 		}
 
 		const props: Props = { name: 'Orange', price: 1.21 };
-		const orange = Product.create(props).value();
+		const orange = await Product.create(props);
 
 		class Handler extends EventHandler<Product> {
 			constructor() { super({ eventName: 'event' }) };
@@ -513,10 +516,10 @@ describe('aggregate', () => {
 		}
 
 		const event = new Handler();
-		orange.addEvent(event);
+		orange?.addEvent(event);
 
-		await orange.dispatchEvent('event', { custom: 'params' });
-		expect(orange.eventsMetrics.dispatch).toBe(1);
+		await orange?.dispatchEvent('event', { custom: 'params' });
+		expect(orange?.eventsMetrics.dispatch).toBe(1);
 
 	});
 });
@@ -555,12 +558,14 @@ describe('Aggregate', () => {
 	});
 
 	describe('clone', () => {
-		it('should create a new instance of Aggregate', () => {
+		it('should create a new instance of Aggregate', async () => {
 			const props = { id: '123', name: 'Test Aggregate' };
 			const aggregate = new Aggregate(props);
 			const clonedAggregate = aggregate.clone();
 			expect(clonedAggregate).toBeInstanceOf(Aggregate);
-			expect(clonedAggregate.toObject()).toEqual(aggregate.toObject());
+			const obj1 = await clonedAggregate.toObject();
+			const obj2 = await aggregate.toObject();
+			expect(obj1).toEqual(obj2);
 		});
 	});
 
@@ -617,10 +622,10 @@ describe('Aggregate', () => {
 	});
 
 	describe('create', () => {
-		it('should create a new instance of Aggregate', () => {
+		it('should create a new instance of Aggregate', async () => {
 			const props = { id: '123', name: 'Test Aggregate' };
-			const result = Aggregate.create(props);
-			expect(result).toBeInstanceOf(Result);
+			const result = await Aggregate.create(props);
+			expect(result).toBeInstanceOf(Aggregate);
 		});
 	});
 

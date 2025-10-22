@@ -1,7 +1,6 @@
-import { IClass, CreateManyDomain, CreateManyResult, _ManyData, _Result } from "../types";
+import { IClass, CreateManyDomain, CreateManyResult, _ManyData } from "../types";
 import validator from "../utils/validator";
 import Iterator from "./iterator";
-import Result from "./result";
 
 /**
  * @description Helper function to create a data structure for constructing domain instances.
@@ -29,7 +28,7 @@ export const Class = <Props>(domainClass: IClass, props: Props): _ManyData => {
  * @param data An array of objects, each containing a domain class and properties for instance creation.
  * @returns A `CreateManyResult` object containing:
  *  - `data`: An iterator over the results of each instance creation attempt.
- *  - `result`: A combined `Result` indicating if all instances were created successfully or if any failed.
+ *  - `result`: A combined `Promise` indicating if all instances were created successfully or if any failed.
  * 
  * @example
  * ```typescript
@@ -40,41 +39,49 @@ export const Class = <Props>(domainClass: IClass, props: Props): _ManyData => {
  * ];
  * 
  * const { data, result } = createManyDomainInstances(classes);
- * if (result.isOk()) {
- *   const userResult = data.next().value;
- *   const productResult = data.next().value;
- *   const orderResult = data.next().value;
- *   
- *   // userResult, productResult, and orderResult are all successful `Result` instances.
- * } else {
- *   console.error("Failed to create some domain instances:", result.error);
- * }
+ * result.then(res => {
+ *   if(res) {
+ *     const userResult = data.next();
+ *     const productResult = data.next();
+ *     const orderResult = data.next();
+ *   }
+ * })
+ * 
  * ```
  */
 export const createManyDomainInstances = (data: CreateManyDomain): CreateManyResult => {
 
-	const results: Array<_Result<any, any, any>> = [];
+	const promises: Array<Promise<any | null>> = [];
 
-	if (validator.isArray(data)) {
+	if (validator.isArray(data) && data.length > 0) {
 		for (let index = 0; index < data.length; index++) {
 			const domainInfo = data[index];
 			const domainClass = domainInfo.class;
 			const existsCreateMethod = typeof domainClass?.create === 'function';
 
 			if (!existsCreateMethod) {
-				results.push(Result.fail(`No static 'create' method found in class ${domainClass?.name}.`));
+				console.log(`No static 'create' method found in class ${domainClass?.name}.`);
+				promises.push(Promise.resolve(null));
 				continue;
 			}
 
 			const payload = domainClass.create(domainInfo.props);
-			results.push(payload);
+			promises.push(payload);
 		}
-	}
+	} else {
+        const iterator = Iterator.create({ initialData: [], returnCurrentOnReversion: true });
+        return { data: iterator, result: Promise.resolve(null) };
+    }
 
-	const iterator = Iterator.create({ initialData: results, returnCurrentOnReversion: true });
-	const result = Result.combine(results);
+	const iterator = Iterator.create({ initialData: promises, returnCurrentOnReversion: true });
+	
+	const combinedPromise = Promise.all(promises).then(results => {
+		const failed = results.some(r => r === null);
+		if(failed) return null;
+		return results;
+	});
 
-	return { data: iterator, result };
+	return { data: iterator, result: combinedPromise };
 }
 
 export default createManyDomainInstances;

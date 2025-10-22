@@ -50,74 +50,6 @@ export type EventType = {
 };
 
 /**
- * @interface
- * @description Represents the result of an operation, encapsulating its state, value, error, and metadata.
- * @template T The type of the result's value.
- * @template D The type of the result's error (default: string).
- * @template M The type of the result's metadata (default: empty object).
- */
-export interface _Result<T, D = string, M = {}> {
-	/**
-	 * @description Retrieves the value of the result. Returns null if the result represents a failure.
-	 * @returns The result's value or null.
-	 */
-	value(): T;
-
-	/**
-	 * @description Retrieves the error of the result. Returns null if the result represents success.
-	 * @returns The result's error or null.
-	 */
-	error(): D;
-
-	/**
-	 * @description Checks if the result represents a failure.
-	 * @returns True if the result is a failure, false otherwise.
-	 */
-	isFail(): boolean;
-
-	/**
-	 * @description Checks if the result contains a null value.
-	 * @returns True if the value is null, false otherwise.
-	 */
-	isNull(): boolean;
-
-	/**
-	 * @description Checks if the result represents success.
-	 * @returns True if the result is a success, false otherwise.
-	 */
-	isOk(): boolean;
-
-	/**
-	 * @description Retrieves the metadata associated with the result.
-	 * @returns The result's metadata.
-	 */
-	metaData(): M;
-
-	/**
-	 * @description Converts the result into an object representing its current state.
-	 * @returns An object containing the result's value, error, and metadata.
-	 */
-	toObject(): ResultObject<T, D, M>;
-
-	/**
-	 * @description Executes a command based on the result's state (success or failure).
-	 * @template X The input type for the command.
-	 * @template Y The output type of the command.
-	 * @param command The command to execute.
-	 * @returns An object containing hooks for further execution.
-	 */
-	execute: <X, Y>(command: ICommand<X | void, Y>) => ResultExecute<X, Y>;
-}
-
-export type IResult<T, D = string, M = {}> = _Result<T, D, M>
-
-/**
- * @typedef
- * @description Alias for `_Result`, used for convenience.
- */
-export type Payload<T, D = string, M = {}> = _Result<T, D, M>;
-
-/**
  * @description Represents the payload passed to an event handler.
  */
 export type HandlerPayload<T> = { 
@@ -181,17 +113,6 @@ export interface _Iterator<T> {
 	removeItem(item: T): void;
 }
 
-
-
-
-/**
- * @description Represents the possible states of a result: success (`Ok`) or failure (`fail`).
- */
-export type IResultOptions = 'fail' | 'Ok';
-
-/** Alias for result options, allowing either `fail` or `Ok` states. */
-export type ResultOptions = 'fail' | 'Ok';
-
 /**
  * @interface
  * @description Represents a command that executes an operation with a specific input and output type.
@@ -250,46 +171,6 @@ export interface Settings extends _VoSettings {
 	disableSetters?: boolean;
 }
 
-/**
- * @interface
- * @description Represents the state of a result, including its value, error, and metadata.
- * @template T The type of the result's value.
- * @template D The type of the result's error.
- * @template M The type of the result's metadata.
- */
-export interface ResultObject<T, D, M> {
-	isOk: boolean; // Indicates if the result is successful.
-	isFail: boolean; // Indicates if the result is a failure.
-	data: T | null; // The value of the result, or null if failed.
-	error: D | null; // The error of the result, or null if successful.
-	metaData: M; // Additional metadata associated with the result.
-}
-
-/**
- * @interface
- * @description Hook for handling specific result states during execution.
- * @template Y The type of the hook's output.
- */
-export interface ResultHook<Y> {
-	/**
-	 * Executes a function based on the result state.
-	 * @param option The result state to handle (`Ok` or `fail`).
-	 * @returns The result of the function execution, if applicable.
-	 */
-	on(option: IResultOptions): Y | undefined;
-}
-
-/**
- * @interface
- * @description Extends `ResultHook` with support for data input.
- * @template X The input type for the hook.
- * @template Y The output type for the hook.
- */
-export interface ResultExecute<X, Y> extends ResultHook<Y> {
-	/** Provides data to the hook before executing. */
-	withData(data: X): ResultHook<Y>;
-}
-
 /** Represents an empty object. */
 export type OBJ = {};
 
@@ -320,15 +201,13 @@ export type PropsValidation<T> = {
  * @description Represents an adapter that transforms one type to another.
  * @template F The input type.
  * @template T The output type.
- * @template E The error type (default: any).
- * @template M The metadata type (default: any).
  */
-export interface _Adapter<F, T, E = any, M = any> {
+export interface _Adapter<F, T> {
 	/** Builds the target type from the input type. */
-	build(target: F): _Result<T, E, M>;
+	build(target: F): Promise<T | null>;
 }
 
-export type IAdapter<F, T, E = any, M = any> = _Adapter<F, T, E, M>;
+export type IAdapter<F, T> = _Adapter<F, T>;
 
 /**
  * @interface
@@ -351,14 +230,14 @@ export interface Adapter<A = any, B = any> {
  */
 export interface _Entity<Props> {
 	/** Converts the entity into an object, optionally using an adapter. */
-	toObject<T>(adapter?: _Adapter<_Entity<Props>, any>): T extends {}
+	toObject<T>(adapter?: _Adapter<this, any>): Promise<T extends {}
 		? T & EntityMapperPayload
-		: ReadonlyDeep<AutoMapperSerializer<Props>> & EntityMapperPayload;
+		: ReadonlyDeep<AutoMapperSerializer<Props>> & EntityMapperPayload>;
 
 	get id(): UID<string>; // The unique identifier of the entity.
 	hashCode(): UID<string>; // Returns a hash code for the entity.
 	isNew(): boolean; // Checks if the entity is newly created.
-	clone(): _Entity<Props>; // Creates a clone of the entity.
+	clone(props?: Partial<Props>): _Entity<Props>; // Creates a clone of the entity.
 }
 
 /**
@@ -368,10 +247,10 @@ export interface _Entity<Props> {
  */
 export interface _ValueObject<Props> {
 	/** Clones the value object. */
-	clone(): _ValueObject<Props>;
+	clone(props?: Props extends object ? Partial<Props> : never): _ValueObject<Props>;
 
 	/** Converts the value object into a serializable format, optionally using an adapter. */
-	toObject<T>(adapter?: _Adapter<this, T>): T extends {} ? T : ReadonlyDeep<AutoMapperSerializer<Props>>;
+	toObject<T>(adapter?: _Adapter<this, T>): Promise<T extends {} ? T : ReadonlyDeep<AutoMapperSerializer<Props>>>;
 }
 
 
@@ -460,9 +339,9 @@ export interface _Aggregate<Props> {
 	 * @param adapter An optional adapter for transforming the aggregate.
 	 * @returns The serialized object with metadata.
 	 */
-	toObject<T>(adapter?: _Adapter<this, T>): T extends {}
+	toObject<T>(adapter?: _Adapter<this, T>): Promise<T extends {}
 		? T & EntityMapperPayload
-		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload>;
+		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload>>;
 
 	/** The unique identifier of the aggregate. */
 	get id(): UID<string>;
@@ -474,7 +353,7 @@ export interface _Aggregate<Props> {
 	isNew(): boolean;
 
 	/** Creates a deep clone of the aggregate. */
-	clone(): _Entity<Props>;
+	clone(props?: Partial<Props> & { copyEvents?: boolean }): _Aggregate<Props>;
 
 	/** Removes an event from the aggregate's event context. */
 	deleteEvent(eventName: string): void;
@@ -539,10 +418,10 @@ export type CreateManyDomain = Array<_ManyData>;
  */
 export interface CreateManyResult {
 	/** Iterator over the results of the creation process. */
-	data: _Iterator<_Result<any, any, any>>;
+	data: _Iterator<Promise<any | null>>;
 
 	/** Combined result of the creation process. */
-	result: _Result<any, any, any>;
+	result: Promise<any | null>;
 }
 
 /** Empty class type. */
@@ -631,7 +510,7 @@ export abstract class EventHandler<T> {
 	/**
 	 * Dispatches the event to its handler.
 	 * @param aggregate - The associated aggregate instance.
-	 * @param args - Arguments for the event handler.
+	_	 * @param args - Arguments for the event handler.
 	 * @returns A promise or void, depending on the handler's implementation.
 	 */
 	abstract dispatch(aggregate: T, args: [DEvent<T>, any[]]): Promise<void> | void;

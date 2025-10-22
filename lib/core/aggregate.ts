@@ -1,9 +1,8 @@
-import { EventHandler, _Result, Settings, Options, UID } from "../types";
+import { EventHandler, Settings, Options, UID } from "../types";
 import { EntityProps, EventMetrics, Handler, _Aggregate } from "../types";
 import TsEvent from "./events";
 import Entity from "./entity";
 import ID from "./id";
-import Result from "./result";
 import Context from "./context";
 import { EventManager } from "../types";
 
@@ -146,35 +145,36 @@ export class Aggregate<Props extends EntityProps> extends Entity<Props> implemen
 		return totalBefore - this._domainEvents.metrics.totalEvents();
 	}
 
-	public static create(props: any): Result<any, any, any>;
 	/**
-	 * @description Creates a new aggregate instance wrapped inside a `Result` object.
-	 * If the provided properties are invalid, returns a failure `Result`.
+	 * @description Creates a new aggregate instance wrapped inside a `Promise` object.
+	 * If the provided properties are invalid, returns a failure `Promise`.
 	 * 
 	 * @param props Properties used to create the aggregate.
 	 * @param id (optional) A UUID to assign to the aggregate. If not provided, a new one will be generated.
-	 * @returns A `Result` instance containing the new aggregate if successful. On failure, returns a `Result` with null state.
+	 * @returns A `Promise` instance containing the new aggregate if successful. On failure, returns a `Promise` with null state.
 	 * 
 	 * @example
 	 * ```typescript
-	 * const result = MyAggregate.create({ name: "example" });
-	 * if (result.isFailure) {
-	 *   console.error(result.error); // More explicit error message guiding the user to fix invalid properties
-	 * } else {
-	 *   const aggregate = result.getValue();
+	 * const aggregate = await MyAggregate.create({ name: "example" });
+	 * if (aggregate) {
 	 *   // Use the aggregate
+	 * } else {
+	 *   console.error('Failed to create aggregate');
 	 * }
 	 * ```
 	 * 
 	 * @summary On failure, the error message clearly instructs the user to ensure all required properties
 	 * are provided and have valid values.
 	 */
-	public static create(props: {}): Result<any, any, any> {
-		if (!this.isValidProps(props)) return Result.fail(
-			`Failed to create an instance of ${this.name} due to invalid properties. ` +
-			`Please ensure that all required fields are provided and that the values are valid.`
-		);
-		return Result.Ok(new this(props));
+	public static create(props: {} | null | undefined): Promise<any | null> {
+		if (props === null || props === undefined || !this.isValidProps(props)) {
+			console.log(
+				`Failed to create an instance of ${this.name} due to invalid properties. ` +
+				`Please ensure that all required fields are provided and that the values are valid.`
+			);
+			return Promise.resolve(null);
+		}
+		return Promise.resolve(new this(props));
 	};
 }
 export default Aggregate;

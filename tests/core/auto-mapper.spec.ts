@@ -1,126 +1,147 @@
-import { Aggregate, AutoMapper, Entity, Id, ID, Iterator, Ok, Result, ValueObject } from "../../lib/core";
+import { Aggregate, AutoMapper, Entity, Id, ID, Iterator, ValueObject } from "../../lib/core";
 import { UID } from "../../lib/types";
 
 describe('auto-mapper', () => {
 
 	describe('value-object', () => {
 
-		it('should convert value to a simple string', () => {
+		it('should convert value to a simple string', async () => {
 
 			class StringVo extends ValueObject<{ value: string }> {
 				private constructor(props: { value: string }) {
 					super(props);
 				}
+				public static create(props: { value: string }): Promise<StringVo | null> {
+					return Promise.resolve(new StringVo(props));
+				}
 			}
 
-			const vo = StringVo.create({ value: 'hello' });
+			const vo = await StringVo.create({ value: 'hello' });
 
 			const autoMapper = new AutoMapper();
 
-			const result = autoMapper.valueObjectToObj(vo.value());
+			const result = autoMapper.valueObjectToObj(vo!);
 
 			expect(result).toEqual({ value: 'hello' });
 
 		});
 
-		it('should convert value to an object if result has more than one key', () => {
+		it('should convert value to an object if result has more than one key', async () => {
 
 			class StringVo extends ValueObject<{ value: string, age: number }> {
 				private constructor(props: { value: string, age: number }) {
 					super(props);
 				}
+				public static create(props: { value: string, age: number }): Promise<StringVo | null> {
+					return Promise.resolve(new StringVo(props));
+				}
 			}
 
-			const vo = StringVo.create({ value: 'hello', age: 21 });
+			const vo = await StringVo.create({ value: 'hello', age: 21 });
 
 			const autoMapper = new AutoMapper();
 
-			const result = autoMapper.valueObjectToObj(vo.value());
+			const result = autoMapper.valueObjectToObj(vo!);
 
 			expect(result).toEqual({ value: 'hello', age: 21 });
 
 		});
 
-		it('should get boolean with success', () => {
+		it('should get boolean with success', async () => {
 
 			class StringVo extends ValueObject<{ value: string, isActive: boolean }> {
 				private constructor(props: { value: string, isActive: boolean }) {
 					super(props);
 				}
+				public static create(props: { value: string, isActive: boolean }): Promise<StringVo | null> {
+					return Promise.resolve(new StringVo(props));
+				}
 			}
 
-			const vo1 = StringVo.create({ value: 'hello', isActive: true });
-			const vo2 = StringVo.create({ value: 'hello', isActive: false });
+			const vo1 = await StringVo.create({ value: 'hello', isActive: true });
+			const vo2 = await StringVo.create({ value: 'hello', isActive: false });
 
 			const autoMapper = new AutoMapper();
 
-			const result1 = autoMapper.valueObjectToObj(vo1.value());
-			const result2 = autoMapper.valueObjectToObj(vo2.value());
+			const result1 = autoMapper.valueObjectToObj(vo1!);
+			const result2 = autoMapper.valueObjectToObj(vo2!);
 
 			expect(result1).toEqual({ value: 'hello', isActive: true });
 			expect(result2).toEqual({ value: 'hello', isActive: false });
 
 		});
 
-		it('should convert array and value to a simple object', () => {
+		it('should convert array and value to a simple object', async () => {
 
 			class StringVo extends ValueObject<{ value: string, notes: number[] }> {
 				private constructor(props: { value: string, notes: number[] }) {
 					super(props);
 				}
+				public static create(props: { value: string, notes: number[] }): Promise<StringVo | null> {
+					return Promise.resolve(new StringVo(props));
+				}
 			}
 
-			const vo = StringVo.create({ value: 'hello', notes: [1, 2, 3, 4, 5, 6, 7] });
+			const vo = await StringVo.create({ value: 'hello', notes: [1, 2, 3, 4, 5, 6, 7] });
 
 			const autoMapper = new AutoMapper();
 
-			const result = autoMapper.valueObjectToObj(vo.value());
+			const result = autoMapper.valueObjectToObj(vo!);
 
 			expect(result).toEqual({ value: 'hello', notes: [1, 2, 3, 4, 5, 6, 7] });
 
 		});
 
-		it('should get array from value object', () => {
+		it('should get array from value object', async () => {
 
-			class StringVo extends ValueObject<{ value: string }> {
-				private constructor(props: { value: string }) {
+			class StringVo extends ValueObject<{ value: any[] }> {
+				private constructor(props: { value: any[] }) {
 					super(props);
+				}
+				public static create(props: { value: any[] }): Promise<StringVo | null> {
+					return Promise.resolve(new StringVo(props));
 				}
 			}
 
-			const vo = StringVo.create({ value: [1, 2, 3, 4, 5, 6, 7] });
+			const vo = await StringVo.create({ value: [1, 2, 3, 4, 5, 6, 7] });
 
 			const autoMapper = new AutoMapper();
 
-			const result = autoMapper.valueObjectToObj(vo.value());
+			const result = autoMapper.valueObjectToObj(vo!);
 
 			expect(result).toEqual({ value: [1, 2, 3, 4, 5, 6, 7] });
 
 		});
 
-		it('should get id value from value object', () => {
+		it('should get id value from value object', async () => {
 
-			class StringVo extends ValueObject<{ value: ID<string> }> {
-				private constructor(props: { value: ID<string> }) {
+			class StringVo extends ValueObject<{ value: UID<string> }> {
+				private constructor(props: { value: UID<string> }) {
 					super(props);
+				}
+				public static create(props: { value: UID<string> }): Promise<StringVo | null> {
+					return Promise.resolve(new StringVo(props));
 				}
 			}
 
-			const vo = StringVo.create({ value: ID.create('3c5738cf-825e-48b7-884d-927be849b0b6') });
+			const vo = await StringVo.create({ value: ID.create('3c5738cf-825e-48b7-884d-927be849b0b6') });
 
 			const autoMapper = new AutoMapper();
 
-			const result = autoMapper.valueObjectToObj(vo.value());
+			const result = autoMapper.valueObjectToObj(vo!);
 
 			expect(result).toEqual({ value: '3c5738cf-825e-48b7-884d-927be849b0b6' });
 
 		});
 
-		it('should get ids value from value object', () => {
+		it('should get ids value from value object', async () => {
 
-			class StringVo extends ValueObject<{ value: ID<string>[] }> {
-				private constructor(props: { value: ID<string>[] }) {
+			class StringVo extends ValueObject<{ value: UID<string>[] }> {
+				private constructor(props: { value: UID<string>[] }) {
 					super(props);
+				}
+				public static create(props: { value: UID<string>[] }): Promise<StringVo | null> {
+					return Promise.resolve(new StringVo(props));
 				}
 			}
 
@@ -132,48 +153,58 @@ describe('auto-mapper', () => {
 				IDS.push(ID.create(ids.next()));
 			}
 
-			const vo = StringVo.create({ value: IDS });
+			const vo = await StringVo.create({ value: IDS });
 
 			const autoMapper = new AutoMapper();
 
-			const result = autoMapper.valueObjectToObj(vo.value());
+			const result = autoMapper.valueObjectToObj(vo!);
 
 			expect(result).toEqual({ value: ["927be849b0b1", "927be849b0b2", "927be849b0b3"] });
 
 		});
 
-		it('should get value object from value object', () => {
+		it('should get value object from value object', async () => {
 
 			class StringVo2 extends ValueObject<{ value: string, age: number }> {
 				private constructor(props: { value: string, age: number }) {
 					super(props);
 				}
+				public static create(props: { value: string, age: number }): Promise<StringVo2 | null> {
+					return Promise.resolve(new StringVo2(props));
+				}
 			}
 
 			class StringVo extends ValueObject<{ value: StringVo2, message: string }> {
 				private constructor(props: { value: StringVo2, message: string }) {
 					super(props);
 				}
+				public static create(props: { value: StringVo2, message: string }): Promise<StringVo | null> {
+					return Promise.resolve(new StringVo(props));
+				}
 			}
 
-			const vo = StringVo.create({
-				value: StringVo2.create({ value: 'hello', age: 21 }).value(),
+			const vo2 = await StringVo2.create({ value: 'hello', age: 21 });
+			const vo = await StringVo.create({
+				value: vo2!,
 				message: 'text'
 			});
 
 			const autoMapper = new AutoMapper<{ value: StringVo2, message: string }>();
 
-			const result = autoMapper.valueObjectToObj(vo.value());
+			const result = autoMapper.valueObjectToObj(vo!);
 
 			expect(result).toEqual({ message: "text", value: { value: 'hello', age: 21 } });
 
 		});
 
-		it('should get date from object in other value object', () => {
+		it('should get date from object in other value object', async () => {
 			process.env.TZ = 'UTC';
 			class StringVo2 extends ValueObject<{ value: Date, age: number }> {
 				private constructor(props: { value: Date, age: number }) {
 					super(props);
+				}
+				public static create(props: { value: Date, age: number }): Promise<StringVo2 | null> {
+					return Promise.resolve(new StringVo2(props));
 				}
 			}
 
@@ -181,19 +212,23 @@ describe('auto-mapper', () => {
 				private constructor(props: { value: StringVo2, message: string }) {
 					super(props);
 				}
+				public static create(props: { value: StringVo2, message: string }): Promise<StringVo | null> {
+					return Promise.resolve(new StringVo(props));
+				}
 			}
 
-			const vo = StringVo.create({
-				value: StringVo2.create({
-					value: new Date('2022-01-01T03:00:00.000Z'),
-					age: 21
-				}).value(),
+			const vo2 = await StringVo2.create({
+				value: new Date('2022-01-01T03:00:00.000Z'),
+				age: 21
+			});
+			const vo = await StringVo.create({
+				value: vo2!,
 				message: 'text'
 			});
 
 			const autoMapper = new AutoMapper<{ value: StringVo2, message: string }>();
 
-			const result = autoMapper.valueObjectToObj(vo.value());
+			const result = autoMapper.valueObjectToObj(vo!);
 
 			expect(result).toEqual({
 				message: "text",
@@ -209,17 +244,23 @@ describe('auto-mapper', () => {
 
 	describe('entity', () => {
 
-		it('should get object from entity', () => {
+		it('should get object from entity', async () => {
 
 			class NameVo extends ValueObject<{ value: string }> {
 				private constructor(props: { value: string }) {
 					super(props)
+				}
+				public static create(props: { value: string }): Promise<NameVo | null> {
+					return Promise.resolve(new NameVo(props));
 				}
 			}
 
 			class AgeVo extends ValueObject<{ value: number }> {
 				private constructor(props: { value: number }) {
 					super(props)
+				}
+				public static create(props: { value: number }): Promise<AgeVo | null> {
+					return Promise.resolve(new AgeVo(props));
 				}
 			}
 
@@ -241,14 +282,17 @@ describe('auto-mapper', () => {
 				private constructor(props: Props, config?: any) {
 					super(props, config);
 				}
+				public static create(props: Props): Promise<SimpleEntity | null> {
+					return Promise.resolve(new SimpleEntity(props));
+				}
 			}
 
-			const age = AgeVo.create({ value: 21 }).value();
-			const name = NameVo.create({ value: 'some value' }).value();
-			const agg = SimpleEntity.create({
+			const age = await AgeVo.create({ value: 21 });
+			const name = await NameVo.create({ value: 'some value' });
+			const agg = await SimpleEntity.create({
 				id: "1519cb69-9904-4f2b-84e1-e6e95431cf24",
-				age,
-				name,
+				age: age!,
+				name: name!,
 				notes: [1, 2, 3],
 				arraySimpleObject: [
 					{
@@ -262,7 +306,7 @@ describe('auto-mapper', () => {
 			}
 			);
 
-			const user = agg.value();
+			const user = agg!;
 
 			expect(user.id.value()).toBe('1519cb69-9904-4f2b-84e1-e6e95431cf24');
 
@@ -294,17 +338,26 @@ describe('auto-mapper', () => {
 			private constructor(props: { value: number }) {
 				super(props)
 			}
+			public static create(props: { value: number }): Promise<Price | null> {
+				return Promise.resolve(new Price(props));
+			}
 		}
 
 		class Name extends ValueObject<{ value: string }> {
 			private constructor(props: { value: string }) {
 				super(props)
 			}
+			public static create(props: { value: string }): Promise<Name | null> {
+				return Promise.resolve(new Name(props));
+			}
 		}
 
 		class Item extends ValueObject<{ name: string }> {
 			private constructor(props: { name: string }) {
 				super(props)
+			}
+			public static create(props: { name: string }): Promise<Item | null> {
+				return Promise.resolve(new Item(props));
 			}
 		}
 		interface Props {
@@ -325,8 +378,8 @@ describe('auto-mapper', () => {
 				super(props);
 			}
 
-			public static create(props: Props): Result<Product> {
-				return Ok(new Product(props));
+			public static create(props: Props): Promise<Product | null> {
+				return Promise.resolve(new Product(props));
 			}
 		}
 
@@ -349,16 +402,16 @@ describe('auto-mapper', () => {
 				super(props);
 			}
 
-			public static create(props: AggProps): Result<Order> {
-				return Ok(new Order(props));
+			public static create(props: AggProps): Promise<Order | null> {
+				return Promise.resolve(new Order(props));
 			}
 		}
 
-		const price = Price.create({ value: 20 }).value();
-		const name = Name.create({ value: "jane" }).value();
-		const item = Item.create({ name: "some-item" }).value();
+		it('should convert an entity to simple object with success', async () => {
 
-		it('should convert an entity to simple object with success', () => {
+			const price = await Price.create({ value: 20 });
+			const name = await Name.create({ value: "jane" });
+			const item = await Item.create({ name: "some-item" });
 
 			const now = new Date('2022-11-27T22:39:58.897Z');
 			const id = Id('f25a30cb-294c-4269-8e8c-060403f3a971');
@@ -379,24 +432,28 @@ describe('auto-mapper', () => {
 
 			const props: Props = {
 				id,
-				name,
-				item,
-				price,
+				name: name!,
+				item: item!,
+				price: price!,
 				amount: 42,
 				detail: 'detail info',
-				lastSales: [item, item, item],
+				lastSales: [item!, item!, item!],
 				options: ['a', 'b', 'c'],
 				createdAt: now,
 				updatedAt: now,
 			}
-			const product = Product.create(props);
-			expect(product.isOk()).toBeTruthy();
-			const obj = product.value().toObject();
+			const product = await Product.create(props);
+			expect(product).not.toBeNull();
+			const obj = await product!.toObject();
 			expect(obj).toEqual(expectedResult);
 			expect(obj).toMatchSnapshot();
 		});
 
-		it('should convert an aggregate to simple object with success', () => {
+		it('should convert an aggregate to simple object with success', async () => {
+			const price = await Price.create({ value: 20 });
+			const name = await Name.create({ value: "jane" });
+			const item = await Item.create({ name: "some-item" });
+
 			const now = new Date('2022-11-27T22:39:58.897Z');
 			const id = Id('f25a30cb-294c-4269-8e8c-060403f3a971');
 			const itemObj = "some-item";
@@ -430,22 +487,22 @@ describe('auto-mapper', () => {
 
 			const props: Props = {
 				id,
-				name,
-				item,
-				price,
+				name: name!,
+				item: item!,
+				price: price!,
 				amount: 42,
 				detail: 'detail info',
-				lastSales: [item, item, item],
+				lastSales: [item!, item!, item!],
 				options: ['a', 'b', 'c'],
 				createdAt: now,
 				updatedAt: now,
 			}
 
-			const product = Product.create(props).value();
-			const order = Order.create({ ...props, product });
+			const product = await Product.create(props);
+			const order = await Order.create({ ...props, product: product! });
 
-			expect(order.isOk()).toBeTruthy();
-			const obj = order.value().toObject();
+			expect(order).not.toBeNull();
+			const obj = await order!.toObject();
 			expect(obj).toEqual(expectedResult);
 			expect(obj).toMatchSnapshot();
 		});
@@ -469,8 +526,16 @@ describe('auto-mapper', () => {
 			summary: string[];
 		}
 
-		class Name extends ValueObject<ValueA> { }
-		class Age extends ValueObject<ValueB> { }
+		class Name extends ValueObject<ValueA> { 
+			public static create(props: ValueA): Promise<Name | null> {
+				return Promise.resolve(new Name(props));
+			}
+		}
+		class Age extends ValueObject<ValueB> { 
+			public static create(props: ValueB): Promise<Age | null> {
+				return Promise.resolve(new Age(props));
+			}
+		}
 
 		interface PropsA {
 			id?: UID;
@@ -483,7 +548,11 @@ describe('auto-mapper', () => {
 			createdAt: Date;
 		}
 
-		class Profile extends Entity<PropsA> { }
+		class Profile extends Entity<PropsA> { 
+			public static create(props: PropsA): Promise<Profile | null> {
+				return Promise.resolve(new Profile(props));
+			}
+		}
 		interface PropsB {
 			id?: UID;
 			profile: Profile;
@@ -493,37 +562,45 @@ describe('auto-mapper', () => {
 			createdAt: Date;
 		}
 
-		class Example extends Entity<PropsB> { }
+		class Example extends Entity<PropsB> { 
+			public static create(props: PropsB): Promise<Example | null> {
+				return Promise.resolve(new Example(props));
+			}
+		}
 
-		const profile: PropsA = {
-			age: Age.create({ value: 21 }).value(),
-			data: 'lorem ipsum',
-			name: Name.create({ value: 'Mille' }).value(),
-			notes: [10, 20, 30],
-			value: 7,
-			id: Id('valid-uuid-2'),
-			createdAt: new Date('2023-01-05T18:20:41.916Z'),
-			detail: {
-				likes: 200,
-				nick: 'Loader',
-				site: '4dev.com',
-				summary: ['page1', 'page2'],
-			},
-		};
+		it('should convert object on entity to simple object', async () => {
+			const age = await Age.create({ value: 21 });
+			const name = await Name.create({ value: 'Mille' });
+			const profileProps: PropsA = {
+				age: age!,
+				data: 'lorem ipsum',
+				name: name!,
+				notes: [10, 20, 30],
+				value: 7,
+				id: Id('valid-uuid-2'),
+				createdAt: new Date('2023-01-05T18:20:41.916Z'),
+				detail: {
+					likes: 200,
+					nick: 'Loader',
+					site: '4dev.com',
+					summary: ['page1', 'page2'],
+				},
+			};
 
-		const props: PropsB = {
-			cite: 'Lorem',
-			isMarried: true,
-			profile: Profile.create(profile).value(),
-			value: 42,
-			id: Id('valid-uuid-1'),
-			createdAt: new Date('2023-01-05T18:20:41.916Z'),
-		};
+			const profile = await Profile.create(profileProps);
 
-		const entity = Example.create(props).value();
+			const props: PropsB = {
+				cite: 'Lorem',
+				isMarried: true,
+				profile: profile!,
+				value: 42,
+				id: Id('valid-uuid-1'),
+				createdAt: new Date('2023-01-05T18:20:41.916Z'),
+			};
 
-		it('should convert object on entity to simple object', () => {
-			const object = entity.toObject();
+			const entity = await Example.create(props);
+
+			const object = await entity!.toObject();
 			expect(object).toEqual({
 				id: "valid-uuid-1",
 				cite: 'Lorem',
@@ -552,7 +629,7 @@ describe('auto-mapper', () => {
 	});
 
 	describe('uid', () => {
-		it('should get value from entity attribute if instance of ID', () => {
+		it('should get value from entity attribute if instance of ID', async () => {
 
 			interface Props {
 				id: UID;
@@ -566,8 +643,8 @@ describe('auto-mapper', () => {
 				private constructor(props: Props) {
 					super(props)
 				}
-				public static create(props: Props): Result<Sample> {
-					return Ok(new Sample(props));
+				public static create(props: Props): Promise<Sample | null> {
+					return Promise.resolve(new Sample(props));
 				}
 			}
 
@@ -583,18 +660,19 @@ describe('auto-mapper', () => {
 				]
 			};
 
-			const result = Sample.create({
+			const result = await Sample.create({
 				arr: [Id(t.arr[0]), Id(t.arr[1])],
 				id: Id(t.id),
 				some: 'sample',
 				userId: Id(t.userId),
 				createdAt: t.createdAt,
 				updatedAt: t.updatedAt
-			}).value()
-			expect(result.toObject()).toEqual(t);
+			});
+			const obj = await result!.toObject();
+			expect(obj).toEqual(t);
 		});
 
-		it('should get value from value object attribute if instance of ID', () => {
+		it('should get value from value object attribute if instance of ID', async () => {
 
 			interface Props {
 				userId: UID;
@@ -605,8 +683,8 @@ describe('auto-mapper', () => {
 				private constructor(props: Props) {
 					super(props)
 				}
-				public static create(props: Props): Result<Sample> {
-					return Ok(new Sample(props));
+				public static create(props: Props): Promise<Sample | null> {
+					return Promise.resolve(new Sample(props));
 				}
 			}
 
@@ -619,13 +697,14 @@ describe('auto-mapper', () => {
 				]
 			};
 
-			const result = Sample.create({
+			const result = await Sample.create({
 				arr: [Id(t.arr[0]), Id(t.arr[1])],
 				some: 'sample',
 				userId: Id(t.userId)
-			}).value()
+			});
 
-			expect(result.toObject()).toEqual(t);
+			const obj = await result!.toObject();
+			expect(obj).toEqual(t);
 		});
 	});
 
@@ -636,8 +715,8 @@ describe('auto-mapper', () => {
 				super(props)
 			}
 
-			public static create(text: string): Result<Vo1, { e: string }> {
-				return Ok(new Vo1({ text }));
+			public static create(text: string): Promise<Vo1 | null> {
+				return Promise.resolve(new Vo1({ text }));
 			}
 		};
 
@@ -647,8 +726,8 @@ describe('auto-mapper', () => {
 				super(props)
 			}
 
-			public static create(props: Props2): Result<Vo2, { e: string }> {
-				return Ok(new Vo2(props));
+			public static create(props: Props2): Promise<Vo2 | null> {
+				return Promise.resolve(new Vo2(props));
 			}
 		};
 
@@ -666,15 +745,15 @@ describe('auto-mapper', () => {
 				super(props)
 			}
 
-			public static create(props: Props3): Result<Sample, { e: string }> {
-				return Ok(new Sample(props));
+			public static create(props: Props3): Promise<Sample | null> {
+				return Promise.resolve(new Sample(props));
 			}
 		}
 
-		it('should transform in simple object when value object inside other', () => {
-			const vo1 = Vo1.create('sub-object').value();
-			const vo = Vo2.create({ text: 'example', vo1, nullable: 10 }).value();
-			const obj = vo.toObject();
+		it('should transform in simple object when value object inside other', async () => {
+			const vo1 = await Vo1.create('sub-object');
+			const vo = await Vo2.create({ text: 'example', vo1: vo1!, nullable: 10 });
+			const obj = await vo!.toObject();
 			expect(obj).toMatchInlineSnapshot(`
 Object {
   "nullable": 10,
@@ -686,22 +765,23 @@ Object {
 `);
 
 		})
-		it('should transform on entity', () => {
-			const vo1 = Vo1.create('sub-object').value();
-			const vo2 = Vo2.create({ text: 'example', vo1, nullable: null }).value();
+		it('should transform on entity', async () => {
+			const vo1 = await Vo1.create('sub-object');
+			const vo2 = await Vo2.create({ text: 'example', vo1: vo1!, nullable: null });
 			const date = new Date();
 
-			const sample = Sample.create({
-				level1: vo1,
-				level3: vo2,
+			const sample = await Sample.create({
+				level1: vo1!,
+				level3: vo2!,
 				nullable: null,
 				simple: 'hey there',
 				id: Id('8280c69f-be52-4918-ada9-f43d4703dbfe'),
 				createdAt: date,
 				updatedAt: date
-			}).value();
+			});
 
-			expect(sample.toObject()).toMatchInlineSnapshot(`
+			const obj = await sample!.toObject();
+			expect(obj).toMatchInlineSnapshot(`
 Object {
   "createdAt": ${date.toISOString()},
   "id": "8280c69f-be52-4918-ada9-f43d4703dbfe",
@@ -765,7 +845,7 @@ describe('should create object with success', () => {
 		}
 	}
 
-	it('object', () => {
+	it('object', async () => {
 		const post = Post.init({
 			comments: ['lorem', 'test', 'sample001'],
 			likes: 1,
@@ -796,7 +876,10 @@ describe('should create object with success', () => {
 			updatedAt: new Date('2024-12-15T18:00:14.761Z')
 		});
 
-		expect(john.toObject()).toEqual({
+		const johnObj = await john.toObject();
+		const janeObj = await jane.toObject();
+
+		expect(johnObj).toEqual({
 			"age": 27,
 			"createdAt": expect.any(Date),
 			"friends": [
@@ -879,7 +962,7 @@ describe('should create object with success', () => {
 			],
 			"updatedAt": expect.any(Date),
 		});
-		expect(jane.toObject()).toEqual({
+		expect(janeObj).toEqual({
 			"age": 25,
 			"createdAt": expect.any(Date),
 			"friends": [],
@@ -928,7 +1011,7 @@ describe('should create object with success', () => {
 });
 
 describe('', () => {
-	it('', () => {
+	it('', async () => {
 
 		class Money extends ValueObject<number> {
 			private constructor(value: number) {
@@ -978,7 +1061,8 @@ describe('', () => {
 			updatedAt: new Date('2024-12-15T18:17:17.422Z')
 		});
 
-		expect(payment.toObject()).toEqual({
+		const obj = await payment.toObject();
+		expect(obj).toEqual({
 			"createdAt": expect.any(Date),
 			"id": "1",
 			"operations": [
@@ -1005,20 +1089,20 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: { value: string | null | undefined }) {
 				super(props);
 			}
-			public static create(value: string | null | undefined): Result<SimpleVo> {
-				return Ok(new SimpleVo({ value }));
+			public static create(value: string | null | undefined): Promise<SimpleVo | null> {
+				return Promise.resolve(new SimpleVo({ value }));
 			}
 		}
 
-		it('should return null if value is null', () => {
-			const vo = SimpleVo.create(null).value();
+		it('should return null if value is null', async () => {
+			const vo = await SimpleVo.create(null);
 			const autoMapper = new AutoMapper<{ value: string | null }>();
 			const result = autoMapper.valueObjectToObj(vo as any);
 			expect(result).toEqual({ value: null });
 		});
 
-		it('should return undefined if value is undefined', () => {
-			const vo = SimpleVo.create(undefined).value();
+		it('should return undefined if value is undefined', async () => {
+			const vo = await SimpleVo.create(undefined);
 			const autoMapper = new AutoMapper<{ value: string | undefined }>();
 			const result = autoMapper.valueObjectToObj(vo as any);
 			expect(result).toEqual({ value: undefined });
@@ -1031,16 +1115,16 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: { tag: symbol }) {
 				super(props);
 			}
-			public static create(tag: symbol): Result<SymbolVo> {
-				return Ok(new SymbolVo({ tag }));
+			public static create(tag: symbol): Promise<SymbolVo | null> {
+				return Promise.resolve(new SymbolVo({ tag }));
 			}
 		}
 
-		it('should convert symbol to its description', () => {
+		it('should convert symbol to its description', async () => {
 			const sym = Symbol("myTag");
-			const vo = SymbolVo.create(sym).value();
+			const vo = await SymbolVo.create(sym);
 			const autoMapper = new AutoMapper<{ tag: symbol }>();
-			const result = autoMapper.valueObjectToObj(vo);
+			const result = autoMapper.valueObjectToObj(vo!);
 			expect(result).toEqual({ tag: "myTag" });
 		});
 	});
@@ -1052,16 +1136,16 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: { data: any[] }) {
 				super(props);
 			}
-			public static create(data: any[]): Result<MixedVo> {
-				return Ok(new MixedVo({ data }));
+			public static create(data: any[]): Promise<MixedVo | null> {
+				return Promise.resolve(new MixedVo({ data }));
 			}
 		}
 
-		it('should handle arrays with mixed data types', () => {
+		it('should handle arrays with mixed data types', async () => {
 			const arr = [ID.create('123'), 'hello', 42, new Date('2020-01-01')];
-			const vo = MixedVo.create(arr).value();
+			const vo = await MixedVo.create(arr);
 			const autoMapper = new AutoMapper<{ data: any[] }>();
-			const result = autoMapper.valueObjectToObj(vo);
+			const result = autoMapper.valueObjectToObj(vo!);
 			expect(result).toEqual({
 				data: [
 					'123',
@@ -1080,8 +1164,8 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: { message: string }) {
 				super(props);
 			}
-			public static create(message: string): Result<InnerVo> {
-				return Ok(new InnerVo({ message }));
+			public static create(message: string): Promise<InnerVo | null> {
+				return Promise.resolve(new InnerVo({ message }));
 			}
 		}
 
@@ -1089,16 +1173,16 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: { data: InnerVo }) {
 				super(props);
 			}
-			public static create(data: InnerVo): Result<OuterVo> {
-				return Ok(new OuterVo({ data }));
+			public static create(data: InnerVo): Promise<OuterVo | null> {
+				return Promise.resolve(new OuterVo({ data }));
 			}
 		}
 
-		it('should recursively convert nested value objects', () => {
-			const inner = InnerVo.create('inner text').value();
-			const outer = OuterVo.create(inner).value();
+		it('should recursively convert nested value objects', async () => {
+			const inner = await InnerVo.create('inner text');
+			const outer = await OuterVo.create(inner!);
 			const autoMapper = new AutoMapper<{ data: InnerVo }>();
-			const result = autoMapper.valueObjectToObj(outer);
+			const result = autoMapper.valueObjectToObj(outer!);
 			expect(result).toEqual({
 				data: { message: 'inner text' }
 			});
@@ -1114,15 +1198,15 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: EmptyProps) {
 				super(props);
 			}
-			public static create(): Result<EmptyEntity> {
-				return Ok(new EmptyEntity({}));
+			public static create(): Promise<EmptyEntity | null> {
+				return Promise.resolve(new EmptyEntity({}));
 			}
 		}
 
-		it('should handle entity with no props gracefully', () => {
-			const entity = EmptyEntity.create().value();
+		it('should handle entity with no props gracefully', async () => {
+			const entity = await EmptyEntity.create();
 			const autoMapper = new AutoMapper<EmptyProps>();
-			const result = autoMapper.entityToObj(entity);
+			const result = autoMapper.entityToObj(entity!);
 			// result deve ter apenas id, createdAt, updatedAt
 			expect(result).toHaveProperty('id');
 			expect(result).toHaveProperty('createdAt');
@@ -1138,8 +1222,8 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: { name: string }) {
 				super(props);
 			}
-			public static create(name: string): Result<ChildVo> {
-				return Ok(new ChildVo({ name }));
+			public static create(name: string): Promise<ChildVo | null> {
+				return Promise.resolve(new ChildVo({ name }));
 			}
 		}
 
@@ -1152,8 +1236,9 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: ChildProps) {
 				super(props);
 			}
-			public static create(name: string): Result<ChildEntity> {
-				return Ok(new ChildEntity({ childName: ChildVo.create(name).value() }));
+			public static async create(name: string): Promise<ChildEntity | null> {
+				const childVo = await ChildVo.create(name);
+				return Promise.resolve(new ChildEntity({ childName: childVo! }));
 			}
 		}
 
@@ -1166,19 +1251,19 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: ParentProps) {
 				super(props);
 			}
-			public static create(children: ChildEntity[]): Result<ParentEntity> {
-				return Ok(new ParentEntity({ children }));
+			public static create(children: ChildEntity[]): Promise<ParentEntity | null> {
+				return Promise.resolve(new ParentEntity({ children }));
 			}
 		}
 
-		it('should convert entity with array of child entities', () => {
-			const child1 = ChildEntity.create('child1').value();
-			const child2 = ChildEntity.create('child2').value();
+		it('should convert entity with array of child entities', async () => {
+			const child1 = await ChildEntity.create('child1');
+			const child2 = await ChildEntity.create('child2');
 
-			const parent = ParentEntity.create([child1, child2]).value();
+			const parent = await ParentEntity.create([child1!, child2!]);
 
 			const autoMapper = new AutoMapper<ParentProps>();
-			const result = autoMapper.entityToObj(parent);
+			const result = autoMapper.entityToObj(parent!);
 			expect(result.children).toEqual([
 				{
 					id: expect.any(String),
@@ -1203,8 +1288,8 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: { text: string }) {
 				super(props);
 			}
-			public static create(text: string): Result<SimpleVo> {
-				return Ok(new SimpleVo({ text }));
+			public static create(text: string): Promise<SimpleVo | null> {
+				return Promise.resolve(new SimpleVo({ text }));
 			}
 		}
 
@@ -1217,9 +1302,10 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: SimpleProps) {
 				super(props);
 			}
-			public static create(desc: string): Result<SimpleEntity> {
-				return Ok(new SimpleEntity({
-					description: SimpleVo.create(desc).value()
+			public static async create(desc: string): Promise<SimpleEntity | null> {
+				const simpleVo = await SimpleVo.create(desc);
+				return Promise.resolve(new SimpleEntity({
+					description: simpleVo!
 				}));
 			}
 		}
@@ -1234,16 +1320,16 @@ describe('auto-mapper additional tests', () => {
 			private constructor(props: AggProps) {
 				super(props);
 			}
-			public static create(props: AggProps): Result<SampleAggregate> {
-				return Ok(new SampleAggregate(props));
+			public static create(props: AggProps): Promise<SampleAggregate | null> {
+				return Promise.resolve(new SampleAggregate(props));
 			}
 		}
 
-		it('should convert aggregate with nested entity', () => {
-			const entity = SimpleEntity.create('desc').value();
-			const agg = SampleAggregate.create({ entity, name: 'agg-name' }).value();
+		it('should convert aggregate with nested entity', async () => {
+			const entity = await SimpleEntity.create('desc');
+			const agg = await SampleAggregate.create({ entity: entity!, name: 'agg-name' });
 
-			const result = agg.toObject();
+			const result = await agg!.toObject();
 			expect(result).toEqual({
 				id: expect.any(String),
 				createdAt: expect.any(Date),
@@ -1272,19 +1358,19 @@ describe('auto-mapper additional tests', () => {
 			expect(typeof result).toBe('object');
 		});
 
-		it('should handle undefined props in value object', () => {
+		it('should handle undefined props in value object', async () => {
 			class PartialVo extends ValueObject<{ text?: string, count?: number }> {
 				private constructor(props: { text?: string, count?: number }) {
 					super(props);
 				}
-				public static create(props: { text?: string, count?: number }): Result<PartialVo> {
-					return Ok(new PartialVo(props));
+				public static create(props: { text?: string, count?: number }): Promise<PartialVo | null> {
+					return Promise.resolve(new PartialVo(props));
 				}
 			}
 
-			const vo = PartialVo.create({ text: 'partial' }).value();
+			const vo = await PartialVo.create({ text: 'partial' });
 			const autoMapper = new AutoMapper<{ text?: string, count?: number }>();
-			const result = autoMapper.valueObjectToObj(vo);
+			const result = autoMapper.valueObjectToObj(vo!);
 			expect(result).toEqual({ text: 'partial', count: undefined });
 		});
 	});
