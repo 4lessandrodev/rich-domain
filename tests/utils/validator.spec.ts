@@ -1,5 +1,4 @@
-import { Aggregate, Entity, id, Id, ID, Result, ValueObject } from "../../lib/core";
-import { _Result } from "../../lib/types";
+import { Aggregate, Entity, id, Id, ID, ValueObject } from "../../lib/core";
 import { Validator } from "../../lib/utils";
 
 describe('check-types', () => {
@@ -10,8 +9,8 @@ describe('check-types', () => {
 			super(props)
 		}
 
-		public static create(): Result<Aggregate<any>, string> {
-			return Result.Ok(new Agg({ value: 'hello' }));
+		public static create(): Promise<Aggregate<any> | null> {
+			return Promise.resolve(new Agg({ value: 'hello' }));
 		}
 	};
 
@@ -20,8 +19,8 @@ describe('check-types', () => {
 			super(props)
 		}
 
-		public static create(props: any = { value: 'hello' }): Result<Entity<any>, string> {
-			return Result.Ok(new Ent(props));
+		public static create(props: any = { value: 'hello' }): Promise<Entity<any> | null> {
+			return Promise.resolve(new Ent(props));
 		}
 	};
 
@@ -30,8 +29,8 @@ describe('check-types', () => {
 			super(props)
 		}
 
-		public static create(): _Result<ValueObject<any>, string> {
-			return Result.Ok(new Vo('hello'));
+		public static create(): Promise<ValueObject<any> | null> {
+			return Promise.resolve(new Vo('hello'));
 		}
 	};
 
@@ -92,21 +91,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isString(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isString(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isString(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isString(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isString(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isString(ent);
 			expect(result).toBeFalsy();
 		});
 	});
@@ -169,21 +168,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isValueObject(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isValueObject(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return true if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isValueObject(vo.value());
+		it('should return true if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isValueObject(vo);
 			expect(result).toBeTruthy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isValueObject(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isValueObject(ent);
 			expect(result).toBeFalsy();
 		});
 	});
@@ -246,21 +245,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isEntity(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isEntity(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isEntity(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isEntity(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return true if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isEntity(ent.value());
+		it('should return true if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isEntity(ent);
 			expect(result).toBeTruthy();
 		});
 	});
@@ -322,21 +321,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return true if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isAggregate(agg.value());
+		it('should return true if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isAggregate(agg);
 			expect(result).toBeTruthy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isAggregate(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isAggregate(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isAggregate(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isAggregate(ent);
 			expect(result).toBeFalsy();
 		});
 	});
@@ -398,21 +397,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isArray(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isArray(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isArray(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isArray(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isArray(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isArray(ent);
 			expect(result).toBeFalsy();
 		});
 	});
@@ -474,21 +473,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isBoolean(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isBoolean(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isBoolean(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isBoolean(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isBoolean(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isBoolean(ent);
 			expect(result).toBeFalsy();
 		});
 	});
@@ -551,21 +550,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isNumber(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isNumber(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isNumber(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isNumber(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isNumber(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isNumber(ent);
 			expect(result).toBeFalsy();
 		});
 
@@ -667,21 +666,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isDate(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isDate(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isDate(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isDate(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isDate(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isDate(ent);
 			expect(result).toBeFalsy();
 		});
 	});
@@ -744,21 +743,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isNull(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isNull(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isNull(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isNull(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isNull(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isNull(ent);
 			expect(result).toBeFalsy();
 		});
 	});
@@ -821,21 +820,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isUndefined(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isUndefined(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isUndefined(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isUndefined(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isUndefined(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isUndefined(ent);
 			expect(result).toBeFalsy();
 		});
 	});
@@ -898,21 +897,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isFunction(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isFunction(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isFunction(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isFunction(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isFunction(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isFunction(ent);
 			expect(result).toBeFalsy();
 		});
 	});
@@ -975,30 +974,30 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isObject(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isObject(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isObject(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isObject(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isObject(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isObject(ent);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity with Circular Reference', () => {
-			const ent1 = Ent.create();
-			const ent2 = Ent.create({ value: ent1 });
+		it('should return false if is Entity with Circular Reference', async () => {
+			const ent1 = await Ent.create();
+			const ent2 = await Ent.create({ value: ent1 });
 			console.log('should return false if is Entity with Circular Reference')
-			console.log(ent2.toObject())
-			const result = checker.isObject(ent2.value());
+			console.log(await ent2!.toObject())
+			const result = checker.isObject(ent2);
 			expect(result).toBeFalsy();
 		});
 
@@ -1077,21 +1076,21 @@ describe('check-types', () => {
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Aggregate', () => {
-			const agg = Agg.create();
-			const result = checker.isID(agg.value());
+		it('should return false if is Aggregate', async () => {
+			const agg = await Agg.create();
+			const result = checker.isID(agg);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is ValueObject', () => {
-			const vo = Vo.create();
-			const result = checker.isID(vo.value());
+		it('should return false if is ValueObject', async () => {
+			const vo = await Vo.create();
+			const result = checker.isID(vo);
 			expect(result).toBeFalsy();
 		});
 
-		it('should return false if is Entity', () => {
-			const ent = Ent.create();
-			const result = checker.isID(ent.value());
+		it('should return false if is Entity', async () => {
+			const ent = await Ent.create();
+			const result = checker.isID(ent);
 			expect(result).toBeFalsy();
 		});
 	});

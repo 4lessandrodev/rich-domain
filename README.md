@@ -229,7 +229,7 @@ Divided by
 
 ```ts
 
-import { ValueObject, Ok, Fail, Result } from 'rich-domain';
+import { ValueObject } from 'rich-domain';
 
 interface Props {
     amount: number;
@@ -282,12 +282,12 @@ export default class Money extends ValueObject<Props> {
     }
 
     // factory method to create an instance and validate value.
-    public static create(amount: number): Result<Money | null> {
+    public static create(amount: number): Promise<Money | null> {
 
         const isValid = this.isValidProps({ amount });
-        if(!isValid) return Fail("Invalid amount for money");
+        if(!isValid) return Promise.resolve(null);
 
-        return Ok(new Money({ amount }));
+        return Promise.resolve(new Money({ amount }));
     }
 
     // try initialize an instance. throw erro if provide an invalid value
@@ -307,35 +307,27 @@ How to use value object instance
 ```ts
 
 // operation result
-const resA = Money.create(500);
+const moneyA = await Money.create(500);
 
 // check if provided a valid value
-console.log(resA.isOk());
+if(moneyA) {
+    moneyA.get("amount"); 
+    // 500
 
-// > true
+    // using methods 
+    moneyA.isGt(Money.zero());
+    // > true
 
+    const moneyB = await Money.create(100);
 
-// money instance
-const moneyA = resA.value() as Money;
+    const moneyC = moneyA.sum(moneyB!);
 
-moneyA.get("amount"); 
+    const value = moneyC.get('amount');
 
-// 500
+    console.log(value); 
 
-// using methods 
-moneyA.isGt(Money.zero());
-
-// > true
-
-const moneyB = Money.create(100).value() as Money;
-
-const moneyC = moneyA.sum(moneyB);
-
-const value = moneyC.get('amount');
-
-console.log(value); 
-
-// > 600
+    // > 600
+}
 
 
 ```
@@ -350,7 +342,7 @@ console.log(value);
 
 ```ts
 
-import { Entity, Ok, Fail, Result, UID } from 'rich-domain';
+import { Entity, UID } from 'rich-domain';
 
 interface Props {
     id?: UID;
@@ -383,8 +375,8 @@ export default class Payment extends Entity<Props> {
     }
 
     // factory method to create a instance. Value must be positive.
-    public static create(props: Props): Result<Payment> {
-        return Ok(new Payment(props));
+    public static create(props: Props): Promise<Payment | null> {
+        return Promise.resolve(new Payment(props));
     }
 
     public static init(props: Props): Payment {
@@ -399,22 +391,22 @@ How to use entity instance
 ```ts
 
 // operation result
-const total = Money.create(500).value() as Money;
+const total = await Money.create(500);
 const discount = Money.zero();
 const fees = Money.zero();
 
 // create a payment
-const payment = Payment.create({ total, discount, fees }).value();
+const payment = await Payment.create({ total: total!, discount, fees });
 
 // create fee and discount
-const fee = Money.create(17.50).value() as Money;
-const disc = Money.create(170.50).value() as Money;
+const fee = await Money.create(17.50);
+const disc = await Money.create(170.50);
 
 // apply fee and discount
-const result = payment.applyFees(fee).applyDiscount(disc);
+const result = payment!.applyFees(fee!).applyDiscount(disc!);
 
 // get object from domain entity
-console.log(result.toObject());
+console.log(await result.toObject());
 
 {
     "id": "d7fc98f5-9711-4ad8-aa16-70cb8a52244a",
@@ -448,7 +440,7 @@ In my example, let's use the context of payment. All payment transactions are en
 
 ```ts
 
-import { Aggregate, Ok, Fail, Result, UID, EventHandler } from 'rich-domain';
+import { Aggregate, UID, EventHandler } from 'rich-domain';
 
 // Entities and VO that encapsulate context.
 interface Props {
@@ -520,11 +512,11 @@ export default class Order extends Aggregate<Props> {
     }
 
     // Static method to create an instance of Order.
-    // Returns a Result, which can be Ok (success) or Fail (failure).
-    // The value of the Result is an instance of Order, 
+    // Returns a Promise, which can be resolved (success) or rejected (failure).
+    // The value of the Promise is an instance of Order, 
     // if creation is successful.
-    public static create(props: Props): Result<Order> {
-        return Ok(new Order(props));
+    public static create(props: Props): Promise<Order | null> {
+        return Promise.resolve(new Order(props));
     }
 
     public static init(props: Props): Order {
@@ -549,9 +541,10 @@ class OrderCreatedEvent extends EventHandler<Order> {
         super({ eventName: 'ORDER_CREATED' });
     }
 
-    dispatch(order: Order): void {
+    async dispatch(order: Order): Promise<void> {
         // dispatch event to another context
-        order.context().dispatchEvent('CONTEXT:EVENT', order.toObject());
+        const model = await order.toObject();
+        order.context().dispatchEvent('CONTEXT:EVENT', model);
     };
 }
 
@@ -616,58 +609,34 @@ context.dispatchEvent('Context-Y:*');
 
 ## Features
 
-### Result
+<details>
+<summary>Promise</summary>
 
-What is Result:
+What is Promise:
 
-`Result` is a class that encapsulates the result of an operation and stores the success or failure state without throws the application.
+A `Promise` is an object that represents the eventual completion (or failure) of an asynchronous operation and its resulting value.
 
 #### Interface and Generic Types
 
-- P = `Payload` optional default `void`
-- E = `Error` optional default `string`
-- M = `MetaData` optional default `{}`
+- T = `Payload`
 
 ```ts
 
-Result<P, E, M>;
+Promise<T | null>;
 
 ```
 
-You can import like example below
+You can use it like example below
 
 ```ts
 
-import { Result, Ok, Fail } from "rich-domain";
-
 // Success use case
 
-return Result.Ok();
-
-// OR
-
-return Ok();
-
-// OR
-
-return Ok(data);
-
-// OR
-
-return Ok<Payload>(data);
+return Promise.resolve(data);
 
 // Failure use case
 
-return Result.fail('error message here');
-
-// OR
-
-return Fail('error message here');
-
-// OR
-
-return Fail<MyError>(myCustomError);
-
+return Promise.resolve(null);
 
 ```
 
@@ -681,29 +650,22 @@ First let's create our interfaces to use as generic type.
 // Payload type
 interface Data { data: string };
 
-// Error type
-interface Err { message: string };
-
-// MetaData type. Optional
-interface Meta { arg: number };
-
 ```
 
-Now let's implement a function that return the result below
+Now let's implement a function that return the promise below
 
 ```ts
 
-Result<Data, Err, Meta>;
+Promise<Data | null>;
 
 ```
 So let's implement that on a simple function.
 
 ```ts
 
-const isEven = (value: number): Result<Data | null, Err, Meta> => {
+const isEven = async (value: number): Promise<Data | null> => {
 
 	const isEvenValue = value % 2 === 0;
-	const metaData: Meta = { arg: value };
 	
 	if (isEvenValue) {
 		
@@ -711,14 +673,11 @@ const isEven = (value: number): Result<Data | null, Err, Meta> => {
 		const payload: Data = { data: `${value} is even` };
 
 		// return success
-		return Ok(payload, metaData);
+		return Promise.resolve(payload);
 	}
 
-	// failure payload 
-	const error: Err = { message: `${value} is not even` };
-
 	// return failure
-	return Fail(error, metaData);
+	return Promise.resolve(null);
 };
 
 
@@ -729,238 +688,26 @@ Success Case
 
 ```ts
 
-const result = isEven(42);
+const result = await isEven(42);
 
-console.log(result.isOk());
-
-> true
-
-console.log(result.value());
+console.log(result);
 
 > 'Object { data: "42 is even" }'
-
-console.log(result.metaData());
-
-> 'Object { arg: 42 }'
-
-console.log(result.error());
-
-> null
 
 ```
 Failure Case
 
 ```ts
 
-const result = isEven(43);
+const result = await isEven(43);
 
-console.log(result.isFail());
-
-> true
-
-console.log(result.error());
-
-> 'Object { message: "43 is not even" }'
-
-console.log(result.metaData());
-
-> 'Object { arg: 43 }'
-
-console.log(result.value());
+console.log(result);
 
 > null
 
 ```
 
-#### Void
-
-The most simple void success example.<br>
-Let's see the same example using void.
-
-```ts
-
-const checkEven = (value: number): Result<void | null> => {
-
-	const isEven = value % 2 === 0;
-
-	// success case
-	if(isEven) return Ok(); 
-	
-	// failure case
-	return Fail('not even');
-}
-
-```
-Using the function as success example
-
-```ts
-
-const result: Result<void> = checkEven(42);
-
-console.log(result.isOk());
-
-> true
-
-console.log(result.isFail());
-
-> false
-
-console.log(result.error());
-
-> null
-
-console.log(result.value());
-
-> null
-
-console.log(result.metaData());
-
-> 'Object {}'
-
-```
-
-Fail example
-
-```ts
-
-const result: Result<void> = checkEven(43);
-
-console.log(result.isFail());
-
-> true
-
-console.log(result.isOk());
-
-> false
-
-console.log(result.error());
-
-> "not even"
-
-console.log(result.value());
-
-> null
-
-console.log(result.metaData());
-
-> 'Object {}'
-
-```
-
-#### toObject method
-you can get a summarized object with the properties of an instance of a `Result`
-
-```ts
-
-console.log(result.toObject());
-
-> Object
-`{
-	"data": null, 
-	"error": "not even", 
-	"isFail": true, 
-	"isOk": false, 
-	"metaData": Object {}
- }`
-
-```
-
-#### Hooks
-
-In the instances of a Result there are two hooks that allow the execution of a command according to the state.
-
-```ts
-
-class Command implements ICommand<void, void> {
-	execute(): void {
-		console.log("running command ...");
-	}
-}
-
-const myCommand = new Command();
-
-const result = Ok();
-
-result.execute(myCommand).on('Ok');
-
-> "running command ..."
-
-```
-
-You might also want to pass arguments to the command
-
-```ts
-
-class Command implements ICommand<string, void> {
-	execute(error: string): void {
-		console.log(error);
-	}
-}
-
-const myCommand = new Command();
-
-const result = Fail('something went wrong');
-
-result.execute(myCommand).withData(result.error()).on('fail');
-
-> "something went wrong"
-
-```
-
-#### Combine
-
-You can use the static `combine` function of `Result` to check many instances if any are failed it will return the instance with error state.
-
-Success example 
-
-```ts
-
-import { Ok, Combine } from "rich-domain";
-
-const resultA = Ok();
-const resultB = Ok();
-const resultC = Ok();
-
-const result = Combine([ resultA, resultB, resultC ]);
-
-console.log(result.isOk());
-
-> true
-
-// OR 
-
-import { Result } from "rich-domain";
-
-const resultA = Result.Ok();
-const resultB = Result.Ok();
-const resultC = Result.Ok();
-
-const result = Result.combine([ resultA, resultB, resultC ]);
-
-console.log(result.isOk());
-
-> true
-
-```
-Failure example 
-
-```ts
-
-const resultA = Ok();
-const resultB = Fail('oops err');
-const resultC = Ok();
-
-const result = Combine([ resultA, resultB, resultC ]);
-
-console.log(result.isOk());
-
-> false
-
-console.log(result.error());
-
-> 'oops err'
-
-```
+</details>
 
 ---
 
@@ -1106,14 +853,15 @@ What is value object:
 
 #### Simple Value Object.
 
-Value objects extend to `ValueObject` class have private constructor and public static method called `create`.<br>
+Value objects extend to `ValueObject` class have private constructor and public static method called `create`.
+
 The `create` method receives the props which by default is an object with the key `value`.
 
 the value object below is a base example without any kind of validation
 
 ```ts
 
-import { Result, ValueObject } from "rich-domain";
+import { ValueObject } from "rich-domain";
 
 export interface NameProps {
 	value: string;
@@ -1128,8 +876,8 @@ export class Name extends ValueObject<NameProps>{
         return new Name(value);
     }
 
-	public static create(value: string): Result<Name> {
-		return Result.Ok(new Name({ value }));
+	public static create(value: string): Promise<Name | null> {
+		return Promise.resolve(new Name({ value }));
 	}
 }
 
@@ -1138,21 +886,16 @@ export default Name;
 ```
 
 Now that we have defined our value object class, we can create an instance.<br>
-The `create` method returns an instance of Name encapsulated by the `Result`, so it is important to always assess whether the result is a success before getting the value.
+The `create` method returns an instance of Name encapsulated by a `Promise`, so it is important to always assess whether the promise resolved before getting the value.
 
 ```ts
 
-const result = Name.create('Jane');
+const name = await Name.create('Jane');
 
-console.log(result.isOk());
-
-> true
-
-const name = result.value();
-
-console.log(name.get('value'));
-
-> "Jane"
+if(name) {
+    console.log(name.get('value'));
+    // > "Jane"
+}
 
 ```
 
@@ -1198,7 +941,7 @@ A validator instance is available in the "Value Object" domain class.
 
 ```ts
 
-import { Result, Ok, Fail, ValueObject } from "rich-domain";
+import { ValueObject } from "rich-domain";
 
 export class Name extends ValueObject<string>{
 	private constructor(props: string) {
@@ -1216,9 +959,9 @@ export class Name extends ValueObject<string>{
         return new Name(value);
     }
 
-	public static create(value: string): Result<Name | null> {
-		if (!this.isValid(value)) return Fail('invalid name');
-		return Ok(new Name(value));
+	public static create(value: string): Promise<Name | null> {
+		if (!this.isValid(value)) return Promise.resolve(null);
+		return Promise.resolve(new Name(value));
 	}
 }
 
@@ -1226,25 +969,17 @@ export default Name;
 
 ```
 
-Now when you try to instantiate a name, the value will be checked and if it doesn't meet the validation requirements, a `Result` will be returned with an error state.
+Now when you try to instantiate a name, the value will be checked and if it doesn't meet the validation requirements, a `Promise` will be returned with a null state.
 
 ```ts
 
 const empty = '';
 
-const result = Name.create(empty);
+const name = await Name.create(empty);
 
-console.log(result.isFail());
-
-> true
-
-console.log(result.error());
-
-> "invalid name"
-
-console.log(result.value());
-
-> null
+if(!name) {
+    console.log('invalid name');
+}
 
 ```
 
@@ -1270,15 +1005,13 @@ This method is useful for cases where you have value objects inside other value 
 
 ```ts
 
-const street = Street.create('Dom Juan').value() as Street;
+const street = await Street.create('Dom Juan');
 
-const complement = Complement.create('n42').value() as Complement;
+const complement = await Complement.create('n42');
 
-const result = Address.create({ street, complement });
+const address = await Address.create({ street: street!, complement: complement! });
 
-const address = result.value();
-
-console.log(address.toObject());
+console.log(await address!.toObject());
 
 > Object 
 `{
@@ -1293,17 +1026,15 @@ This method creates a new instance with the same properties as the current value
 
 ```ts
 
-const result = Name.create('Sammy') as Name;
+const originalName = await Name.create('Sammy');
 
-const originalName = result.value();
-
-console.log(originalName.value());
+console.log(originalName.get('value'));
 
 > "Sammy"
 
 const clone = originalName.clone();
 
-console.log(clone);
+console.log(clone.get('value'));
 
 > "Sammy"
 
@@ -1315,11 +1046,11 @@ Clone being a new instance does not change the properties of the original value 
 
 clonedName.change('value', 'Jones');
 
-console.log(clonedName.value());
+console.log(clonedName.get('value'));
 
 > "Jones"
 
-console.log(originalName.value());
+console.log(originalName.get('value'));
 
 > "Sammy"
 
@@ -1335,17 +1066,18 @@ const itemPrice = Class<PriceProps>(ProductPrice, { value: price });
 const itemName = Class<NameProps>(ProductName, { value: name });
 const itemQtd = Class<QtdProps>(ProductQtd, { value: qtd });
 
-const { data, result } = ValueObject.createMany([ itemPrice, itemName, itemQtd ]);
+const { data, result } = await ValueObject.createMany([ itemPrice, itemName, itemQtd ]);
 
 // you check if all value objects are ok
-if (result.isFail()) return Result.fail(result.error());
+const results = await result;
+if (!results) return null;
 
 // you can get instances from iterator data. In the same order as the array
-const price = data.next().value() as ProductPrice;  // index 0
-const name = data.next().value() as ProductName;    // index 1
-const quantity = data.next().value() as ProductQtd; // index 2
+const price = await data.next() as ProductPrice;  // index 0
+const name = await data.next() as ProductName;    // index 1
+const quantity = await data.next() as ProductQtd; // index 2
 
-const product = Product.create({ name, price, quantity });
+const product = await Product.create({ name, price, quantity });
 
 ```
 
@@ -1381,8 +1113,8 @@ export class User extends Entity<UserProps>{
 		super(props)
 	}
 
-	public static create(props: UserProps): Result<User> {
-		return Result.Ok(new User(props));
+	public static create(props: UserProps): Promise<User | null> {
+		return Promise.resolve(new User(props));
 	}
 }
 
@@ -1396,26 +1128,11 @@ All attributes for an entity must be value object except id.
 
 ```ts
 
-const nameAttr = Name.create('James');
-const ageAttr = Age.create(21);
-
-// always check if value objects are success
-const results = Combine([ nameAttr, ageAttr ]);
-
-console.log(results.isOk());
-
-> true
-
-const name = nameAttr.value();
-
-const age = ageAttr.value();
+const name = await Name.create('James');
+const age = await Age.create(21);
 
 // if you don't provide a value for the id it will be generated automatically
-const result = User.create({ name, age });
-
-console.log(result.isOk());
-
-> true
+const user = await User.create({ name: name!, age: age! });
 
 ```
 
@@ -1426,9 +1143,7 @@ In the entity, this method aims to transform a domain class into a simple object
 
 ```ts
 
-const user = result.value();
-
-console.log(user.toObject());
+console.log(await user!.toObject());
 
 > Object
 `{
@@ -1447,19 +1162,14 @@ you can create an instance by entering an id
 
 ```ts
 
-const name = nameAttr.value();
+const name = await Name.create('James');
+const age = await Age.create(21);
 
 const id = Id('my-id-value-01');
 
-const result = User.create({ id, age, name });
+const user = await User.create({ id, age: age!, name: name! });
 
-console.log(result.isOk());
-
-> true 
-
-const user = result.value();
-
-console.log(user.toObject());
+console.log(await user!.toObject());
 
 > Object
 `{
@@ -1479,20 +1189,16 @@ Check if instance is a new entity.<br> if you do not provide an id the entity wi
 ```ts
 
 // no id provided
-const newUserResult = User.create({ name, age });
+const newUser = await User.create({ name: name!, age: age! });
 
-cons newUser = newUserResult.value();
-
-console.log(newUser.isNew());
+console.log(newUser!.isNew());
 
 > true
 
 // id provided
-const userResult = User.create({ id, name, age });
+const user = await User.create({ id, name: name!, age: age! });
 
-cons user = userResult.value();
-
-console.log(user.isNew());
+console.log(user!.isNew());
 
 > false
 
@@ -1534,12 +1240,12 @@ export class User extends Entity<UserProps>{
 		return isValidName && isValidAge;
 	}
 
-	public static create(props: UserProps): Result<User> {
+	public static create(props: UserProps): Promise<User | null> {
 
 		const isValidRules = this.isValidProps(props);
-		if(!isValidRules) return Result.fail('invalid props');
+		if(!isValidRules) return Promise.resolve(null);
 
-		return Result.Ok(new User(props));
+		return Promise.resolve(new User(props));
 	}
 }
 
@@ -1553,13 +1259,11 @@ in entities you can easily change an attribute with `change` or `set` method
 
 ```ts
 
-const result = Name.create('Larry');
+const newName = await Name.create('Larry');
 
-const newName = result.value();
+const changed = user.change("name", newName!);
 
-const changed = user.change("name", newName);
-
-console.log(user.get("name").value());
+console.log(user.get("name").get('value'));
 
 > "Larry"
 
@@ -1619,12 +1323,12 @@ export class User extends Entity<UserProps>{
 		return isValidName && isValidAge;
 	}
 
-	public static create(props: UserProps): Result<User> {
+	public static create(props: UserProps): Promise<User | null> {
 
 		const isValidRules = User.isValidProps(props);
-		if(!isValidRules) return Result.fail('invalid props');
+		if(!isValidRules) return Promise.resolve(null);
 
-		return Result.Ok(new User(props));
+		return Promise.resolve(new User(props));
 	}
 }
 
@@ -1651,23 +1355,15 @@ you can clone an entity and get a new instance
 
 ```ts
 
-const result = User.create({ id, age, name });
+const user = await User.create({ id, age, name });
 
-console.log(result.isOk());
+ const clonedUser = user!.clone();
 
-> true 
+ const newName = await Name.create('Luke');
 
-const user = result.value();
+ const changed = clonedUser.set('name').to(newName!);
 
- const clonedUser = user.clone();
-
- const newNameResult = Name.create('Luke');
-
- const newName = newNameResult.value();
-
- const changed = clonedUser.set('name').to(newName);
-
- console.log(user.get('name').value());
+ console.log(user.get('name').get('value'));
 
  > "James"
 
@@ -1675,7 +1371,7 @@ const user = result.value();
 
  > true
 
- console.log(clonedUser.get('name').value());
+ console.log(clonedUser.get('name').get('value'));
 
  > "Luke"
 
@@ -1705,11 +1401,9 @@ At any time you can return to a previous state
 
 ```ts
 
-const result = User.create({ name, age });
+const user = await User.create({ name, age });
 
-const user = result.value();
-
-console.log(user.toObject());
+console.log(await user!.toObject());
 
 > Object
 `{
@@ -1756,8 +1450,8 @@ export class Product extends Aggregate<ProductProps>{
 		super(props);
 	}
 
-	public static create(props: ProductProps): Result<Product> {
-		return Result.Ok(new Product(props));
+	public static create(props: ProductProps): Promise<Product | null> {
+		return Promise.resolve(new Product(props));
 	}
 }
 
@@ -1772,12 +1466,10 @@ Events are stored in memory and are deleted after being triggered.
 
 ```ts
 
-const result = Product.create({ name, price });
+const product = await Product.create({ name, price });
 
-const product = result.value();
-
-product.addEvent('eventName', (product) => {
-	console.log(product.toObject())
+product!.addEvent('eventName', async (product) => {
+	console.log(await product.toObject())
 });
 
 // or alternatively you can create a event handler
@@ -1785,8 +1477,8 @@ product.addEvent('eventName', (product) => {
 class Handler extends EventHandler<Product> {
     constructor() { super({ eventName: 'eventName' }) };
 
-    dispatch(product: Product): void {
-        const model = product.toObject();
+    async dispatch(product: Product): Promise<void> {
+        const model = await product.toObject();
 		console.log(model);
     }
 }
@@ -1823,6 +1515,6 @@ class MyAdapterToDomain implements Adapter<DataUser, DomainUser>{
 // You can use adapter instance in toObject function
 const myAdapter = new MyAdapterToInfra();
 
-const dataUser = domainUser.toObject<DataUser>(myAdapter);
+const dataUser = await domainUser.toObject<DataUser>(myAdapter);
 
 ```
