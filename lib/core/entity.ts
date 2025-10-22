@@ -1,10 +1,9 @@
-import { Adapter, AutoMapperSerializer, EntityMapperPayload, EntityProps, _Adapter, _Entity, _Result, Settings, UID } from "../types";
+import { Adapter, AutoMapperSerializer, EntityMapperPayload, EntityProps, _Adapter, _Entity, Settings, UID } from "../types";
 import { ReadonlyDeep } from "../types-util";
 import { deepFreeze } from "../utils/deep-freeze.util";
 import AutoMapper from "./auto-mapper";
 import GettersAndSetters from "./entity-getters-and-setters";
 import ID from "./id";
-import Result from "./result";
 
 /**
  * @description Represents a domain entity identified by a unique identifier (ID). 
@@ -54,15 +53,16 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 	 * @returns If an adapter is provided, returns the adapted object. Otherwise, returns a deeply frozen object 
 	 * representing the entity properties along with entity metadata (`AutoMapperSerializer<Props> & EntityMapperPayload`).
 	 */
-	toObject<T>(adapter?: Adapter<this, T> | _Adapter<this, T>)
-		: T extends {}
+	async toObject<T>(adapter?: Adapter<this, T> | _Adapter<this, T>)
+		: Promise<T extends {}
 		? T & EntityMapperPayload
-		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload> {
+		: ReadonlyDeep<AutoMapperSerializer<Props> & EntityMapperPayload>> {
 		if(adapter && typeof (adapter as Adapter<this, T>)?.adaptOne === 'function') {
 			return (adapter as Adapter<this, T>).adaptOne(this) as any;
 		}
 		if (adapter && typeof (adapter as _Adapter<this, T>)?.build === 'function') {
-			return (adapter as _Adapter<this, T>).build(this).value() as any;
+			const result = await (adapter as _Adapter<this, T>).build(this);
+			return result as any;
 		}
 		const serializedObject = this.autoMapper.entityToObj(this) as ReadonlyDeep<AutoMapperSerializer<Props>>;
 		const frozenObject = deepFreeze<any>(serializedObject);
@@ -140,17 +140,19 @@ export class Entity<Props extends EntityProps> extends GettersAndSetters<Props> 
 		});
 	};
 
-	public static create(props: any): Result<any, any, any>;
 	/**
-	 * @description Creates a new entity instance wrapped inside a `Result` object.
+	 * @description Creates a new entity instance wrapped inside a `Promise` object.
 	 * @param props The properties to create the entity with. Must be valid properties.
 	 * @param id (Optional) A UUID to assign to the entity. If not provided, a new one will be generated.
-	 * @returns A `Result` instance containing the new entity if successfully created; otherwise, a failure `Result`.
+	 * @returns A `Promise` instance containing the new entity if successfully created; otherwise, a failure `Promise`.
 	 * @summary If the properties are invalid, the result will be a failure with `null` state.
 	 */
-	public static create(props: {}): Result<any, any, any> {
-		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
-		return Result.Ok(new this(props));
+	public static create(props: {} | null | undefined): Promise<any | null> {
+		if (props === null || props === undefined || !this.isValidProps(props)) {
+			console.log('Invalid props to create an instance of ' + this.name);
+			return Promise.resolve(null);
+		}
+		return Promise.resolve(new this(props));
 	};
 }
 

@@ -1,5 +1,5 @@
-import { ValueObject, Entity, Result, Ok, Fail } from '../../lib/core';
-import { Adapter, _Adapter, _Result } from '../../lib/types';
+import { ValueObject, Entity } from '../../lib/core';
+import { Adapter, _Adapter } from '../../lib/types';
 
 describe('adapter v1', () => {
 
@@ -10,8 +10,8 @@ describe('adapter v1', () => {
 			super(props);
 		}
 
-		public static create(props: NameProps): _Result<DomainName> {
-			return Result.Ok(new DomainName(props));
+		public static create(props: NameProps): Promise<DomainName | null> {
+			return Promise.resolve(new DomainName(props));
 		}
 	}
 
@@ -23,8 +23,8 @@ describe('adapter v1', () => {
 			super(props)
 		}
 
-		public static create(props: UserProps): Result<DomainUser> {
-			return Result.Ok(new DomainUser(props));
+		public static async create(props: UserProps): Promise<DomainUser | null> {
+			return Promise.resolve(new DomainUser(props));
 		}
 	}
 
@@ -36,10 +36,12 @@ describe('adapter v1', () => {
 	}
 
 	class DomainUserAdapter implements _Adapter<Model, DomainUser> {
-		build(target: Model): _Result<DomainUser> {
+		async build(target: Model): Promise<DomainUser | null> {
+			const name = await DomainName.create({ value: target.name });
+			if(!name) return null;
 			return DomainUser.create({
 				id: target.id,
-				name: DomainName.create({ value: target.name }).value(),
+				name,
 				createdAt: target.createdAt,
 				updatedAt: target.updatedAt
 			});
@@ -47,10 +49,9 @@ describe('adapter v1', () => {
 	}
 
 	class DataUserAdapter implements _Adapter<DomainUser, Model> {
-		build(target: DomainUser): _Result<Model> {
-
-			return Result.Ok({
-				id: target.get('id'),
+		async build(target: DomainUser): Promise<Model | null> {
+			return Promise.resolve({
+				id: target.id.value(),
 				createdAt: target.get('createdAt') as Date,
 				updatedAt: target.get('updatedAt') as Date,
 				name: target.get('name').get('value')
@@ -65,34 +66,34 @@ describe('adapter v1', () => {
 		updatedAt: new Date('2020-01-01T05:00:23.000Z')
 	}
 
-	const name = DomainName.create({ value: userModel.name }).value();
-	const domainUser = DomainUser.create({ ...userModel, name }).value();
-
 	describe('from data layer to domain', () => {
-		it('should a domain entity from data layer with success', () => {
+		it('should a domain entity from data layer with success', async () => {
 			const adapter = new DomainUserAdapter();
-			const domainUser = adapter.build(userModel);
+			const domainUser = await adapter.build(userModel);
 
-			expect(domainUser.isOk()).toBeTruthy();
-			expect(domainUser.value().get('name').get('value')).toBe('John Stuart');
-			expect(domainUser.value().id.value()).toBe('valid_id');
-			expect(domainUser.value().get('createdAt')).toEqual(new Date('2020-01-01T04:00:23.000Z'));
-			expect(domainUser.value().get('updatedAt')).toEqual(new Date('2020-01-01T05:00:23.000Z'));
+			expect(domainUser).not.toBeNull();
+			expect(domainUser?.get('name').get('value')).toBe('John Stuart');
+			expect(domainUser?.id.value()).toBe('valid_id');
+			expect(domainUser?.get('createdAt')).toEqual(new Date('2020-01-01T04:00:23.000Z'));
+			expect(domainUser?.get('updatedAt')).toEqual(new Date('2020-01-01T05:00:23.000Z'));
 		});
 	});
 
 	describe('from domain to data layer', () => {
-		it('should create a model from domain with success', () => {
+		it('should create a model from domain with success', async () => {
 			const adapter = new DataUserAdapter();
+			const name = await DomainName.create({ value: userModel.name });
+			const domainUser = await DomainUser.create({ ...userModel, name: name! });
+			const model = await adapter.build(domainUser!);
 
-			const model = adapter.build(domainUser);
-
-			expect(model.value()).toEqual(userModel);
+			expect(model).toEqual(userModel);
 		});
 
-		it('should toObject method use adapter', () => {
+		it('should toObject method use adapter', async () => {
 			const adapter = new DataUserAdapter();
-			const model = domainUser.toObject(adapter);
+			const name = await DomainName.create({ value: userModel.name });
+			const domainUser = await DomainUser.create({ ...userModel, name: name! });
+			const model = await domainUser!.toObject(adapter);
 			expect(model).toEqual(userModel);
 		})
 	});
@@ -101,27 +102,25 @@ describe('adapter v1', () => {
 
 		type In = { a: number };
 		type Out = { b: string };
-		type Err = { err: string; stack?: string };
 
-		class CustomAdapter implements _Adapter<In, Out, Err> {
-			build(target: In): _Result<Out, Err> {
-				if (typeof target.a !== 'number') return Fail({ err: 'target.a is not a number' });
-				return Ok({ b: target.a.toString() });
+		class CustomAdapter implements _Adapter<In, Out> {
+			async build(target: In): Promise<Out | null> {
+				if (typeof target.a !== 'number') return null;
+				return { b: target.a.toString() };
 			}
 		}
 
 		const adapter = new CustomAdapter();
 
-		it('should return a success payload', () => {
-			const result = adapter.build({ a: 200 });
-			expect(result.isOk()).toBeTruthy();
-			expect(result.value()).toEqual({ b: '200' });
+		it('should return a success payload', async () => {
+			const result = await adapter.build({ a: 200 });
+			expect(result).not.toBeNull();
+			expect(result).toEqual({ b: '200' });
 		});
 
-		it('should return a custom error', () => {
-			const result = adapter.build({ a: null as any });
-			expect(result.isFail()).toBeTruthy();
-			expect(result.error()).toEqual({ err: 'target.a is not a number' });
+		it('should return a custom error', async () => {
+			const result = await adapter.build({ a: null as any });
+			expect(result).toBeNull();
 		});
 	});
 });

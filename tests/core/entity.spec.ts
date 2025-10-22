@@ -1,5 +1,5 @@
-import { Entity, Fail, Id, Ok, Result, ValueObject } from "../../lib/core";
-import { Adapter, _Result, UID } from "../../lib/types";
+import { Entity, Id, ValueObject } from "../../lib/core";
+import { Adapter, UID } from "../../lib/types";
 
 describe("entity", () => {
 
@@ -16,17 +16,17 @@ describe("entity", () => {
 				return value !== undefined;
 			}
 
-			public static create(props: Props): Result<EntitySample | null> {
-				if (!props) return Fail('props is required')
-				return Result.Ok(new EntitySample(props))
+			public static create(props: Props): Promise<EntitySample | null> {
+				if (!props) return Promise.resolve(null);
+				return Promise.resolve(new EntitySample(props))
 			}
 		}
 
-		it('should get prototype', () => {
-			const ent = EntitySample.create({ foo: 'bar' });
+		it('should get prototype', async () => {
+			const ent = await EntitySample.create({ foo: 'bar' });
 
-			ent.value()?.change('foo', 'changed');
-			expect(ent.isOk()).toBeTruthy();
+			ent?.change('foo', 'changed');
+			expect(ent).not.toBeNull();
 		});
 	});
 
@@ -36,21 +36,25 @@ describe("entity", () => {
 			private constructor(props: { key: string }) {
 				super(props)
 			}
+			public static create(props: { key: string, id?: string, createdAt?: Date, updatedAt?: Date }): Promise<En | null> {
+				if (props === null || props === undefined) return Promise.resolve(null);
+				return Promise.resolve(new En(props));
+			}
 		}
 
 		const id = '973e6c78-6771-4a86-ba55-f759a1e68f8c';
 
-		const entity = En.create(
-			{
-				id,
-				key: 'value',
-				createdAt: new Date('2022-07-20T15:46:54.373Z'),
-				updatedAt: new Date('2022-07-20T15:46:54.373Z')
-			}
-		);
-
-		it('should get object with success', () => {
-			expect(entity.value().toObject()).toEqual({
+		it('should get object with success', async () => {
+			const entity = await En.create(
+				{
+					id,
+					key: 'value',
+					createdAt: new Date('2022-07-20T15:46:54.373Z'),
+					updatedAt: new Date('2022-07-20T15:46:54.373Z')
+				}
+			);
+			const obj = await entity!.toObject();
+			expect(obj).toEqual({
 				id,
 				key: 'value',
 				createdAt: new Date('2022-07-20T15:46:54.373Z'),
@@ -58,19 +62,21 @@ describe("entity", () => {
 			});
 		});
 
-		it('should get hash code with success', () => {
-			expect(entity.value().hashCode().value()).toBe('[Entity@En]:973e6c78-6771-4a86-ba55-f759a1e68f8c');
+		it('should get hash code with success', async () => {
+			const entity = await En.create({ key: 'value', id });
+			expect(entity?.hashCode().value()).toBe('[Entity@En]:973e6c78-6771-4a86-ba55-f759a1e68f8c');
 		});
 
-		it('should clone entity with success and keep the same id', () => {
-			const clone = entity.value().clone();
-			expect(clone.id.value()).toBe(id);
-			expect(clone.get('key')).toBe('value');
+		it('should clone entity with success and keep the same id', async () => {
+			const entity = await En.create({ key: 'value', id });
+			const clone = entity?.clone();
+			expect(clone?.id.value()).toBe(id);
+			expect(clone?.get('key')).toBe('value');
 		});
 
-		it('should return fail if provide null props', () => {
-			const result = En.create(null);
-			expect(result.isFail()).toBeTruthy();
+		it('should return fail if provide null props', async () => {
+			const result = await En.create(null as any);
+			expect(result).toBeNull();
 		});
 	});
 
@@ -94,15 +100,8 @@ describe("entity", () => {
 				name: new Username('John Doe')
 			})
 		})
-		it('should access resolved primitive values prototype', () => {
-			/**
-			 * Since we have access to the resolved primitive value
-			 * returned by the `toObject` method, we can access the
-			 * prototype of the resolved value and manipulate it.
-			 * 
-			 * Point here is that if we can consume it prototype that means typescript is infering the correct type.
-			 */
-			const personObject = person.toObject();
+		it('should access resolved primitive values prototype', async () => {
+			const personObject = await person.toObject();
 
 			const defaultPersonName = 'John Doe';
 			const personObjectName = personObject.name
@@ -150,15 +149,8 @@ describe("entity", () => {
 			})
 		})
 
-		it('should not be able to mutate any level of data on personObject', () => {
-			/**
-			 * Typescript it self already infered an DeepReadonly type on any level of the object.
-			 * So, at type checking level you cant even try to set a new value to any property.
-			 * 
-			 * BUT, at runtime, we should still have the same behavior. That means we'll check if 
-			 * the object is really immutable.
-			 */
-			const personObject = person.toObject();
+		it('should not be able to mutate any level of data on personObject', async () => {
+			const personObject = await person.toObject();
 			expect(Object.isFrozen(personObject)).toBeTruthy();
 			expect(Object.isFrozen(personObject.fullname)).toBeTruthy();
 			expect(Object.isFrozen(personObject.skills)).toBeTruthy();
@@ -241,8 +233,8 @@ describe("entity", () => {
 			})
 		})
 
-		it('should return object with all values', () => {
-			const proposalObject = proposal.toObject();
+		it('should return object with all values', async () => {
+			const proposalObject = await proposal.toObject();
 			expect(proposalObject).toEqual({
 				id: expect.any(String),
 				createdAt: expect.any(Date),
@@ -291,8 +283,8 @@ describe("entity", () => {
 
 
 		describe('should access props', () => {
-			it('should access activities', () => {
-				const proposalObject = proposal.toObject();
+			it('should access activities', async () => {
+				const proposalObject = await proposal.toObject();
 				expect(proposalObject.activities).toEqual([
 					{ name: 'Activity 1', done: true },
 					{ name: 'Activity 2', done: false }
@@ -302,8 +294,8 @@ describe("entity", () => {
 				expect(proposalObject.activities[0].done).toBe(true);
 			})
 
-			it('should access companies', () => {
-				const proposalObject = proposal.toObject();
+			it('should access companies', async () => {
+				const proposalObject = await proposal.toObject();
 				expect(proposalObject.companies).toEqual([
 					{
 						corporateName: 'Company 1',
@@ -324,8 +316,8 @@ describe("entity", () => {
 				expect(proposalObject.companies[0].fantasyName).toBe('Fantasy 1');
 			})
 
-			it('should access lead', () => {
-				const proposalObject = proposal.toObject();
+			it('should access lead', async () => {
+				const proposalObject = await proposal.toObject();
 				expect(proposalObject.lead).toEqual({
 
 					id: expect.any(String),
@@ -348,8 +340,8 @@ describe("entity", () => {
 				expect(proposalObject.lead.user.createdAt).toEqual(expect.any(Date));
 			})
 
-			it('should access primitive props and plain objects', () => {
-				const proposalObject = proposal.toObject();
+			it('should access primitive props and plain objects', async () => {
+				const proposalObject = await proposal.toObject();
 				expect(proposalObject.budget).toBe(2000);
 				expect(proposalObject.deadline).toEqual(expect.any(Date));
 				expect(proposalObject.description).toBe('Proposal description');
@@ -373,8 +365,8 @@ describe("entity", () => {
 			person = new Person({ age: 20, married: false, name: 'John Doe', skills: ['JS', 'TS'] })
 		})
 
-		it('should return object with all values', () => {
-			const personObject = person.toObject();
+		it('should return object with all values', async () => {
+			const personObject = await person.toObject();
 			expect(personObject).toEqual({
 				id: expect.any(String),
 				createdAt: expect.any(Date),
@@ -386,8 +378,8 @@ describe("entity", () => {
 			});
 		});
 
-		it('should access props', () => {
-			const personObject = person.toObject();
+		it('should access props', async () => {
+			const personObject = await person.toObject();
 			expect(personObject.age).toBe(20);
 			expect(personObject.married).toBe(false);
 			expect(personObject.name).toBe('John Doe');
@@ -419,8 +411,8 @@ describe("entity", () => {
 			})
 		})
 
-		it('should return object with all values', () => {
-			const personObject = person.toObject();
+		it('should return object with all values', async () => {
+			const personObject = await person.toObject();
 			expect(personObject).toEqual({
 				id: expect.any(String),
 				createdAt: expect.any(Date),
@@ -430,8 +422,8 @@ describe("entity", () => {
 			});
 		});
 
-		it('should access props', () => {
-			const personObject = person.toObject();
+		it('should access props', async () => {
+			const personObject = await person.toObject();
 			expect(personObject.address).toEqual({ city: 'New York', street: '5th Ave', zip: '10001' });
 			expect(personObject.name).toEqual({ firstName: 'John', lastName: 'Doe' });
 
@@ -462,8 +454,8 @@ describe("entity", () => {
 			})
 		})
 
-		it('should return object with all values', () => {
-			const personObject = person.toObject();
+		it('should return object with all values', async () => {
+			const personObject = await person.toObject();
 			expect(personObject).toEqual({
 				id: expect.any(String),
 				createdAt: expect.any(Date),
@@ -474,8 +466,8 @@ describe("entity", () => {
 			});
 		});
 
-		it('should access props', () => {
-			const personObject = person.toObject();
+		it('should access props', async () => {
+			const personObject = await person.toObject();
 			expect(personObject.age).toBe(20);
 			expect(personObject.married).toBe(false);
 			expect(personObject.name).toBe('John Doe');
@@ -498,32 +490,33 @@ describe("entity", () => {
 				return value !== undefined;
 			}
 
-			public static create(props: Props): Result<EntitySample> {
-				return Result.Ok(new EntitySample(props))
+			public static create(props: Props): Promise<EntitySample | null> {
+				return Promise.resolve(new EntitySample(props))
 			}
 		}
 
-		it('should get prototype', () => {
-			const ent = EntitySample.create({ foo: 'bar' });
+		it('should get prototype', async () => {
+			const ent = await EntitySample.create({ foo: 'bar' });
 
-			ent.value().change('foo', 'changed');
-			expect(ent.isOk()).toBeTruthy();
+			ent?.change('foo', 'changed');
+			expect(ent).not.toBeNull();
 
-			const throws = () => ent.value().change('id', 'changed');
+			const throws = () => ent?.change('id', 'changed');
 			expect(throws).toThrowError();
 		});
 
-		it('should set prototype', () => {
-			const ent = EntitySample.create({ foo: 'bar' });
-			expect(ent.isOk()).toBeTruthy();
-			expect(ent.value().get('foo')).toBe('bar');
-			ent.value().set('foo').to('changed');
-			expect(ent.value().get('foo')).toBe('changed');
+		it('should set prototype', async () => {
+			const ent = await EntitySample.create({ foo: 'bar' });
+			expect(ent).not.toBeNull();
+			expect(ent?.get('foo')).toBe('bar');
+			ent?.set('foo').to('changed');
+			expect(ent?.get('foo')).toBe('changed');
 		});
 
-		it('should create many entities', () => {
-			const payload = EntitySample.createMany([]);
-			expect(payload.result.isFail()).toBeTruthy();
+		it('should create many entities', async () => {
+			const payload = await EntitySample.createMany([]);
+			const result = await payload.result;
+			expect(result).toBeNull();
 		});
 	});
 
@@ -544,74 +537,74 @@ describe("entity", () => {
 				super(props)
 			}
 
-			public static create(props: Props): Result<EntityExample> {
-				return Ok(new EntityExample(props));
+			public static create(props: Props): Promise<EntityExample | null> {
+				return Promise.resolve(new EntityExample(props));
 			}
 		}
 
-		it("should to be equal", () => {
+		it("should to be equal", async () => {
 
 			const props: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
 			const id = Id();
 
-			const a = EntityExample.create({ ...props, id }).value();
-			const b = EntityExample.create({ ...props, id }).value();
+			const a = await EntityExample.create({ ...props, id });
+			const b = await EntityExample.create({ ...props, id });
 
-			expect(a.isEqual(b)).toBeTruthy();
+			expect(a?.isEqual(b!)).toBeTruthy();
 		});
 
-		it("should to be equal", () => {
+		it("should to be equal", async () => {
 
 			const id = Id();
 			const props: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
 
-			const a = EntityExample.create({ ...props, id }).value();
-			const b = a.clone();
+			const a = await EntityExample.create({ ...props, id });
+			const b = a?.clone();
 
-			expect(a.isEqual(b)).toBeTruthy();
+			expect(a?.isEqual(b!)).toBeTruthy();
 		});
 
-		it("should not to be equal if change state", () => {
+		it("should not to be equal if change state", async () => {
 
 			const id = Id();
 			const props: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
 
-			const a = EntityExample.create({ ...props, id }).value();
-			const b = a.clone();
-			b.set('key').to(201);
+			const a = await EntityExample.create({ ...props, id });
+			const b = a?.clone();
+			b?.set('key').to(201);
 
-			expect(a.isEqual(b)).toBeFalsy();
+			expect(a?.isEqual(b!)).toBeFalsy();
 		});
 
-		it("should not to be equal if state is different", () => {
+		it("should not to be equal if state is different", async () => {
 
 			const id = Id();
 			const propsA: Props = { id, key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
 			const propsB: Props = { id, key: 200, values: [{ name: 'abc' }, { name: 'dif' }] };
 
-			const a = EntityExample.create(propsA).value();
-			const b = EntityExample.create(propsB).value();
+			const a = await EntityExample.create(propsA);
+			const b = await EntityExample.create(propsB);
 
-			expect(a.isEqual(b)).toBeFalsy();
+			expect(a?.isEqual(b!)).toBeFalsy();
 		});
 
-		it("should not to be equal if id is different", () => {
+		it("should not to be equal if id is different", async () => {
 
 			const propsA: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] }
 			const propsB: Props = { key: 200, values: [{ name: 'abc' }, { name: 'dif' }] }
 
-			const a = EntityExample.create(propsA).value();
-			const b = EntityExample.create(propsB).value();
+			const a = await EntityExample.create(propsA);
+			const b = await EntityExample.create(propsB);
 
-			expect(a.isEqual(b)).toBeFalsy();
+			expect(a?.isEqual(b!)).toBeFalsy();
 		});
 
-		it("should compare null and undefined", () => {
+		it("should compare null and undefined", async () => {
 
 			const propsA: Props = { key: 200, values: [{ name: 'abc' }, { name: 'def' }] };
-			const a = EntityExample.create(propsA).value();
-			expect(a.isEqual(null as unknown as EntityExample)).toBeFalsy();
-			expect(a.isEqual(undefined as unknown as EntityExample)).toBeFalsy();
+			const a = await EntityExample.create(propsA);
+			expect(a?.isEqual(null as unknown as EntityExample)).toBeFalsy();
+			expect(a?.isEqual(undefined as unknown as EntityExample)).toBeFalsy();
 		});
 	});
 	describe("util", () => {
@@ -631,35 +624,35 @@ describe("entity", () => {
 				return this.util.string(this.props.foo).removeSpaces();
 			}
 
-			public static create(props: Props): Result<ValSamp | null> {
+			public static create(props: Props): Promise<ValSamp | null> {
 				const isValid = this.isValidProps(props.foo);
-				if (!isValid) return Result.fail('Erro');
-				return Result.Ok(new ValSamp(props))
+				if (!isValid) return Promise.resolve(null);
+				return Promise.resolve(new ValSamp(props))
 			}
 		}
 
-		it('should fail if provide an invalid value', () => {
-			const ent = ValSamp.create({ foo: '' });
-			expect(ent.isFail()).toBeTruthy();
+		it('should fail if provide an invalid value', async () => {
+			const ent = await ValSamp.create({ foo: '' });
+			expect(ent).toBeNull();
 		});
 
-		it('should remove space from value', () => {
-			const ent = ValSamp.create({ foo: ' Some Value With Spaces ' });
-			expect(ent.isOk()).toBeTruthy();
-			expect(ent.value()?.RemoveSpace()).toBe('SomeValueWithSpaces');
+		it('should remove space from value', async () => {
+			const ent = await ValSamp.create({ foo: ' Some Value With Spaces ' });
+			expect(ent).not.toBeNull();
+			expect(ent?.RemoveSpace()).toBe('SomeValueWithSpaces');
 		});
 	});
 
 	describe('toObject', () => {
-		it('should infer types to aggregate on toObject method', () => {
+		it('should infer types to aggregate on toObject method', async () => {
 
 			class Name extends ValueObject<{ value: string }> {
 				private constructor(props: { value: string }) {
 					super(props)
 				}
 
-				public static create(value: string): Result<Name> {
-					return Ok(new Name({ value }));
+				public static create(value: string): Promise<Name | null> {
+					return Promise.resolve(new Name({ value }));
 				}
 			}
 
@@ -676,20 +669,20 @@ describe("entity", () => {
 				private constructor(props: Props) {
 					super(props)
 				}
-				public static create(props: Props): Result<Product> {
-					return Ok(new Product(props));
+				public static create(props: Props): Promise<Product | null> {
+					return Promise.resolve(new Product(props));
 				}
 			}
 
-			const name = Name.create('orange').value();
-			const props: Props = { name, additionalInfo: ['from brazil'], price: 10 };
-			const orange = Product.create(props).value();
+			const name = await Name.create('orange');
+			const props: Props = { name: name!, additionalInfo: ['from brazil'], price: 10 };
+			const orange = await Product.create(props);
 
-			const object = orange.toObject();
+			const object = await orange!.toObject();
 			expect(object.additionalInfo).toEqual(['from brazil']);
 			expect(object.name).toEqual({ value: 'orange' });
 			expect(object.price).toBe(10);
-			expect(object.name.value).toBe('orange');
+			expect((object.name as any).value).toBe('orange');
 		});
 	});
 
@@ -707,6 +700,7 @@ describe("entity", () => {
 			private constructor(props: Props) {
 				super(props)
 			}
+
 			public static init(props: Props): Product {
 				return new Product(props);
 			}
@@ -721,7 +715,7 @@ describe("entity", () => {
 			}
 		}
 
-		it('should clone string with success', () => {
+		it('should clone string with success', async () => {
 			const product = Product.init({
 				additionalInfo: ['lorem'],
 				price: 20,
@@ -730,7 +724,8 @@ describe("entity", () => {
 				updatedAt: new Date('2024-05-01T19:07:45.698Z')
 			});
 			const copy = product.clone({ price: 21 });
-			expect(copy.toObject()).toMatchInlineSnapshot(`
+			const obj = await copy.toObject();
+			expect(obj).toMatchInlineSnapshot(`
 Object {
   "additionalInfo": Array [
     "lorem",
@@ -743,7 +738,7 @@ Object {
 `);
 		});
 
-		it('should clone string with success', () => {
+		it('should clone string with success', async () => {
 			const product = Product.init({
 				additionalInfo: ['lorem'],
 				price: 20,
@@ -752,7 +747,8 @@ Object {
 				updatedAt: new Date('2024-05-01T19:07:45.698Z')
 			});
 			const copy = product.clone({ additionalInfo: ['TESTING...'] });
-			expect(copy.toObject()).toMatchInlineSnapshot(`
+			const obj = await copy.toObject();
+			expect(obj).toMatchInlineSnapshot(`
 Object {
   "additionalInfo": Array [
     "TESTING...",
@@ -765,7 +761,7 @@ Object {
 `);
 		});
 
-		it('should clone string with success', () => {
+		it('should clone string with success', async () => {
 			const product = Product.init({
 				additionalInfo: ['lorem'],
 				price: 20,
@@ -774,7 +770,8 @@ Object {
 				updatedAt: new Date('2024-05-01T19:07:45.698Z')
 			});
 			const copy = product.clone();
-			expect(copy.toObject()).toMatchInlineSnapshot(`
+			const obj = await copy.toObject();
+			expect(obj).toMatchInlineSnapshot(`
 Object {
   "additionalInfo": Array [
     "lorem",
@@ -812,9 +809,9 @@ Object {
 			}
 		}
 
-		it('should init a new user', () => {
+		it('should init a new user', async () => {
 			const user = User.init({ name: 'Jane' });
-			const model = user.toObject(new UAdapter());
+			const model = await user.toObject(new UAdapter());
 			expect(model).toEqual({ name: 'Jane' });
 		});
 
@@ -842,12 +839,12 @@ Object {
 				super(props);
 			}
 	
-			public static create(props: Props): Result<SampleNullish | null> {
+			public static create(props: Props): Promise<SampleNullish | null> {
 				// Explicit typing allows the programmer to handle `null` as a valid case
 				if (!props.name || props.name.trim() === '') {
-					return Fail('name is required');
+					return Promise.resolve(null);
 				}
-				return Ok(new SampleNullish(props));
+				return Promise.resolve(new SampleNullish(props));
 			}
 		}
 	
@@ -856,81 +853,70 @@ Object {
 				super(props);
 			}
 	
-			public static create(props: Props): Result<Sample> {
+			public static create(props: Props): Promise<Sample | null> {
 				// Without `null` as a possibility, the programmer does not need to handle optional cases
 				if (!props.name || props.name.trim() === '') {
-					return Fail('name is required');
+					return Promise.resolve(null);
 				}
-				return Ok(new Sample(props));
+				return Promise.resolve(new Sample(props));
 			}
 		}
 	
 		describe('SampleNullish.create', () => {
-			it('should return a result with a nullish value when name is empty', () => {
+			it('should return a result with a nullish value when name is empty', async () => {
 				// Arrange
 				const invalidProps = { name: '' };
 	
 				// Act
-				const result = SampleNullish.create(invalidProps);
+				const result = await SampleNullish.create(invalidProps);
 	
 				// Assert
-				expect(result.isFail()).toBe(true);
-				expect(result.error()).toBe('name is required');
-	
-				// The Developer must explicitly handle the possibility of `null`
-				const value = result.value();
-				expect(value).toBeNull(); // Explicitly null due to failure
+				expect(result).toBeNull();
 			});
 	
-			it('should return a valid instance when name is provided', () => {
+			it('should return a valid instance when name is provided', async () => {
 				// Arrange
 				const validProps = { name: 'Valid Name' };
 	
 				// Act
-				const result = SampleNullish.create(validProps);
+				const result = await SampleNullish.create(validProps);
 	
 				// Assert
-				expect(result.isOk()).toBe(true);
+				expect(result).not.toBeNull();
 	
 				// The Developer must handle the value as potentially null
-				const value = result.value();
-				expect(value?.get('name')).toBe('Valid Name'); // Safe access with optional chaining
+				const value = result!;
+				expect(value.get('name')).toBe('Valid Name'); // Safe access with optional chaining
 			});
 		});
 	
 		describe('Sample.create', () => {
-			it('should return a failure result when name is empty', () => {
+			it('should return a failure result when name is empty', async () => {
 				// Arrange
 				const invalidProps = { name: '' };
 	
 				// Act
-				const result = Sample.create(invalidProps);
+				const result = await Sample.create(invalidProps);
 	
 				// Assert
-				expect(result.isFail()).toBe(true);
-				expect(result.error()).toBe('name is required');
-	
-				// With no possibility of `null`, the Developer does not need to handle it
-				const value = result.value();
-				expect(value).toBeNull(); // Since the result is a failure
+				expect(result).toBeNull();
 			});
 	
-			it('should return a valid instance when name is provided', () => {
+		it('should return a valid instance when name is provided', async () => {
 				// Arrange
 				const validProps = { name: 'Valid Name' };
 	
 				// Act
-				const result = Sample.create(validProps);
+				const result = await Sample.create(validProps);
 	
 				// Assert
-				expect(result.isOk()).toBe(true);
+				expect(result).not.toBeNull();
 	
 				// Developer does not need to use optional chaining
-				const value = result.value();
+				const value = result!;
 				expect(value.get('name')).toBe('Valid Name'); // Confident non-null access
 			});
 		});
 	});
-	
 
 });

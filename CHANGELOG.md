@@ -10,62 +10,28 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+### [2.0.0] - 2025-10-20
+
+#### **BREAKING CHANGE**
+
+- **Replaced `Result` with `Promise`**:
+  - The `Result` class has been completely removed from the library.
+  - All methods that previously returned a `Result` now return a `Promise`.
+  - `Ok(data)` is replaced with `Promise.resolve(data)`.
+  - `Fail(error)` is replaced with `Promise.resolve(null)`.
+  - This change simplifies the API and aligns it with modern asynchronous JavaScript patterns.
+  - All `create` methods on `ValueObject`, `Entity`, and `Aggregate` are now `async` and return a `Promise`.
+  - The `toObject` method on `ValueObject` and `Entity` is now `async` and returns a `Promise`.
+  - The `createMany` method on `ValueObject`, `Entity`, and `Aggregate` now returns a `CreateManyResult` where `result` is a `Promise`.
+
+---
+
 ### [1.26.0] - 2025-01-27  
 
 #### **Feat**  
 
 - **Nodejs Version**:
   - Added support for nodejs v23
-
----
-
-### [1.25.1] - 2024-12-20  
-
-#### **Feat**  
-
-- **Dynamic Typing in `Result` Made Optional**:  
-  - Developers can now choose between `Result<T>` (non-nullable) and `Result<T | null>` (nullable), based on their specific use case.  
-  - This update allows greater flexibility for explicit `null` handling without forcing unnecessary complexity in scenarios where nullability is not required.  
-
-#### **Examples**  
-
-1. **Explicit Null Handling**:  
-   Use `Result<T | null>` to manage nullable states explicitly:  
-   ```typescript
-   class SampleNullish {
-       public static create(props: Props): Result<SampleNullish | null> {
-           if (!props.name || props.name.trim() === '') {
-               return Fail('name is required');
-           }
-           return Ok(new SampleNullish(props));
-       }
-   }
-   ```
-
-2. **Non-Nullable Values**:  
-   Use `Result<T>` for cases where null handling is unnecessary:  
-   ```typescript
-   class Sample {
-       public static create(props: Props): Result<Sample> {
-           if (!props.name || props.name.trim() === '') {
-               return Fail('name is required');
-           }
-           return Ok(new Sample(props));
-       }
-   }
-   ```
-
-#### **Fix**  
-
-- Enhanced backward compatibility by making nullable typing optional, ensuring existing integrations using `Result<T>` remain unaffected.  
-
-#### **Impact**  
-
-- **Improved Flexibility**:  
-  Developers can adapt the `Result` type to suit their needs, supporting nullable and non-nullable use cases seamlessly.  
-
-- **Enhanced Clarity**:  
-  Provides explicit type inference, ensuring safer and more intuitive code handling for nullable scenarios.
 
 ---
 
@@ -78,7 +44,6 @@ All notable changes to this project will be documented in this file.
 - Enhance class method comments for better documentation.
 - Rename several interfaces for consistency:
     - `IUseCase` renamed to `UseCase`
-    - `IResult` renamed to `Result` or `_Result`
     - `IAdapter` renamed to `Adapter` or `_Adapter`
     - `ICommand` renamed to `Command`
 
@@ -91,25 +56,6 @@ All notable changes to this project will be documented in this file.
 - Fix event payload when contain "*" in pattern
 
 [issue](https://github.com/4lessandrodev/rich-domain/issues/199)
-
----
-
-### [1.24.0] - 2024-11-28
-
-#### Fix
-
-- **Explicit Typing for Failures**: `Result.fail` now explicitly returns `Result<null, ...>`, ensuring that values are always `null` in failure states.
-- **New `isNull` Method**: Added to simplify validation of `null` values or failure states, improving readability and type safety.
-- **Adjusted Creation Methods**: Methods like `create` and adapters now return `Result<T | null>` where applicable for better consistency and error handling.
-
-### **Impact**
-These changes improve type safety, make failure handling more explicit, and encourage clearer checks in code. The updates may require minor adjustments in existing codebases to accommodate the explicit `null` typing in failures. This release is marked as beta for testing purposes. 
-
-Feedback is welcome! 🚀
-
-[issue](https://github.com/4lessandrodev/rich-domain/issues/194)
-
-### Updates
 
 ---
 
@@ -227,7 +173,7 @@ Another alternative is to use an adapter.
 ```ts
 
 class Adapter implements IAdapter<Domain, Model> {
-    adapt(domain: Domain): Result<Model> {
+    adapt(domain: Domain): Promise<Model | null> {
         //...
     }
 }
@@ -327,6 +273,7 @@ context.dispatchEvent('Context-B:*');
 
                 console.log(model);
                 console.log(event);
+
                 console.log(event.eventName);
                 console.log(event.options);
                 // custom params provided on call dispatchEvent
@@ -357,8 +304,8 @@ context.dispatchEvent('Context-B:*');
                 return user;
             }
 
-            public static create(props: Props): Result<User> {
-                return Ok(new User(props));
+            public static create(props: Props): Promise<User | null> {
+                return Promise.resolve(new User(props));
             }
         }
 
@@ -369,9 +316,10 @@ context.dispatchEvent('Context-B:*');
                 super({ eventName: 'SIGNUP' })
             }
 
-            dispatch(user: User): void {
+            async dispatch(user: User): Promise<void> {
                 // dispatch to global context event manager
-                user.context().dispatchEvent("ACCOUNT:USER_REGISTERED", user.toObject());
+                const model = await user.toObject();
+                user.context().dispatchEvent("ACCOUNT:USER_REGISTERED", model);
             };
         }
 
@@ -415,7 +363,7 @@ This version introduces significant changes to the event handling system, enhanc
 
 ```ts
 
-        import { Aggregate, Ok, Result, Context, EventHandler } from 'rich-domain';
+        import { Aggregate, Context, EventHandler } from 'rich-domain';
 
         // ------------------
         // Some Context X
@@ -445,8 +393,8 @@ This version introduces significant changes to the event handling system, enhanc
                 return user;
             }
 
-            public static create(props: Props): Result<User> {
-                return Ok(new User(props));
+            public static create(props: Props): Promise<User | null> {
+                return Promise.resolve(new User(props));
             }
         }
 
@@ -457,9 +405,10 @@ This version introduces significant changes to the event handling system, enhanc
                 super({ eventName: 'SIGNUP' })
             }
 
-            dispatch(user: User): void {
+            async dispatch(user: User): Promise<void> {
                 // dispatch to global context event manager
-                user.context().dispatchEvent("USER_REGISTERED", user.toObject());
+                const model = await user.toObject();
+                user.context().dispatchEvent("USER_REGISTERED", model);
             };
         }
 
@@ -711,7 +660,6 @@ DomainEvents.dispatch({ /* ... */});
 
 ```
 
-- changed: Result properties to private using # to do not serialize private keys
 - changed: Types for create method: Entity, Aggregate and ValueObject
 - changed: Clone method in Entity and Aggregate instance. Now It accepts optional props.
 
@@ -785,7 +733,7 @@ util.number(0).divideBy(1);
 - Change payload
 
 ### Breaking Change
-- ValueObject, Entity, Aggregate: `clone` method now returns an instance instead `Result`
+- ValueObject, Entity, Aggregate: `clone` method now returns an instance instead `Promise`
 - ValueObject, Entity, Aggregate: `set` and `change` method now returns `true` if the value has changed and returns `false` if the value has not changed.
 
 ```ts
@@ -887,7 +835,7 @@ The function still works, but it is marked as deprecated. show warning if using.
 - Now its possible to convert entity on aggregate
 
 ---
-### [1.14.5] - 2022-11-25
+### [1.14.5] - 2022-11-22
 
 ### Fixed
 
@@ -899,124 +847,7 @@ The function still works, but it is marked as deprecated. show warning if using.
 - dispatchAll: added fn to dispatch all event by aggregate id
 
 ---
-### [1.14.4] - 2022-11-22
 
-### Changed
-
-- Types: update types for Result
-
----
-### [1.14.3] - 2022-11-22
-
-### Changed
-
-- Result: change to type any result arg on combine function
-### Added
-
-- Result: added Combine function as single import
-- Types: added Payload type as Result type
-
----
-### [1.14.2] - 2022-11-22
-
-### Added
-
-- validator: added method to validate if all chars in string is number
-
----
-### [1.14.1] - 2022-10-03
-
-### Updated
-
-- result: ensure result props to be read only
-
----
-### [1.14.0] - 2022-09-27
-
-### Change
-
-- refactor: Fail
-- refactor: Ok
-- refactor: Result.Ok
-- refactor: Result.fail
-
-Change generic types order for `Result.fail` and `Result.Ok`
-
-Now each method has your own order
-Example: 
-
-```ts
-
-// for implementation: 
-IResult<Payload, Error, MetaData>;
-
-// before the generic order was the same for both method.
-// now for 
-Result.Ok
-
-// the generic order is 
-Result.Ok<Payload, MetaData, Error>(payload metaData);
-
-// for 
-Result.fail 
-
-//the generic order is 
-Result.fail<Error, MetaData, Payload>(error, metaData);
-
-```
-
-Changes made on Ok
-
-```ts
-
-import { Ok } from 'rich-domain';
-
-// simple use case for success. no arg required
-return Ok();
-
-// arg required 
-
-return Ok<string>('my payload');
-
-// arg and metaData required 
-
-interface MetaData {
-  arg: string;
-}
-
-return Ok<string, MetaData>('payload', { arg: 'sample' })
-```
-
-Changes made on Fail
-
-```ts
-
-import { Fail } from 'rich-domain';
-
-// simple use case for success. no arg required
-return Fail();
-
-// arg required 
-
-return Fail<string>('my payload');
-
-// arg and metaData required 
-
-interface MetaData {
-  arg: string;
-}
-
-return Fail<string, MetaData>('payload', { arg: 'sample' })
-```
----
-### [1.13.0] - 2022-09-26
-
-### Added
-
-- feat: implement function Fail
-- feat: implement function Ok
-
----
 ### [1.12.0] - 2022-09-14
 
 ### Fixed
@@ -1081,44 +912,14 @@ const { result, data } = ValueObject.createMany([
   Class<NameProps>(Name, props)
 ]);
 
-result.isOk() // true
-
-const age = data.next() as IResult<Age>;
-const price = data.next() as IResult<Price>;
-const name = data.next() as IResult<Name>;
-
-age.value().get('value') // 21
-
-```
-
-### Change
-
-### Result:
-
-- from `isOK()` to `isOk()`
-- from `OK()` to `Ok()`
-
----
-
-### [1.9.0]-beta - 2022-08-06
-
-### Change
-
-- Result: now you may return Result<void>
-
-```ts
-
-const result: Result<void> = Result.Ok();
+const res = await result;
+if(res){
+  const age = await data.next();
+  const price = await data.next();
+  const name = await data.next();
+  age.get('value') // 21
+}
 
 ```
-- Rename methods:
-
-### Result:
-
-- from `isFailure()` to `isFail()`
-- from `isSuccess()` to `isOK()`
-- from `isShortID()` to `isShort()`
-- from `success()` to `OK()`
-- from `createShort()` to `short()`
 
 ---

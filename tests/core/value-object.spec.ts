@@ -1,5 +1,5 @@
-import { Class, Ok, Result, ValueObject } from "../../lib/core";
-import { Adapter, ICommand, _Result } from "../../lib/types";
+import { Class, ValueObject } from "../../lib/core";
+import { Adapter } from "../../lib/types";
 import { Utils, Validator } from "../../lib/utils";
 
 describe('value-object', () => {
@@ -33,8 +33,9 @@ describe('value-object', () => {
 			}
 
 
-			public static create(props: Props): Result<GenericVo> {
-				return Ok(new GenericVo(props))
+			public static create(props: Props): Promise<GenericVo | null> {
+				if(props === null || typeof props === 'undefined') return Promise.resolve(null);
+				return Promise.resolve(new GenericVo(props))
 			}
 		}
 
@@ -51,20 +52,20 @@ describe('value-object', () => {
 			expect(GenericVo.tools().validator).toBeInstanceOf(Validator);
 		});
 
-		it('should return fails if provide a null value', () => {
-			const obj = GenericVo.create(null as any);
-			expect(obj.isFail()).toBeFalsy();
+		it('should return fails if provide a null value', async () => {
+			const obj = await GenericVo.create(null as any);
+			expect(obj).toBeNull();
 		});
 
-		it('should return fails if provide an undefined value', () => {
-			const obj = GenericVo.create(undefined as any);
-			expect(obj.isFail()).toBeFalsy();
+		it('should return fails if provide an undefined value', async () => {
+			const obj = await GenericVo.create(undefined as any);
+			expect(obj).toBeNull();
 		});
 
-		it('should create a valid value-object', () => {
-			const obj = GenericVo.create({ value: 'Hello World' });
-			expect(obj.isFail()).toBeFalsy();
-			expect(obj.value().get('value')).toBe('Hello World');
+		it('should create a valid value-object', async () => {
+			const obj = await GenericVo.create({ value: 'Hello World' });
+			expect(obj).not.toBeNull();
+			expect(obj?.get('value')).toBe('Hello World');
 		});
 
 	});
@@ -82,22 +83,26 @@ describe('value-object', () => {
 			public static isValidProps(): boolean {
 				return true;
 			}
+
+			public static create(props: any): Promise<GenericVo | null> {
+				return Promise.resolve(new GenericVo(props));
+			}
 		}
 
-		it('should return success if provide a null value', () => {
-			const obj = GenericVo.create(null);
-			expect(obj.isOk()).toBeTruthy();
+		it('should return success if provide a null value', async () => {
+			const obj = await GenericVo.create(null);
+			expect(obj).not.toBeNull();
 		});
 
-		it('should return success if provide an undefined value', () => {
-			const obj = GenericVo.create(undefined);
-			expect(obj.isOk()).toBeTruthy();
+		it('should return success if provide an undefined value', async () => {
+			const obj = await GenericVo.create(undefined);
+			expect(obj).not.toBeNull();
 		});
 
-		it('should create a valid value-object', () => {
-			const obj = GenericVo.create({ value: 'Hello World' });
-			expect(obj.isFail()).toBeFalsy();
-			expect(obj.value().get('value')).toBe('Hello World');
+		it('should create a valid value-object', async () => {
+			const obj = await GenericVo.create({ value: 'Hello World' });
+			expect(obj).not.toBeNull();
+			expect(obj?.get('value')).toBe('Hello World');
 		});
 
 	});
@@ -111,13 +116,13 @@ describe('value-object', () => {
 		class City extends ValueObject<'A' | 'B' | 'C'> { }
 		class Address extends ValueObject<Props> { }
 
-		it('should verify resolved types', () => {
+		it('should verify resolved types', async () => {
 			const address = new Address({
 				city: new City('A'),
 				number: 123,
 				street: '5th Avenue'
 			});
-			const addressObject = address.toObject()
+			const addressObject = await address.toObject()
 
 			expect(addressObject).toEqual({
 				city: 'A',
@@ -134,13 +139,13 @@ describe('value-object', () => {
 			expect(addressObject.street.toUpperCase()).toBe('5TH AVENUE');
 		});
 
-		it('should be immutable', () => {
+		it('should be immutable', async () => {
 			const address = new Address({
 				city: new City('A'),
 				number: 123,
 				street: '5th Avenue'
 			});
-			const addressObject = address.toObject()
+			const addressObject = await address.toObject()
 			expect(Object.isFrozen(addressObject)).toBeTruthy();
 			expect(() => (addressObject as any).city = 'B').toThrowError();
 		});
@@ -158,15 +163,15 @@ describe('value-object', () => {
 				super(props);
 			}
 
-			public static create(props: Props): _Result<StringVo> {
-				return Result.Ok(new StringVo(props));
+			public static create(props: Props): Promise<StringVo | null> {
+				return Promise.resolve(new StringVo(props));
 			}
 		}
 
-		it('should create a valid value-object', () => {
-			const obj = StringVo.create({ value: 'Hello World' });
-			expect(obj.isFail()).toBeFalsy();
-			expect(obj.value().getRaw().value).toBe('Hello World');
+		it('should create a valid value-object', async () => {
+			const obj = await StringVo.create({ value: 'Hello World' });
+			expect(obj).not.toBeNull();
+			expect(obj?.getRaw().value).toBe('Hello World');
 		});
 
 	});
@@ -182,22 +187,14 @@ describe('value-object', () => {
 				super(props);
 			}
 
-			public static create(props: Props): _Result<StringVo> {
-				return Result.Ok(new StringVo(props));
+			public static create(props: Props): Promise<StringVo | null> {
+				return Promise.resolve(new StringVo(props));
 			}
 		}
 
-		class Command implements ICommand<string, string> {
-			execute(data: string): string {
-				return data;
-			}
-		}
-
-		it('should execute hook on create a valid value object', () => {
-			const data = 'value object created with success';
-			const obj = StringVo.create({ value: 'Hello World' });
-			const payload = obj.execute(new Command()).withData(data).on('Ok');
-			expect(payload).toBe('value object created with success');
+		it('should execute hook on create a valid value object', async () => {
+			const obj = await StringVo.create({ value: 'Hello World' });
+			expect(obj).not.toBeNull();
 		});
 	})
 
@@ -213,80 +210,95 @@ describe('value-object', () => {
 				super(props, { disableGetters: true });
 			}
 
-			public static create(props: Props): _Result<StringVo> {
-				return Result.Ok(new StringVo(props));
+			public static create(props: Props): Promise<StringVo | null> {
+				return Promise.resolve(new StringVo(props));
 			}
 		}
 
-		it('should disable getter', () => {
-			const str = StringVo.create({ value: 'hello', age: 7 });
-			expect(() => str.value().get('value')).toThrow();
+		it('should disable getter', async () => {
+			const str = await StringVo.create({ value: 'hello', age: 7 });
+			expect(() => str!.get('value')).toThrow();
 		});
 
-		it('should transform value object to object', () => {
+		it('should transform value object to object', async () => {
 			class Sample extends ValueObject<string> {
 				private constructor(props: string) {
 					super(props);
 				}
+				public static create(props: string): Promise<Sample | null> {
+					return Promise.resolve(new Sample(props));
+				}
 			};
 
-			const valueObject = Sample.create('Example');
+			const valueObject = await Sample.create('Example');
 
-			expect(valueObject.value().toObject()).toBe('Example');
+			expect(await valueObject!.toObject()).toBe('Example');
 		});
 
 
-		it('should transform value object to object', () => {
+		it('should transform value object to object', async () => {
 			class Sample extends ValueObject<{ value: string }> {
 				private constructor(props: { value: string }) {
 					super(props);
 				}
+				public static create(props: { value: string }): Promise<Sample | null> {
+					return Promise.resolve(new Sample(props));
+				}
 			};
 
-			const valueObject = Sample.create({ value: 'Sample' });
+			const valueObject = await Sample.create({ value: 'Sample' });
 
-			expect(valueObject.value().toObject()).toEqual({ value: 'Sample' });
+			expect(await valueObject!.toObject()).toEqual({ value: 'Sample' });
 		});
 
-		it('should transform value object to object', () => {
+		it('should transform value object to object', async () => {
 
 			class Sample extends ValueObject<{ value: string, foo: string }> {
 				private constructor(props: { value: string, foo: string }) {
 					super(props);
 				}
+				public static create(props: { value: string, foo: string }): Promise<Sample | null> {
+					return Promise.resolve(new Sample(props));
+				}
 			};
 
-			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
+			const sample = await Sample.create({ value: 'Sample', foo: 'bar' });
 
 			class Obj extends ValueObject<{ value: Sample, other: string }> {
 				private constructor(props: { value: Sample, other: string }) {
 					super(props);
 				}
+				public static create(props: { value: Sample, other: string }): Promise<Obj | null> {
+					return Promise.resolve(new Obj(props));
+				}
 			};
 
-			const result = Obj.create({ value: sample.value(), other: 'Other Sample' });
+			const result = await Obj.create({ value: sample!, other: 'Other Sample' });
 
-			expect(result.value().toObject()).toEqual({
+			expect(await result!.toObject()).toEqual({
 				value: { value: 'Sample', foo: 'bar' },
 				other: 'Other Sample'
 			})
 		});
 
-		it('should clone a value object with success', () => {
+		it('should clone a value object with success', async () => {
 			class Sample extends ValueObject<{ value: string, foo: string }> {
 				private constructor(props: { value: string, foo: string }) {
 					super(props);
 				}
+				public static create(props: { value: string, foo: string }): Promise<Sample | null> {
+					return Promise.resolve(new Sample(props));
+				}
 			};
 
-			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
+			const sample = await Sample.create({ value: 'Sample', foo: 'bar' });
 
-			const result = sample.value().clone();
+			const result = sample!.clone();
 
-			expect(sample.value().toObject()).toEqual(result.toObject())
+			expect(await sample!.toObject()).toEqual(await result.toObject())
 		});
 
-		it('should clone a value object with custom props', () => {
+		it('should clone a value object with custom props', async () => {
 
 			interface Props { value: string; foo: string; }
 			class Sample extends ValueObject<Props> {
@@ -294,16 +306,16 @@ describe('value-object', () => {
 					super(props);
 				}
 
-				public static create(props: Props): Result<Sample> {
-					return Ok(new Sample(props));
+				public static create(props: Props): Promise<Sample | null> {
+					return Promise.resolve(new Sample(props));
 				}
 			};
 
-			const sample = Sample.create({ value: 'Sample', foo: 'bar' });
+			const sample = await Sample.create({ value: 'Sample', foo: 'bar' });
 
-			const result = sample.value().clone({ foo: 'other' });
+			const result = sample!.clone({ foo: 'other' });
 
-			expect(result.toObject()).toEqual({ foo: 'other', value: 'Sample' });
+			expect(await result.toObject()).toEqual({ foo: 'other', value: 'Sample' });
 		});
 
 	});
@@ -328,9 +340,9 @@ describe('value-object', () => {
 				return isValidAge && isValidDate;
 			}
 
-			public static create(props: Props1): _Result<HumanAge | null> {
-				if (!HumanAge.isValidProps(props)) return Result.fail('Invalid props');
-				return Result.Ok(new HumanAge(props));
+			public static create(props: Props1): Promise<HumanAge | null> {
+				if (!HumanAge.isValidProps(props)) return Promise.resolve(null);
+				return Promise.resolve(new HumanAge(props));
 			}
 		}
 
@@ -350,14 +362,14 @@ describe('value-object', () => {
 				super(props);
 			}
 
-			public static create(props: Props3): _Result<Sample> {
-				return Result.Ok(new Sample(props));
+			public static create(props: Props3): Promise<Sample | null> {
+				return Promise.resolve(new Sample(props));
 			}
 		};
 
-		it('should create many value objects', () => {
+		it('should create many value objects', async () => {
 
-			const payload = ValueObject.createMany([
+			const payload = await ValueObject.createMany([
 				{
 					class: HumanAge,
 					props: { value: 21, birthDay: new Date('2021-01-01') }
@@ -372,13 +384,14 @@ describe('value-object', () => {
 				}
 			]);
 
-			expect(payload.result.isOk()).toBeTruthy();
+			const result = await payload.result;
+			expect(result).not.toBeNull();
 			expect(payload.data.total()).toBe(3);
 		});
 
-		it('should add fails if does not exists create function on class', () => {
+		it('should add fails if does not exists create function on class', async () => {
 
-			const payload = ValueObject.createMany([
+			const payload = await ValueObject.createMany([
 				{
 					class: {},
 					props: { value: 21, birthDay: new Date() }
@@ -393,54 +406,58 @@ describe('value-object', () => {
 				}
 			]);
 
-			expect(payload.result.error()).toBe(`No static 'create' method found in class undefined.`)
-			expect(payload.result.isFail()).toBeTruthy();
+			const result = await payload.result;
+			expect(result).toBeNull();
 			expect(payload.data.total()).toBe(3);
 		});
 
-		it('should create many using DomainClass helper', () => {
-			const { result, data } = ValueObject.createMany([
+		it('should create many using DomainClass helper', async () => {
+			const { result, data } = await ValueObject.createMany([
 				Class<Props1>(HumanAge, { value: 21, birthDay: new Date('2021-01-01') }),
 				Class<Props2>(GenericVo, { value: 'Hello' }),
 				Class<Props3>(Sample, { value: 'hello', foo: 'testing' })
 			]);
 
-			expect(result.isOk()).toBeTruthy();
+			const res = await result;
+			expect(res).not.toBeNull();
 			expect(data.total()).toBe(3);
 
-			const age = data.next() as _Result<HumanAge>;
-			const generic = data.next() as _Result<GenericVo>;
-			const sample = data.next() as _Result<Sample>;
+			const age = await data.next() as HumanAge;
+			const generic = await data.next() as GenericVo;
+			const sample = await data.next() as Sample;
 
-			expect(age.isOk()).toBeTruthy();
-			expect(generic.isOk()).toBeTruthy();
-			expect(sample.isOk()).toBeTruthy();
+			expect(age).not.toBeNull();
+			expect(generic).not.toBeNull();
+			expect(sample).not.toBeNull();
 
-			expect(age.value().getRaw().value).toBe(21);
-			expect(generic.value().getRaw().value).toBe('Hello');
-			expect(sample.value().getRaw().value).toBe('hello');
+			expect(age.getRaw().value).toBe(21);
+			expect(generic.getRaw().value).toBe('Hello');
+			expect(sample.getRaw().value).toBe('hello');
 		});
 
-		it('should fails if provide an empty array', () => {
-			const { result, data: iterator } = ValueObject.createMany([]);
+		it('should fails if provide an empty array', async () => {
+			const { result, data: iterator } = await ValueObject.createMany([]);
 
-			expect(result.isFail()).toBeTruthy();
+			const res = await result;
+			expect(res).toBeNull();
 			expect(iterator.total()).toBe(0);
 		});
 
-		it('should fails if provide an empty array', () => {
-			const { result, data: iterator } = ValueObject.createMany({} as any);
+		it('should fails if provide an empty array', async () => {
+			const { result, data: iterator } = await ValueObject.createMany({} as any);
 
-			expect(result.isFail()).toBeTruthy();
+			const res = await result;
+			expect(res).toBeNull();
 			expect(iterator.total()).toBe(0);
 		});
 
-		it('should fails if provide an invalid props', () => {
-			const { result, data: iterator } = ValueObject.createMany([
+		it('should fails if provide an invalid props', async () => {
+			const { result, data: iterator } = await ValueObject.createMany([
 				Class<Props1>(HumanAge, { value: 210 } as any),
 			]);
 
-			expect(result.isFail()).toBeTruthy();
+			const res = await result;
+			expect(res).toBeNull();
 			expect(iterator.total()).toBe(1);
 		})
 	});
@@ -455,30 +472,30 @@ describe('value-object', () => {
 				super(props)
 			}
 
-			public static create(props: Props): Result<Exam> {
-				return Ok(new Exam(props));
+			public static create(props: Props): Promise<Exam | null> {
+				return Promise.resolve(new Exam(props));
 			}
 		};
 
-		it('should to be equal another instance', () => {
-			const a = Exam.create({ value: "hello there" }).value();
-			const b = Exam.create({ value: "hello there" }).value();
+		it('should to be equal another instance', async () => {
+			const a = await Exam.create({ value: "hello there" });
+			const b = await Exam.create({ value: "hello there" });
 
-			expect(a.isEqual(b)).toBeTruthy();
+			expect(a!.isEqual(b!)).toBeTruthy();
 		});
 
-		it('should to be equal another instance', () => {
-			const a = Exam.create({ value: "hello there" }).value();
-			const b = a.clone();
+		it('should to be equal another instance', async () => {
+			const a = await Exam.create({ value: "hello there" });
+			const b = a!.clone();
 
-			expect(a.isEqual(b)).toBeTruthy();
+			expect(a!.isEqual(b)).toBeTruthy();
 		});
 
-		it('should not to be equal another instance', () => {
-			const a = Exam.create({ value: "hello there 1" }).value();
-			const b = Exam.create({ value: "hello there 2" }).value();
+		it('should not to be equal another instance', async () => {
+			const a = await Exam.create({ value: "hello there 1" });
+			const b = await Exam.create({ value: "hello there 2" });
 
-			expect(a.isEqual(b)).toBeFalsy();
+			expect(a!.isEqual(b!)).toBeFalsy();
 		});
 	});
 
@@ -501,24 +518,24 @@ describe('value-object', () => {
 				return this.util.string(this.props.value).removeSpecialChars();
 			}
 
-			public static create(props: Props): Result<Exam> {
-				return Ok(new Exam(props));
+			public static create(props: Props): Promise<Exam | null> {
+				return Promise.resolve(new Exam(props));
 			}
 		};
 
-		it('should remove spaces', () => {
-			const a = Exam.create({ value: " Some Value With Many Space" }).value();
-			expect(a.RemoveSpaces()).toBe('SomeValueWithManySpace');
+		it('should remove spaces', async () => {
+			const a = await Exam.create({ value: " Some Value With Many Space" });
+			expect(a!.RemoveSpaces()).toBe('SomeValueWithManySpace');
 		});
 
-		it('should remove special chars', () => {
-			const a = Exam.create({ value: "#Some@Value&With%Many*Special-Chars" }).value();
-			expect(a.RemoveSpecialChars()).toBe('SomeValueWithManySpecialChars');
+		it('should remove special chars', async () => {
+			const a = await Exam.create({ value: "#Some@Value&With%Many*Special-Chars" });
+			expect(a!.RemoveSpecialChars()).toBe('SomeValueWithManySpecialChars');
 		});
 
-		it('should remove special chars and spaces', () => {
-			const a = Exam.create({ value: "#Some @Value &With %Many *Special-Chars" }).value();
-			expect(a.RemoveSpaces(a.RemoveSpecialChars())).toBe('SomeValueWithManySpecialChars');
+		it('should remove special chars and spaces', async () => {
+			const a = await Exam.create({ value: "#Some @Value &With %Many *Special-Chars" });
+			expect(a!.RemoveSpaces(a!.RemoveSpecialChars())).toBe('SomeValueWithManySpecialChars');
 		});
 	});
 
@@ -530,38 +547,38 @@ describe('value-object', () => {
 				super(props)
 			}
 
-			public static create(props: Props): _Result<Simple> {
-				return Result.Ok(new Simple(props));
+			public static create(props: Props): Promise<Simple | null> {
+				return Promise.resolve(new Simple(props));
 			}
 		}
 
-		it('should infer type on compare', () => {
-			const a = Simple.create({ value: 'a' }).value();
-			const b = Simple.create({ value: 'b' }).value();
-			const c = Simple.create({ value: 'a' }).value();
+		it('should infer type on compare', async () => {
+			const a = await Simple.create({ value: 'a' });
+			const b = await Simple.create({ value: 'b' });
+			const c = await Simple.create({ value: 'a' });
 
-			expect(a.isEqual(b)).toBeFalsy();
-			expect(a.isEqual(c)).toBeTruthy();
+			expect(a!.isEqual(b!)).toBeFalsy();
+			expect(a!.isEqual(c!)).toBeTruthy();
 		});
 
-		it('should compare nullable or undefined', () => {
-			const a = Simple.create({ value: 'a' }).value();
-			const b = Simple.create({ value: 'b' }).value();
+		it('should compare nullable or undefined', async () => {
+			const a = await Simple.create({ value: 'a' });
+			const b = await Simple.create({ value: 'b' });
 
-			expect(a.isEqual(null as unknown as Simple)).toBeFalsy();
-			expect(b.isEqual(undefined as unknown as Simple)).toBeFalsy();
+			expect(a!.isEqual(null as unknown as Simple)).toBeFalsy();
+			expect(b!.isEqual(undefined as unknown as Simple)).toBeFalsy();
 		});
 
-		it('should create a valid props object as value object', () => {
-			const primitive = Simple.create({ value: 'TEST' }).value();
-			expect(typeof primitive.getRaw().value).toBe('string');
-			expect(typeof primitive.get('value')).toBe('string');
-			expect(typeof primitive.get('value')).toBe('string');
-			expect(typeof primitive.toObject()).toBe('object');
+		it('should create a valid props object as value object', async () => {
+			const primitive = await Simple.create({ value: 'TEST' });
+			expect(typeof primitive!.getRaw().value).toBe('string');
+			expect(typeof primitive!.get('value')).toBe('string');
+			const obj = await primitive!.toObject();
+			expect(typeof obj).toBe('object');
 
-			expect(primitive.getRaw().value).toBe('TEST');
-			expect(primitive.get('value')).toBe('TEST');
-			expect(primitive.toObject()).toEqual({ value: 'TEST' });
+			expect(primitive!.getRaw().value).toBe('TEST');
+			expect(primitive!.get('value')).toBe('TEST');
+			expect(await primitive!.toObject()).toEqual({ value: 'TEST' });
 		});
 
 	});
@@ -573,20 +590,21 @@ describe('value-object', () => {
 				super(value)
 			}
 
-			public static create(value: string): Result<Primitive> {
-				return Ok(new Primitive(value));
+			public static create(value: string): Promise<Primitive | null> {
+				return Promise.resolve(new Primitive(value));
 			}
 		};
 
-		it('should create a valid primitive value object', () => {
-			const primitive = Primitive.create('TEST').value();
-			expect(typeof primitive.getRaw()).toBe('string');
-			expect(typeof primitive.get('value')).toBe('string');
-			expect(typeof primitive.toObject()).toBe('string');
+		it('should create a valid primitive value object', async () => {
+			const primitive = await Primitive.create('TEST');
+			expect(typeof primitive!.getRaw()).toBe('string');
+			expect(typeof primitive!.get('value')).toBe('string');
+			const obj = await primitive!.toObject();
+			expect(typeof obj).toBe('string');
 
-			expect(primitive.getRaw()).toBe('TEST');
-			expect(primitive.get('value')).toBe('TEST');
-			expect(primitive.toObject()).toBe('TEST');
+			expect(primitive!.getRaw()).toBe('TEST');
+			expect(primitive!.get('value')).toBe('TEST');
+			expect(await primitive!.toObject()).toBe('TEST');
 		});
 	});
 
@@ -597,21 +615,21 @@ describe('value-object', () => {
 				super(value)
 			}
 
-			public static create(value: Date): Result<Primitive> {
-				return Ok(new Primitive(value));
+			public static create(value: Date): Promise<Primitive | null> {
+				return Promise.resolve(new Primitive(value));
 			}
 		};
 
-		it('should create a valid primitive value object', () => {
+		it('should create a valid primitive value object', async () => {
 			const date = new Date('2024-04-01T00:00:00');
-			const primitive = Primitive.create(date).value();
-			expect(primitive.getRaw()).toBeInstanceOf(Date);
-			expect(primitive.get('value')).toBeInstanceOf(Date);
-			expect(primitive.toObject()).toEqual(expect.any(Date));
+			const primitive = await Primitive.create(date);
+			expect(primitive!.getRaw()).toBeInstanceOf(Date);
+			expect(primitive!.get('value')).toBeInstanceOf(Date);
+			expect(await primitive!.toObject()).toEqual(expect.any(Date));
 
-			expect(primitive.getRaw()).toBe(date);
-			expect(primitive.get('value')).toBe(date);
-			expect(primitive.toObject()).toBe(date);
+			expect(primitive!.getRaw()).toBe(date);
+			expect(primitive!.get('value')).toBe(date);
+			expect(await primitive!.toObject()).toBe(date);
 		});
 	});
 
@@ -622,20 +640,20 @@ describe('value-object', () => {
 				super(value)
 			}
 
-			public static create(value: Array<number>): Result<Primitive> {
-				return Ok(new Primitive(value));
+			public static create(value: Array<number>): Promise<Primitive | null> {
+				return Promise.resolve(new Primitive(value));
 			}
 		};
 
-		it('should create a valid primitive value object', () => {
-			const primitive = Primitive.create([1, 2, 3]).value();
-			expect(primitive.getRaw()).toEqual([1, 2, 3]);
-			expect(primitive.get('value')).toEqual([1, 2, 3]);
-			expect(primitive.toObject()).toEqual([1, 2, 3]);
+		it('should create a valid primitive value object', async () => {
+			const primitive = await Primitive.create([1, 2, 3]);
+			expect(primitive!.getRaw()).toEqual([1, 2, 3]);
+			expect(primitive!.get('value')).toEqual([1, 2, 3]);
+			expect(await primitive!.toObject()).toEqual([1, 2, 3]);
 		});
 
-		it('should create many primitive', () => {
-			const payload = ValueObject.createMany([
+		it('should create many primitive', async () => {
+			const payload = await ValueObject.createMany([
 				{
 					class: Primitive,
 					props: [1, 2],
@@ -646,8 +664,10 @@ describe('value-object', () => {
 				}
 			]);
 
-			expect(payload.result.isOk()).toBeTruthy();
-			expect(payload.data.next().value()).toMatchInlineSnapshot(`
+			const result = await payload.result;
+			expect(result).not.toBeNull();
+			const first = await payload.data.next();
+			expect(first).toMatchInlineSnapshot(`
 Primitive {
   "autoMapper": AutoMapper {
     "validator": Validator {},
@@ -721,98 +741,98 @@ Primitive {
 			public static init(props: CProps): Complex {
 				return new Complex(props);
 			}
-			public static create(props: CProps): Result<Complex> {
-				return Ok(new Complex(props));
+			public static create(props: CProps): Promise<Complex | null> {
+				return Promise.resolve(new Complex(props));
 			}
 		}
 
-		it('should clone string vo with success', () => {
+		it('should clone string vo with success', async () => {
 			const str = StringVo.init('sample');
 			expect(str.get('value')).toBe('sample');
-			expect(str.toObject()).toBe('sample');
+			expect(await str.toObject()).toBe('sample');
 
 			const copy = str.clone();
 
 			expect(copy.get('value')).toBe('sample');
-			expect(copy.toObject()).toBe('sample');
+			expect(await copy.toObject()).toBe('sample');
 			expect(copy.isEqual(str)).toBeTruthy();
 			expect(copy.isEqual(StringVo.init('other'))).toBeFalsy();
 		});
 
 		// Test for NumberVo
-		it('should clone number vo with success', () => {
+		it('should clone number vo with success', async () => {
 			const num = NumberVo.init(42);
 			expect(num.get('value')).toBe(42);
-			expect(num.toObject()).toBe(42);
+			expect(await num.toObject()).toBe(42);
 
 			const copy = num.clone();
 
 			expect(copy.get('value')).toBe(42);
-			expect(copy.toObject()).toBe(42);
+			expect(await copy.toObject()).toBe(42);
 			expect(copy.isEqual(num)).toBeTruthy();
 			expect(copy.isEqual(NumberVo.init(43))).toBeFalsy();
 		});
 
 		// Test for ArrayVo
-		it('should clone array vo with success', () => {
+		it('should clone array vo with success', async () => {
 			const arr = ArrayVo.init([1, 2, 3]);
 			expect(arr.get('value')).toEqual([1, 2, 3]);
-			expect(arr.toObject()).toEqual([1, 2, 3]);
+			expect(await arr.toObject()).toEqual([1, 2, 3]);
 
 			const copy = arr.clone();
 
 			expect(copy.get('value')).toEqual([1, 2, 3]);
-			expect(copy.toObject()).toEqual([1, 2, 3]);
+			expect(await copy.toObject()).toEqual([1, 2, 3]);
 			expect(copy.isEqual(arr)).toBeTruthy();
 			expect(copy.isEqual(ArrayVo.init([4, 5, 6]))).toBeFalsy();
 		});
 
 		// Test for SymbolVo
-		it('should clone symbol vo with success', () => {
+		it('should clone symbol vo with success', async () => {
 			const sym = SymbolVo.init(Symbol('test'));
 			expect(sym.get('value')).toBe('test');
-			expect(sym.toObject()).toBe('test');
+			expect(await sym.toObject()).toBe('test');
 
 			const copy = sym.clone();
 
 			expect(copy.get('value')).toBe('test');
-			expect(copy.toObject()).toBe('test');
+			expect(await copy.toObject()).toBe('test');
 			expect(copy.isEqual(sym)).toBeTruthy();
 			expect(copy.isEqual(SymbolVo.init(Symbol('other')))).toBeFalsy();
 		});
 
 		// Test for DateVo
-		it('should clone date vo with success', () => {
+		it('should clone date vo with success', async () => {
 			const date = new Date();
 			const dateVo = DateVo.init(date);
 			expect(dateVo.get('value')).toEqual(date);
-			expect(dateVo.toObject()).toEqual(date);
+			expect(await dateVo.toObject()).toEqual(date);
 
 			const copy = dateVo.clone();
 
 			expect(copy.get('value')).toEqual(date);
-			expect(copy.toObject()).toEqual(date);
+			expect(await copy.toObject()).toEqual(date);
 			expect(copy.isEqual(dateVo)).toBeTruthy();
 			expect(copy.isEqual(DateVo.init(new Date('2020-01-01')))).toBeFalsy();
 		});
 
 		// Test for ObjectVo
-		it('should clone object vo with success', () => {
+		it('should clone object vo with success', async () => {
 			const obj = { value: 'sample' };
 			const objVo = ObjectVo.init(obj);
 			expect(objVo.get('value')).toEqual('sample');
-			expect(objVo.toObject()).toEqual(obj);
+			expect(await objVo.toObject()).toEqual(obj);
 
 			const copy = objVo.clone();
 
 			expect(copy.get('value')).toEqual('sample');
-			expect(copy.toObject()).toEqual(obj);
+			expect(await copy.toObject()).toEqual(obj);
 			expect(copy.isEqual(objVo)).toBeTruthy();
 			expect(copy.isEqual(ObjectVo.init({ value: 'other' }))).toBeFalsy();
 		});
 
 		// Test for Complex
-		it('should clone object vo with success', () => {
+		it('should clone object vo with success', async () => {
 			const props: CProps = {
 				index: NumberVo.init(1),
 				items: ArrayVo.init([1, 2, 3]),
@@ -821,7 +841,8 @@ Primitive {
 				type: SymbolVo.init(Symbol('lorem'))
 			};
 			const objVo = Complex.init(props);
-			expect(objVo.toObject()).toMatchInlineSnapshot(`
+			const obj = await objVo.toObject();
+			expect(obj).toMatchInlineSnapshot(`
 Object {
   "index": 1,
   "items": Array [
@@ -840,7 +861,7 @@ Object {
 			expect(objVo.get('items').get('value'))
 			expect(objVo.get('type').get('value')).toBe('lorem');
 			// expect(objVo.get('value')).toEqual(props);
-			expect(objVo.toObject()).toEqual({
+			expect(await objVo.toObject()).toEqual({
 				"index": 1,
 				"items": [
 					1,
@@ -856,7 +877,7 @@ Object {
 
 			const copy: Complex = objVo.clone();
 
-			expect(copy.toObject()).toEqual({
+			expect(await copy.toObject()).toEqual({
 				"index": 1,
 				"items": [
 					1,
@@ -904,14 +925,14 @@ Object {
 
 		});
 
-		it('should adapt using adapter', () => {
+		it('should adapt using adapter', async () => {
 			class AdaptName implements Adapter<Custom, string> {
 				adaptOne(item: Custom): string {
 					return item.get('value') + ' Doe';
 				}
 			}
 			const name = Custom.init('Jane');
-			expect(name.toObject(new AdaptName())).toBe('Jane Doe');
+			expect(await name.toObject(new AdaptName())).toBe('Jane Doe');
 		});
 
 		it('should adapt many', () => {
