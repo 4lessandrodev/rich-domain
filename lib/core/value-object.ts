@@ -1,9 +1,8 @@
-import { Adapter, AutoMapperSerializer, _Adapter, _Result, _ValueObject, _VoSettings, UID } from "../types";
+import { Adapter, AutoMapperSerializer, _Adapter, _ValueObject, _VoSettings, UID } from "../types";
 import { ReadonlyDeep } from "../types-util";
 import { deepFreeze } from "../utils/deep-freeze.util";
 import AutoMapper from "./auto-mapper";
 import BaseGettersAndSetters from "./base-getters-and-setters";
-import Result from "./result";
 
 /**
  * @description A `ValueObject` represents a domain object characterized by its properties rather than a unique identifier.
@@ -107,13 +106,14 @@ export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements 
 	 * @param adapter Optional adapter to transform the value object into a custom format.
 	 * @returns A deeply frozen, plain object representation of the value object properties.
 	 */
-	toObject<T>(adapter?: Adapter<this, T> | _Adapter<this, T>)
-		: T extends {} ? T : ReadonlyDeep<AutoMapperSerializer<Props>> {
+	async toObject<T>(adapter?: Adapter<this, T> | _Adapter<this, T>)
+		: Promise<T extends {} ? T : ReadonlyDeep<AutoMapperSerializer<Props>>> {
 		if (adapter && typeof (adapter as Adapter<this, T>)?.adaptOne === 'function') {
 			return (adapter as Adapter<this, T>).adaptOne(this) as any;
 		}
 		if (adapter && typeof (adapter as _Adapter<this, T>)?.build === 'function') {
-			return (adapter as _Adapter<this, T>).build(this).value() as any;
+			const result = await (adapter as _Adapter<this, T>).build(this);
+			return result as any;
 		}
 		const serializedObject = this.autoMapper.valueObjectToObj(this) as ReadonlyDeep<AutoMapperSerializer<Props>>;
 		const frozenObject = deepFreeze<any>(serializedObject);
@@ -151,16 +151,18 @@ export class ValueObject<Props> extends BaseGettersAndSetters<Props> implements 
 		});
 	}
 
-	public static create(props: any): _Result<any, any, any>;
 	/**
-	 * @description Creates a new ValueObject instance wrapped inside a `Result`.
-	 * Returns a failure `Result` if the provided properties are invalid.
+	 * @description Creates a new ValueObject instance wrapped inside a `Promise`.
+	 * Returns a failure `Promise` if the provided properties are invalid.
 	 * @param props The properties needed to create the value object.
-	 * @returns A `Result` containing the new ValueObject on success, or a failure `Result` on invalid properties.
+	 * @returns A `Promise` containing the new ValueObject on success, or a failure `Promise` on invalid properties.
 	 */
-	public static create(props: {}): Result<any, any, any> {
-		if (!this.isValidProps(props)) return Result.fail('Invalid props to create an instance of ' + this.name);
-		return Result.Ok(new this(props));
+	public static create(props: {} | null | undefined): Promise<any | null> {
+		if (props === null || props === undefined || !this.isValidProps(props)) {
+			console.log('Invalid props to create an instance of ' + this.name);
+			return Promise.resolve(null);
+		}
+		return Promise.resolve(new this(props));
 	}
 }
 

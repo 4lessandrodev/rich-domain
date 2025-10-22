@@ -1,4 +1,4 @@
-import { Aggregate, Ok, Result, Context } from "../../lib/core";
+import { Aggregate, Context } from "../../lib/core";
 import { EventHandler } from "../../lib/types";
 
 describe('context', () => {
@@ -15,8 +15,8 @@ describe('context', () => {
             return new User({ name });
         }
 
-        public static create(props: Props): Result<User> {
-            return Ok(new User(props));
+        public static create(props: Props): Promise<User | null> {
+            return Promise.resolve(new User(props));
         }
     }
 
@@ -28,12 +28,13 @@ describe('context', () => {
             super({ eventName: 'CONTEXT:HANDLER' })
         }
 
-        dispatch(user: User): void {
-            contextY.dispatchEvent(this.params.eventName, user.toObject());
+        async dispatch(user: User): Promise<void> {
+            const model = await user.toObject();
+            contextY.dispatchEvent(this.params.eventName, model);
         };
     }
 
-    it('should dispatch global event when user signs up', () => {
+    it('should dispatch global event when user signs up', async () => {
         // Mock event handler
         const mockEventHandler = jest.fn();
 
@@ -44,7 +45,7 @@ describe('context', () => {
         // User signs up
         const user = User.signUp('Jane Doe');
 
-        const model = user.toObject();
+        const model = await user.toObject();
 
         // Dispatch REGISTER event with user data
         context.dispatchEvent('CONTEXT:REGISTER', model);
@@ -53,7 +54,7 @@ describe('context', () => {
         expect(mockEventHandler).toHaveBeenCalledWith({ detail: [model] });
     });
 
-    it('should dispatch global event on handler when user signs up', () => {
+    it('should dispatch global event on handler when user signs up', async () => {
         // Mock event handler
         const mockGlobalEventHandler = jest.fn();
 
@@ -64,7 +65,7 @@ describe('context', () => {
         // User signs up
         const user = User.signUp('John Doe');
 
-        const model = user.toObject();
+        const model = await user.toObject();
 
         Context.events().dispatchEvent('CONTEXT:SIGNUP', model);
 
@@ -72,7 +73,7 @@ describe('context', () => {
         expect(mockGlobalEventHandler).toHaveBeenCalledWith({ detail: [model] });
     });
 
-    it('should dispatch global event on handler when user signs up', () => {
+    it('should dispatch global event on handler when user signs up', async () => {
         // Mock event handler
         const mockGlobalEventHandler = jest.fn();
 
@@ -84,9 +85,9 @@ describe('context', () => {
         const user = User.signUp('John Doe');
         user.addEvent(new SignUpEvent());
 
-        const model = user.toObject();
+        const model = await user.toObject();
 
-        user.dispatchEvent('CONTEXT:HANDLER');
+        await user.dispatchEvent('CONTEXT:HANDLER');
 
         // Expect event handler to have been called
         expect(mockGlobalEventHandler).toHaveBeenCalledWith({ detail: [model] });
